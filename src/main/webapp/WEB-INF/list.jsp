@@ -6,6 +6,7 @@
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css">
+<title>タイトル</title>
 <style>
 form p {
 	display: inline-block;
@@ -15,7 +16,6 @@ form p {
 	text-align: center;
 }
 </style>
-<title>タイトル</title>
 </head>
 <body onload="_name.focus()">
 <header onclick="location.href='.'">
@@ -24,6 +24,7 @@ form p {
 </header>
 <main>
 <blockquote style="visibility:${empty message ? 'hidden' : ''}">${fn:escapeXml(message)}&nbsp;</blockquote>
+<c:remove var="message" scope="session" /><%-- リダイレクト前セッション属性セットの場合の削除 --%>
 <form method="get">
 	<p><label>製品名</label><input type="text" name="name" value="${fn:escapeXml(param.name)}" id="_name"></p>
 	<p><label>発売日</label><input type="date" name="releaseDate" value="${fn:escapeXml(param.releaseDate)}"></p>

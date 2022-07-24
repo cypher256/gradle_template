@@ -28,32 +28,40 @@ public class CrudServlet extends HttpServlet {
 	/** item エンティティクラス */
 	@Data @NoArgsConstructor
 	public static class Item {
+		public long id;
+		public String name;
+		public String releaseDate;
+		public boolean faceAuth;
+		
 		@SneakyThrows
 		public Item(HttpServletRequest req) {
 			BeanUtils.copyProperties(this, req.getParameterMap());
 		}
+		
 		public Item validate(HttpServletRequest req) {
 			req.setAttribute("item", this);
+			valid(!name.isBlank(), "製品名は必須です。");
 			valid(name.matches("[^<>]+"), "製品名に <> は使用できません。");
 			valid(!(name.matches("(?i).*iphone.*") && !faceAuth), "iPhone は顔認証を有効にしてください。");
 			valid(!releaseDate.endsWith("15"), "発売日は 15 日以外の日付を入力してください。");
 			return this;
 		}
-		public long id;
-		public String name;
-		public String releaseDate;
-		public boolean faceAuth;
 	}
 	
 	/** CRUD の R: Read (SELECT) 検索して一覧画面を表示 */
 	@Override @SneakyThrows
 	protected void doGet(HttpServletRequest req, HttpServletResponse res) {
-		
-		// TODO 2waySQL で条件書く
+
+		// 2WaySQL OGNL - https://future-architect.github.io/uroborosql-doc/background/
 		List<Item> list = dao().queryWith("""
 				SELECT * FROM item
-				 WHERE (COALESCE(/*name*/, '') = '' OR name LIKE /*SF.contains(name)*/ escape /*#ESC_CHAR*/'$') 
-				   AND (COALESCE(/*releaseDate*/,'') = '' OR release_date = /*releaseDate*/)
+				 WHERE 1 = 1
+					/*IF SF.isNotBlank(name)*/ 
+						AND name LIKE /*SF.contains(name)*/'Pro' escape /*#ESC_CHAR*/'$' 
+					/*END*/
+					/*IF SF.isNotBlank(releaseDate)*/ 
+						AND release_date = /*releaseDate*/'2022-09-11'
+					/*END*/
 			""").paramBean(new Item(req)).collect(Item.class);
 		
 		log.debug("SELECT 結果 {} 件 : {}", list.size(), list);
@@ -76,7 +84,7 @@ public class CrudServlet extends HttpServlet {
 		@Override @SneakyThrows
 		protected void doPost(HttpServletRequest req, HttpServletResponse res) {
 			dao().insert(new Item(req).validate(req));
-			req.setAttribute("message", "登録しました。");
+			req.getSession().setAttribute("message", "登録しました。");
 			res.sendRedirect((String) req.getSession().getAttribute("searchPath"));
 		}
 	}
@@ -97,7 +105,7 @@ public class CrudServlet extends HttpServlet {
 		@Override @SneakyThrows
 		protected void doPost(HttpServletRequest req, HttpServletResponse res) {
 			dao().update(new Item(req).validate(req));
-			req.setAttribute("message", "更新しました。");
+			req.getSession().setAttribute("message", "更新しました。");
 			res.sendRedirect((String) req.getSession().getAttribute("searchPath"));
 		}
 	}
@@ -110,7 +118,7 @@ public class CrudServlet extends HttpServlet {
 		@Override @SneakyThrows
 		protected void doGet(HttpServletRequest req, HttpServletResponse res) {
 			dao().delete(new Item(req));
-			req.setAttribute("message", "削除しました。");
+			req.getSession().setAttribute("message", "削除しました。");
 			res.sendRedirect((String) req.getSession().getAttribute("searchPath"));
 		}
 	}
