@@ -1,0 +1,19 @@
+@charset "UTF-8";
+
+body > header {
+	padding-bottom: 0rem;
+}
+
+form[method=get] p {
+	display: inline-block;
+	margin-inline-end: 1em;
+}
+
+mark {
+    font-size: small;
+    vertical-align: text-bottom;
+}
+
+._center {
+	text-align: center;
+}

@@ -6,18 +6,10 @@
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css">
+<link rel="stylesheet" href="common.css">
 <title>タイトル</title>
-<style>
-form p {
-	display: inline-block;
-	margin-inline-end: 1em;
-}
-._center {
-	text-align: center;
-}
-</style>
 </head>
-<body onload="_name.focus()">
+<body>
 <header onclick="location.href='.'">
 	<h1>一覧画面</h1>
 	<p>Servlet JSP CRUD サンプル</p>
@@ -26,7 +18,8 @@ form p {
 <blockquote style="visibility:${empty message ? 'hidden' : ''}">${fn:escapeXml(message)}&nbsp;</blockquote>
 <c:remove var="message" scope="session" /><%-- リダイレクト前セッション属性セットの場合の削除 --%>
 <form method="get">
-	<p><label>製品名</label><input type="text" name="name" value="${fn:escapeXml(param.name)}" id="_name"></p>
+	<p><label>製品名</label><input type="text" name="name" value="${fn:escapeXml(param.name)}"
+		autofocus onfocus="this.setSelectionRange(99,99)"></p>
 	<p><label>発売日</label><input type="date" name="releaseDate" value="${fn:escapeXml(param.releaseDate)}"></p>
 	<button formaction=".">検索</button>
 	<button formaction="create">新規登録</button>

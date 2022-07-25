@@ -6,15 +6,10 @@
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css">
+<link rel="stylesheet" href="common.css">
 <title>タイトル</title>
-<style>
-mark {
-    font-size: small;
-    vertical-align: text-bottom;
-}
-</style>
 </head>
-<body onload="_name.focus()">
+<body>
 <header onclick="location.href='.'">
 	<h1>${empty item || item.id == 0 ? '登録' : '変更'}画面</h1>
 	<p>Servlet JSP CRUD サンプル</p>
@@ -23,7 +18,8 @@ mark {
 <blockquote style="visibility:${empty message ? 'hidden' : ''}">${fn:escapeXml(message)}&nbsp;</blockquote>
 <c:remove var="message" scope="session" /><%-- リダイレクト前セッション属性セットの場合の削除 --%>
 <form method="post">
-	<p><label>製品名 <mark>必須</mark></label><input type="text" name="name" value="${fn:escapeXml(item.name)}" id="_name"></p>
+	<p><label>製品名 <mark>必須</mark></label><input type="text" name="name" value="${fn:escapeXml(item.name)}"
+		autofocus onfocus="this.setSelectionRange(99,99)" size="40"></p>
 	<p><label>発売日</label><input type="date" name="releaseDate" value="${fn:escapeXml(item.releaseDate)}"></p>
 	<p><label>顔認証</label><input type="checkbox" name="faceAuth" ${item.faceAuth ? 'checked' : ''}></p>
 	<button type="button" onclick="location.href='${searchPath}'">戻る</button>

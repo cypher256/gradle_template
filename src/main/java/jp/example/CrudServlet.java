@@ -41,6 +41,7 @@ public class CrudServlet extends HttpServlet {
 		public Item validate(HttpServletRequest req) {
 			req.setAttribute("item", this);
 			valid(!name.isBlank(), "製品名は必須です。");
+			valid(name.length() <= 30, "製品名は 30 文字以内で入力してください。(%d 文字)", name.length());
 			valid(name.matches("[^<>]+"), "製品名に <> は使用できません。");
 			valid(!(name.matches("(?i).*iphone.*") && !faceAuth), "iPhone は顔認証を有効にしてください。");
 			valid(!releaseDate.endsWith("15"), "発売日は 15 日以外の日付を入力してください。");
@@ -52,7 +53,7 @@ public class CrudServlet extends HttpServlet {
 	@Override @SneakyThrows
 	protected void doGet(HttpServletRequest req, HttpServletResponse res) {
 
-		// 2WaySQL OGNL - https://future-architect.github.io/uroborosql-doc/background/
+		// 2WaySQL OGNL - https://future-architect.github.io/uroborosql-doc/background/#条件分岐-if-elif-else-end
 		List<Item> list = dao().queryWith("""
 				SELECT * FROM item
 				 WHERE 1 = 1
@@ -65,8 +66,8 @@ public class CrudServlet extends HttpServlet {
 			""").paramBean(new Item(req)).collect(Item.class);
 		
 		log.debug("SELECT 結果 {} 件 : {}", list.size(), list);
-		req.getSession().setAttribute("searchPath", req.getRequestURI() + "?" + defaultString(req.getQueryString()));
 		req.setAttribute("itemList", list);
+		req.getSession().setAttribute("searchPath", req.getRequestURI() + "?" + defaultString(req.getQueryString()));
 		req.getRequestDispatcher("/WEB-INF/list.jsp").forward(req, res);
 	}
 
