@@ -28,7 +28,7 @@
 	<tr style="display:${empty itemList ? 'none' : ''}">
 		<th>製品名</th>
 		<th>発売日</th>
-		<th>顔認証</th>
+		<th class="_center">顔認証</th>
 		<th class="_center">操作</th>
 	</tr>
 	<tbody>
@@ -37,7 +37,7 @@
 			<td>${fn:escapeXml(item.name)}</td>
 			<td>${fn:escapeXml(item.releaseDate)}</td>
 			<td class="_center">${item.faceAuth ? '○' : ''}</td>
-			<td>
+			<td class="_center">
 				<button type="button" onclick="location.href='update?id=${item.id}'">変更</button>
 				<button type="button" onclick="location.href='delete?id=${item.id}'">削除</button>
 			</td>

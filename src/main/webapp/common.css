@@ -9,6 +9,10 @@ form[method=get] p {
 	margin-inline-end: 1em;
 }
 
+table {
+    display: table;
+}
+
 mark {
     font-size: small;
     vertical-align: text-bottom;
