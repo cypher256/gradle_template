@@ -10,12 +10,24 @@ dependencies {
 	implementation 'commons-beanutils:commons-beanutils:1.9.+'
 	implementation 'org.apache.commons:commons-lang3:3.12.+'	
 	implementation 'jp.co.future:uroborosql:0.24.+'
+	
+	// Servlet	Tomcat
+	// 4.0		9.0		javax
+	// 5.0		10.0	jakarta
+	// 6.0		10.1	jakarta
 	compileOnly 'jakarta.servlet:jakarta.servlet-api:4.0.+'
+	//compileOnly 'jakarta.servlet:jakarta.servlet-api:5.0.+'
+	
 	compileOnly 'org.projectlombok:lombok:1.18.+'
 	annotationProcessor 'org.projectlombok:lombok:1.18.+'
 	runtimeOnly 'com.h2database:h2:2.1.+'
+	
 	runtimeOnly 'jakarta.servlet.jsp.jstl:jakarta.servlet.jsp.jstl-api:1.2.+'
+	//runtimeOnly 'jakarta.servlet.jsp.jstl:jakarta.servlet.jsp.jstl-api:2.0.+'
+	
 	runtimeOnly 'org.apache.taglibs:taglibs-standard-impl:1.2.+'
+	//runtimeOnly 'org.glassfish.web:jakarta.servlet.jsp.jstl:2.0.+'
+	
 	runtimeOnly 'org.slf4j:slf4j-simple:1.7.+'
 	runtimeOnly 'ognl:ognl:3.3.+'
 }
