@@ -2,6 +2,7 @@ package jp.example;
 
 import static java.lang.String.*;
 import static java.util.Arrays.*;
+import static org.apache.commons.lang3.StringUtils.*;
 
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
@@ -13,9 +14,10 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpFilter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
+
+import com.google.common.base.Stopwatch;
 
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
@@ -40,7 +42,8 @@ import lombok.extern.slf4j.Slf4j;
 public class SingleTierController extends HttpFilter {
 	
 	/**
-	 * @return カレントスレッドの DAO インスタンス
+	 * Servlet で使用する DAO インスタンスを取得します。
+	 * @return トランザクション境界内の DAO 兼トランザクションマネージャー
 	 * <pre>
 	 * 自動採番の主キーを持つテーブは、id などのエンティティに関するアノテーションは不要です。
 	 * スネークケース、キャメルケースは自動変換されます。ただし、バインドパラメータ名は変換されません。
@@ -53,6 +56,7 @@ public class SingleTierController extends HttpFilter {
 	}
 	
 	/**
+	 * Servlet で使用するエラーチェック用のメソッドです。<br>
 	 * isValid の条件が false の場合は例外をスローし、現在表示されている JSP にフォワードします。
 	 * @param isValid 入力チェックなどが正しい場合に true となる条件
 	 * @param message 上記が false の時に例外がスローされ、例外メッセージが属性に "message" としてセットされます。
@@ -69,54 +73,55 @@ public class SingleTierController extends HttpFilter {
 	/** カレントスレッドのトランザクション境界内で DAO インスタンスを保持 */
 	private static final ThreadLocal<SqlAgent> daoThreadLocal = new ThreadLocal<>();
 	
-	/** DAO 接続設定 */
+	/** DAO 設定の管理 */
 	private SqlConfig daoConfig;
 
-	/** Servlet 呼び出し前後のフィルター処理 */
+	/** すべての Servlet 呼び出し前後のフィルター処理 */
 	@Override @SneakyThrows
 	protected void doFilter(HttpServletRequest req, HttpServletResponse res, FilterChain chain) {
 		if (req.getRequestURI().matches(".+\\.[^\\.]{3,4}")) {
-			super.doFilter(req, res, chain); // webapp 配下の css などの静的リソース
+			super.doFilter(req, res, chain); // css や js など拡張子がある静的リソースを除外
 			return;
 		}
 		if (invalidCsrfToken(req, res)) {
 			req.getSession().setAttribute("message", "二重送信または不正なリクエストを無視しました。");
-			res.sendRedirect(".");
+			res.sendRedirect(req.getContextPath());
 			return;
 		}
 		req.setCharacterEncoding(StandardCharsets.UTF_8.name());
+		Stopwatch stopwatch = Stopwatch.createStarted();
 		
 		// DB トランザクションブロック (正常時はコミット、例外発生時はロールバック)
 		try (SqlAgent dao = daoConfig.agent()) {
+			daoThreadLocal.set(dao);
 			try {
-				daoThreadLocal.set(dao);
 				super.doFilter(req, res, chain); // 各 Servlet 呼び出し
-			}
-			catch (Throwable e) {
+			} catch (Throwable e) {
 				dao.rollback();
 				
-				// 例外内容を message 属性にセットして、現在の JSP にフォワード
+				// 例外内容を message 属性にセットして、現在表示されている JSP にフォワード
 				Throwable cause = ExceptionUtils.getRootCause(e);
 				req.getSession().setAttribute("message", cause.getMessage());
-				if (cause instanceof IllegalStateException) {
-					req.getRequestDispatcher((String) req.getSession().getAttribute("jspPath")).forward(req, res);
+				String jspPath = (String) req.getSession().getAttribute("jspPath");
+				if (jspPath != null && cause instanceof IllegalStateException) {
+					req.getRequestDispatcher(jspPath).forward(req, res);
 				} else {
-					res.sendRedirect(".");
+					res.sendRedirect(req.getContextPath());
 					log.warn(e.getMessage(), e);
 				}
 			}
 		}
+		log.debug("処理時間 {} - {}", stopwatch, req.getRequestURI() + remove("?" + req.getQueryString(), "?null"));
 	}
 
 	/** @return 二重送信など CSRF トークン不正の場合は true */
 	synchronized private boolean invalidCsrfToken(HttpServletRequest req, HttpServletResponse res) {
-		HttpSession session = req.getSession();
-		final String CSRF_NAME = "_csrf";
-		String sesCsrf = (String) session.getAttribute(CSRF_NAME);
-		String reqCsrf = stream(req.getCookies()).filter(e -> e.getName().equals(CSRF_NAME)).map(Cookie::getValue).findAny().orElse(null);
+		final String CSRF = "_csrf";
+		String sesCsrf = (String) req.getSession().getAttribute(CSRF);
+		String reqCsrf = stream(req.getCookies()).filter(e -> e.getName().equals(CSRF)).map(Cookie::getValue).findAny().orElse(null);
 		String newCsrf = UUID.randomUUID().toString();
-		session.setAttribute(CSRF_NAME, newCsrf); // Servlet API 5.1 未満の Cookie は SameSite 未対応のため直書き
-		res.addHeader("Set-Cookie", format("%s=%s; %sHttpOnly; SameSite=Strict",CSRF_NAME, newCsrf, req.isSecure() ? "Secure; " : ""));
+		req.getSession().setAttribute(CSRF, newCsrf); // Servlet 5.1 未満の Cookie クラスは SameSite 未対応のため直書き
+		res.addHeader("Set-Cookie", format("%s=%s; %sHttpOnly; SameSite=Strict",CSRF, newCsrf, req.isSecure() ? "Secure; " : ""));
 		return "POST".equals(req.getMethod()) && reqCsrf != null && !reqCsrf.equals(sesCsrf);
 	}
 
@@ -126,17 +131,7 @@ public class SingleTierController extends HttpFilter {
 		Class.forName("org.h2.Driver");
 		daoConfig = UroboroSQL.builder("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1", "sa", "").build();
 		try (SqlAgent dao = daoConfig.agent()) {
-			dao.updateWith("""
-					CREATE TABLE item (
-						id INT AUTO_INCREMENT, name VARCHAR(30), release_date CHAR(10), face_auth BOOLEAN,
-						PRIMARY KEY (id)
-					);
-					INSERT INTO item (name, release_date, face_auth) VALUES 
-						('iPhone 13 Pro Docomo版','2022-09-11',true),
-						('iPhone 13 Pro Max Docomo版','2022-12-05',true),
-						('Xperia 1 IV 国内版','2022-07-22',false)
-					;
-				""").count();
+			dao.update("create_table").count(); // ファイル実行 /src/main/resources/sql/create_table.sql
 		}
 	}
 

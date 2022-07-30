@@ -67,7 +67,7 @@ public class CrudServlet extends HttpServlet {
 		
 		log.debug("SELECT 結果 {} 件 : {}", list.size(), list);
 		req.setAttribute("itemList", list);
-		req.getSession().setAttribute("searchPath", req.getRequestURI() + "?" + defaultString(req.getQueryString()));
+		req.getSession().setAttribute("searchPath", req.getRequestURI() + remove("?" + req.getQueryString(), "?null"));
 		req.getRequestDispatcher("/WEB-INF/list.jsp").forward(req, res);
 	}
 
