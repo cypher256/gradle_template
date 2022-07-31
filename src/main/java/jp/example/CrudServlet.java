@@ -1,7 +1,6 @@
 package jp.example;
 
 import static jp.example.SingleTierController.*;
-import static org.apache.commons.lang3.StringUtils.*;
 
 import java.util.List;
 
@@ -12,6 +11,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.beanutils.BeanUtils;
 
+import jodd.servlet.DispatcherUtil;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
@@ -56,7 +56,7 @@ public class CrudServlet extends HttpServlet {
 		// 2WaySQL OGNL - https://future-architect.github.io/uroborosql-doc/background/#条件分岐-if-elif-else-end
 		List<Item> list = dao().queryWith("""
 				SELECT * FROM item
-				 WHERE 1 = 1
+				WHERE 1 = 1
 					/*IF SF.isNotBlank(name)*/ 
 						AND name LIKE /*SF.contains(name)*/'Pro' escape /*#ESC_CHAR*/'$' 
 					/*END*/
@@ -65,9 +65,9 @@ public class CrudServlet extends HttpServlet {
 					/*END*/
 			""").paramBean(new Item(req)).collect(Item.class);
 		
-		log.debug("SELECT 結果 {} 件 : {}", list.size(), list);
+		log.debug("SELECT 結果 {} 件", list.size());
 		req.setAttribute("itemList", list);
-		req.getSession().setAttribute("searchPath", req.getRequestURI() + remove("?" + req.getQueryString(), "?null"));
+		req.getSession().setAttribute("searchUrl", DispatcherUtil.getFullUrl(req));
 		req.getRequestDispatcher("/WEB-INF/list.jsp").forward(req, res);
 	}
 
@@ -86,7 +86,7 @@ public class CrudServlet extends HttpServlet {
 		protected void doPost(HttpServletRequest req, HttpServletResponse res) {
 			dao().insert(new Item(req).validate(req));
 			req.getSession().setAttribute("message", "登録しました。");
-			res.sendRedirect((String) req.getSession().getAttribute("searchPath"));
+			res.sendRedirect((String) req.getSession().getAttribute("searchUrl"));
 		}
 	}
 
@@ -107,7 +107,7 @@ public class CrudServlet extends HttpServlet {
 		protected void doPost(HttpServletRequest req, HttpServletResponse res) {
 			dao().update(new Item(req).validate(req));
 			req.getSession().setAttribute("message", "更新しました。");
-			res.sendRedirect((String) req.getSession().getAttribute("searchPath"));
+			res.sendRedirect((String) req.getSession().getAttribute("searchUrl"));
 		}
 	}
 
@@ -120,7 +120,7 @@ public class CrudServlet extends HttpServlet {
 		protected void doGet(HttpServletRequest req, HttpServletResponse res) {
 			dao().delete(new Item(req));
 			req.getSession().setAttribute("message", "削除しました。");
-			res.sendRedirect((String) req.getSession().getAttribute("searchPath"));
+			res.sendRedirect((String) req.getSession().getAttribute("searchUrl"));
 		}
 	}
 }

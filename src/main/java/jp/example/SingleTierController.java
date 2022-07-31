@@ -1,12 +1,11 @@
 package jp.example;
 
 import static java.lang.String.*;
-import static org.apache.commons.lang3.StringUtils.*;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
+import java.sql.DriverManager;
+import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Stream;
 
 import javax.servlet.DispatcherType;
 import javax.servlet.FilterChain;
@@ -20,6 +19,8 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import com.google.common.base.Stopwatch;
 
+import jodd.servlet.DispatcherUtil;
+import jodd.servlet.ServletUtil;
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
@@ -30,11 +31,10 @@ import lombok.extern.slf4j.Slf4j;
  * Servlet JSP 単一レイヤーアーキテクチャーコントローラーのサンプルです。<br>
  * サンプルは、以下のポリシーに基づいています。
  * <ul>
- * <li>純粋な Servlet API と JSP JSTL。DB アクセスは簡単操作が可能な uroboroSQL。
- * <li>シンプルな単一レイヤー: 分散開発や分散実行が不要なプロジェクト向け。
+ * <li>シンプルな単一レイヤーアーキテクチャー: 分散開発や分散実行が不要なプロジェクト向け。
  * <li>トランザクション制御: サーブレットでの DB コネクションの取得・解放やロールバック不要。
  * <li>エラーメッセージ制御: IllegalStateException スローで message 属性にセットして、現在の JSP にフォワード。
- * <li>二重送信など CSRF 自動チェック: サーブレットでのチェックや JSP への埋め込み不要。
+ * <li>二重送信など CSRF 自動チェック: 各 Servlet でのチェックや JSP への埋め込み不要。
  * </ul>
  * @author Pleiades All in One New Gradle Project Wizard (EPL)
  */
@@ -86,6 +86,12 @@ public class SingleTierController extends HttpFilter {
 			dao.update("create_table").count(); // ファイル実行 /src/main/resources/sql/create_table.sql
 		}
 	}
+	
+	/** Web アプリ終了時の JDBC ドライバー破棄 (無くても問題ないが Tomcat 警告ログ抑止のため) */
+	@Override @SneakyThrows
+	public void destroy() {
+		DriverManager.deregisterDriver(DriverManager.getDrivers().nextElement());
+	}
 
 	/** すべての Servlet 呼び出しのフィルター処理 */
 	@Override @SneakyThrows
@@ -104,8 +110,8 @@ public class SingleTierController extends HttpFilter {
 		
 		// DB トランザクションブロック (正常時はコミット、例外発生時はロールバック)
 		try (SqlAgent dao = daoConfig.agent()) {
-			daoThreadLocal.set(dao);
 			try {
+				daoThreadLocal.set(dao);
 				super.doFilter(req, res, chain); // 各 Servlet 呼び出し
 			} catch (Throwable e) {
 				dao.rollback();
@@ -120,16 +126,17 @@ public class SingleTierController extends HttpFilter {
 					res.sendRedirect(req.getContextPath());
 					log.warn(e.getMessage(), e);
 				}
+			} finally {
+				daoThreadLocal.remove(); // これが無いと Tomcat 終了時に重大エラー
 			}
 		}
-		log.debug("処理時間 {} - {}", stopwatch, req.getRequestURI() + remove("?" + req.getQueryString(), "?null"));
+		log.debug("処理時間 {} - {}", stopwatch, DispatcherUtil.getFullUrl(req));
 	}
 
 	/** @return 二重送信など CSRF トークン不正の場合は true */
 	synchronized private boolean invalidCsrfToken(HttpServletRequest req, HttpServletResponse res) {
 		final String CSRF = "_csrf";
-		Stream<Cookie> cookies = Stream.ofNullable(req.getCookies()).flatMap(Arrays::stream);
-		String reqCsrf = cookies.filter(e -> e.getName().equals(CSRF)).map(Cookie::getValue).findAny().orElse(null);
+		String reqCsrf = Optional.ofNullable(ServletUtil.getCookie(req, CSRF)).map(Cookie::getValue).orElse(null);
 		String sesCsrf = (String) req.getSession().getAttribute(CSRF);
 		String newCsrf = UUID.randomUUID().toString();
 		req.getSession().setAttribute(CSRF, newCsrf); // Servlet 5.1 未満の Cookie クラスは SameSite 未対応のため直書き

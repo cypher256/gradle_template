@@ -12,6 +12,7 @@ dependencies {
 	compileOnly 'jakarta.servlet:jakarta.servlet-api:4.0.+'
 	runtimeOnly 'jakarta.servlet.jsp.jstl:jakarta.servlet.jsp.jstl-api:1.2.+'
 	runtimeOnly 'org.apache.taglibs:taglibs-standard-impl:1.2.+'
+	implementation 'org.jodd:jodd-servlet:6.0.+'
 	
 	// Tomcat 10.0 (jakarta)
 	//compileOnly 'jakarta.servlet:jakarta.servlet-api:5.0.+'
