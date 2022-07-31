@@ -71,7 +71,7 @@ public class CrudServlet extends HttpServlet {
 		req.getRequestDispatcher("/WEB-INF/list.jsp").forward(req, res);
 	}
 
-	/** CRUD の C: Create (INSERT) 登録サーブレット */
+	/** CRUD の C: Create (INSERT) 登録 Servlet */
 	@WebServlet("/create")
 	public static class CreateServlet extends HttpServlet {
 		
@@ -90,7 +90,7 @@ public class CrudServlet extends HttpServlet {
 		}
 	}
 
-	/** CRUD の U: Update (UPDATE) 変更サーブレット */
+	/** CRUD の U: Update (UPDATE) 変更 Servlet */
 	@WebServlet("/update")
 	public static class UpdateServlet extends HttpServlet {
 		
@@ -111,7 +111,7 @@ public class CrudServlet extends HttpServlet {
 		}
 	}
 
-	/** CRUD の D: Delete (DELETE) 削除サーブレット */
+	/** CRUD の D: Delete (DELETE) 削除 Servlet */
 	@WebServlet("/delete")
 	public static class DeleteServlet extends HttpServlet {
 		

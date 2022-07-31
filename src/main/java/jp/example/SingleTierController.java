@@ -1,11 +1,12 @@
 package jp.example;
 
 import static java.lang.String.*;
-import static java.util.Arrays.*;
 import static org.apache.commons.lang3.StringUtils.*;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import javax.servlet.DispatcherType;
 import javax.servlet.FilterChain;
@@ -73,10 +74,20 @@ public class SingleTierController extends HttpFilter {
 	/** カレントスレッドのトランザクション境界内で DAO インスタンスを保持 */
 	private static final ThreadLocal<SqlAgent> daoThreadLocal = new ThreadLocal<>();
 	
-	/** DAO 設定の管理 */
+	/** DAO 設定の保持と DAO インスタンス取得用 */
 	private SqlConfig daoConfig;
 
-	/** すべての Servlet 呼び出し前後のフィルター処理 */
+	/** Web アプリ起動時のデータベース初期化 */
+	@Override @SneakyThrows
+	public void init() {
+		Class.forName("org.h2.Driver");
+		daoConfig = UroboroSQL.builder("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1", "sa", "").build();
+		try (SqlAgent dao = daoConfig.agent()) {
+			dao.update("create_table").count(); // ファイル実行 /src/main/resources/sql/create_table.sql
+		}
+	}
+
+	/** すべての Servlet 呼び出しのフィルター処理 */
 	@Override @SneakyThrows
 	protected void doFilter(HttpServletRequest req, HttpServletResponse res, FilterChain chain) {
 		if (req.getRequestURI().matches(".+\\.[^\\.]{3,4}")) {
@@ -117,22 +128,13 @@ public class SingleTierController extends HttpFilter {
 	/** @return 二重送信など CSRF トークン不正の場合は true */
 	synchronized private boolean invalidCsrfToken(HttpServletRequest req, HttpServletResponse res) {
 		final String CSRF = "_csrf";
+		Stream<Cookie> cookies = Stream.ofNullable(req.getCookies()).flatMap(Arrays::stream);
+		String reqCsrf = cookies.filter(e -> e.getName().equals(CSRF)).map(Cookie::getValue).findAny().orElse(null);
 		String sesCsrf = (String) req.getSession().getAttribute(CSRF);
-		String reqCsrf = stream(req.getCookies()).filter(e -> e.getName().equals(CSRF)).map(Cookie::getValue).findAny().orElse(null);
 		String newCsrf = UUID.randomUUID().toString();
 		req.getSession().setAttribute(CSRF, newCsrf); // Servlet 5.1 未満の Cookie クラスは SameSite 未対応のため直書き
-		res.addHeader("Set-Cookie", format("%s=%s; %sHttpOnly; SameSite=Strict",CSRF, newCsrf, req.isSecure() ? "Secure; " : ""));
+		res.addHeader("Set-Cookie", format("%s=%s; %sHttpOnly; SameSite=Strict", CSRF, newCsrf, req.isSecure() ? "Secure; " : ""));
 		return "POST".equals(req.getMethod()) && reqCsrf != null && !reqCsrf.equals(sesCsrf);
-	}
-
-	/** Servlet フィルター初期化時のデータベース接続情報と初期データの設定 */
-	@Override @SneakyThrows
-	public void init() {
-		Class.forName("org.h2.Driver");
-		daoConfig = UroboroSQL.builder("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1", "sa", "").build();
-		try (SqlAgent dao = daoConfig.agent()) {
-			dao.update("create_table").count(); // ファイル実行 /src/main/resources/sql/create_table.sql
-		}
 	}
 
 	/** 最後にフォーワードした JSP を保存するフィルター */
