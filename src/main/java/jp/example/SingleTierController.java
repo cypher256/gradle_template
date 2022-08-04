@@ -18,6 +18,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import com.google.common.base.Stopwatch;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 
 import jodd.servlet.DispatcherUtil;
 import jodd.servlet.ServletUtil;
@@ -71,26 +73,25 @@ public class SingleTierController extends HttpFilter {
 	
 	//-------------------------------------------------------------------------
 	
-	/** カレントスレッドのトランザクション境界内で DAO インスタンスを保持 */
 	private static final ThreadLocal<SqlAgent> daoThreadLocal = new ThreadLocal<>();
-	
-	/** DAO 設定の保持と DAO インスタンス取得用 */
 	private SqlConfig daoConfig;
+	private HikariDataSource dataSource;
 
 	/** Web アプリ起動時のデータベース初期化 */
 	@Override @SneakyThrows
 	public void init() {
-		Class.forName("org.h2.Driver");
-		daoConfig = UroboroSQL.builder("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1", "sa", "").build();
+		dataSource = new HikariDataSource(new HikariConfig("/database.properties"));
+		daoConfig = UroboroSQL.builder(dataSource).build();
 		try (SqlAgent dao = daoConfig.agent()) {
 			dao.update("create_table").count(); // ファイル実行 /src/main/resources/sql/create_table.sql
 		}
 	}
 	
-	/** Web アプリ終了時の JDBC ドライバー破棄 (無くても問題ないが Tomcat 警告ログ抑止のため) */
+	/** Web アプリ終了時のデータベースリソース破棄 */
 	@Override @SneakyThrows
 	public void destroy() {
-		DriverManager.deregisterDriver(DriverManager.getDrivers().nextElement());
+		dataSource.close();
+		DriverManager.deregisterDriver(DriverManager.getDrivers().nextElement()); // Tomcat 警告抑止
 	}
 
 	/** すべての Servlet 呼び出しのフィルター処理 */
@@ -105,7 +106,7 @@ public class SingleTierController extends HttpFilter {
 			res.sendRedirect(req.getContextPath());
 			return;
 		}
-		req.setCharacterEncoding(StandardCharsets.UTF_8.name());
+		req.setCharacterEncoding(StandardCharsets.UTF_8.name()); // post エンコーディング指定
 		Stopwatch stopwatch = Stopwatch.createStarted();
 		
 		// DB トランザクションブロック (正常時はコミット、例外発生時はロールバック)

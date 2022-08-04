@@ -68,7 +68,7 @@ public class CrudServlet extends HttpServlet {
 		log.debug("SELECT 結果 {} 件", list.size());
 		req.setAttribute("itemList", list);
 		req.getSession().setAttribute("searchUrl", DispatcherUtil.getFullUrl(req));
-		req.getRequestDispatcher("/WEB-INF/list.jsp").forward(req, res);
+		req.getRequestDispatcher("/WEB-INF/jsp/list.jsp").forward(req, res);
 	}
 
 	/** CRUD の C: Create (INSERT) 登録 Servlet */
@@ -78,7 +78,7 @@ public class CrudServlet extends HttpServlet {
 		/** 一覧画面の新規登録ボタン → 登録画面の表示 */
 		@Override @SneakyThrows
 		protected void doGet(HttpServletRequest req, HttpServletResponse res) {
-			req.getRequestDispatcher("/WEB-INF/detail.jsp").forward(req, res);
+			req.getRequestDispatcher("/WEB-INF/jsp/detail.jsp").forward(req, res);
 		}
 		
 		/** 登録画面の登録ボタン → 一覧画面へリダイレクト (PRG パターン) */
@@ -99,7 +99,7 @@ public class CrudServlet extends HttpServlet {
 		protected void doGet(HttpServletRequest req, HttpServletResponse res) {
 			Item item = dao().find(Item.class, new Item(req).id).orElseThrow();
 			req.setAttribute("item", item);
-			req.getRequestDispatcher("/WEB-INF/detail.jsp").forward(req, res);
+			req.getRequestDispatcher("/WEB-INF/jsp/detail.jsp").forward(req, res);
 		}
 		
 		/** 変更画面の更新ボタン → 一覧画面へリダイレクト (PRG パターン) */

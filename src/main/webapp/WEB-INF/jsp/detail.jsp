@@ -1,6 +1,3 @@
-<%@ page pageEncoding="UTF-8"%>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
-<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
 <!DOCTYPE html>
 <html>
 <head>
@@ -22,7 +19,7 @@
 		autofocus onfocus="this.setSelectionRange(99,99)" size="40"></p>
 	<p><label>発売日</label><input type="date" name="releaseDate" value="${fn:escapeXml(item.releaseDate)}"></p>
 	<p><label>顔認証</label><input type="checkbox" name="faceAuth" ${item.faceAuth ? 'checked' : ''}></p>
-	<button type="button" onclick="location.href='${searchPath}'">戻る</button>
+	<button type="button" onclick="location.href='${searchUrl}'">戻る</button>
 	<input type="submit" value=
 		${empty item || item.id == 0
 			? '"登録" formaction="create"' 
