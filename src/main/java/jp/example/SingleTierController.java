@@ -7,13 +7,13 @@ import java.sql.DriverManager;
 import java.util.Optional;
 import java.util.UUID;
 
-import javax.servlet.DispatcherType;
 import javax.servlet.FilterChain;
 import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpFilter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
@@ -26,12 +26,13 @@ import jodd.servlet.ServletUtil;
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
+import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 /**
  * Servlet JSP 単一レイヤーアーキテクチャーコントローラーのサンプルです。<br>
- * サンプルは、以下のポリシーに基づいています。
+ * サンプルは、Servlet API の薄いラッパーとして構成されており、以下のポリシーに基づいています。
  * <ul>
  * <li>シンプルな単一レイヤーアーキテクチャー: 分散開発や分散実行が不要なプロジェクト向け。
  * <li>トランザクション制御: サーブレットでの DB コネクションの取得・解放やロールバック不要。
@@ -44,18 +45,22 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class SingleTierController extends HttpFilter {
 	
+	//-------------------------------------------------------------------------
+	// Servlet から使用するショートカット static メソッド
+	//-------------------------------------------------------------------------
+	
 	/**
 	 * Servlet で使用する DAO インスタンスを取得します。
-	 * @return トランザクション境界内の DAO 兼トランザクションマネージャー
 	 * <pre>
 	 * 自動採番の主キーを持つテーブは、id などのエンティティに関するアノテーションは不要です。
 	 * スネークケース、キャメルケースは自動変換されます。ただし、バインドパラメータ名は変換されません。
 	 * <a href="https://future-architect.github.io/uroborosql-doc/why_uroborosql/"
 	 * >GitHub: uroboroSQL (ウロボロスキュール)</a>
 	 * </pre>
+	 * @return トランザクション境界内の DAO 兼トランザクションマネージャー
 	 */
 	public static SqlAgent dao() {
-		return daoThreadLocal.get();
+		return requestContextThreadLocal.get().dao;
 	}
 	
 	/**
@@ -71,9 +76,41 @@ public class SingleTierController extends HttpFilter {
 		}
 	}
 	
+	/**
+	 * JSP にフォワードします。
+	 * @param jspPath "/WEB-INF/jsp/" に続く JSP パス文字列
+	 */
+	@SneakyThrows
+	public static void forward(Object jspPath) {
+		String path = "/WEB-INF/jsp/" + jspPath;
+		RequestContext context = requestContextThreadLocal.get();
+		context.req.getSession().setAttribute("forwardPath", path);
+		context.req.getRequestDispatcher(path).forward(context.req, context.res);
+	}
+	
+	/**
+	 * リダイレクトします。
+	 * @param url リダイレクト先 URL
+	 */
+	@SneakyThrows
+	public static void redirect(Object url) {
+		RequestContext context = requestContextThreadLocal.get();
+		context.req.getSession().setAttribute("redirectUrl", url);
+		context.res.sendRedirect(url.toString());
+	}
+	
+	//-------------------------------------------------------------------------
+	// Servlet フィルター処理
 	//-------------------------------------------------------------------------
 	
-	private static final ThreadLocal<SqlAgent> daoThreadLocal = new ThreadLocal<>();
+	@AllArgsConstructor
+	private static class RequestContext {
+		final HttpServletRequest req;
+		final HttpServletResponse res;
+		final SqlAgent dao;
+	}
+	
+	private static final ThreadLocal<RequestContext> requestContextThreadLocal = new ThreadLocal<>();
 	private SqlConfig daoConfig;
 	private HikariDataSource dataSource;
 
@@ -97,12 +134,13 @@ public class SingleTierController extends HttpFilter {
 	/** すべての Servlet 呼び出しのフィルター処理 */
 	@Override @SneakyThrows
 	protected void doFilter(HttpServletRequest req, HttpServletResponse res, FilterChain chain) {
+		HttpSession session = req.getSession();
 		if (req.getRequestURI().matches(".+\\.[^\\.]{3,4}")) {
 			super.doFilter(req, res, chain); // css や js など拡張子がある静的リソースを除外
 			return;
 		}
 		if (invalidCsrfToken(req, res)) {
-			req.getSession().setAttribute("message", "二重送信または不正なリクエストを無視しました。");
+			session.setAttribute("message", "二重送信または不正なリクエストを無視しました。");
 			res.sendRedirect(req.getContextPath());
 			return;
 		}
@@ -112,23 +150,24 @@ public class SingleTierController extends HttpFilter {
 		// DB トランザクションブロック (正常時はコミット、例外発生時はロールバック)
 		try (SqlAgent dao = daoConfig.agent()) {
 			try {
-				daoThreadLocal.set(dao);
+				requestContextThreadLocal.set(new RequestContext(req, res, dao));
 				super.doFilter(req, res, chain); // 各 Servlet 呼び出し
 			} catch (Throwable e) {
 				dao.rollback();
 				
 				// 例外内容を message 属性にセットして、現在表示されている JSP にフォワード
 				Throwable cause = ExceptionUtils.getRootCause(e);
-				req.getSession().setAttribute("message", cause.getMessage());
-				String jspPath = (String) req.getSession().getAttribute("jspPath");
-				if (jspPath != null && cause instanceof IllegalStateException) {
-					req.getRequestDispatcher(jspPath).forward(req, res);
+				session.setAttribute("message", cause.getMessage());
+				String forwardPath = (String) session.getAttribute("forwardPath");
+				if (forwardPath != null && cause instanceof IllegalStateException) {
+					req.getRequestDispatcher(forwardPath).forward(req, res);
 				} else {
-					res.sendRedirect(req.getContextPath());
+					String redirectUrl = (String) session.getAttribute("redirectUrl");
+					res.sendRedirect(redirectUrl == null ? req.getContextPath() : redirectUrl);
 					log.warn(e.getMessage(), e);
 				}
 			} finally {
-				daoThreadLocal.remove(); // これが無いと Tomcat 終了時に重大エラー
+				requestContextThreadLocal.remove(); // これが無いと Tomcat 終了時に重大エラー
 			}
 		}
 		log.debug("処理時間 {} - {}", stopwatch, DispatcherUtil.getFullUrl(req));
@@ -143,15 +182,5 @@ public class SingleTierController extends HttpFilter {
 		req.getSession().setAttribute(CSRF, newCsrf); // Servlet 5.1 未満の Cookie クラスは SameSite 未対応のため直書き
 		res.addHeader("Set-Cookie", format("%s=%s; %sHttpOnly; SameSite=Strict", CSRF, newCsrf, req.isSecure() ? "Secure; " : ""));
 		return "POST".equals(req.getMethod()) && reqCsrf != null && !reqCsrf.equals(sesCsrf);
-	}
-
-	/** 最後にフォーワードした JSP を保存するフィルター */
-	@WebFilter(urlPatterns = "*.jsp", dispatcherTypes = DispatcherType.FORWARD)
-	public static class ForwardJspPathSaveFilter extends HttpFilter {
-		@Override @SneakyThrows
-		protected void doFilter(HttpServletRequest req, HttpServletResponse res, FilterChain chain) {
-			req.getSession().setAttribute("jspPath", req.getServletPath());
-			super.doFilter(req, res, chain);
-		}
 	}
 }

@@ -39,7 +39,7 @@ public class CrudServlet extends HttpServlet {
 		}
 		
 		public Item validate(HttpServletRequest req) {
-			req.setAttribute("item", this);
+			req.setAttribute("item", this); // エラー時の再表示用
 			valid(!name.isBlank(), "製品名は必須です。");
 			valid(name.length() <= 30, "製品名は 30 文字以内で入力してください。(%d 文字)", name.length());
 			valid(name.matches("[^<>]+"), "製品名に <> は使用できません。");
@@ -68,7 +68,7 @@ public class CrudServlet extends HttpServlet {
 		log.debug("SELECT 結果 {} 件", list.size());
 		req.setAttribute("itemList", list);
 		req.getSession().setAttribute("searchUrl", DispatcherUtil.getFullUrl(req));
-		req.getRequestDispatcher("/WEB-INF/jsp/list.jsp").forward(req, res);
+		forward("list.jsp");
 	}
 
 	/** CRUD の C: Create (INSERT) 登録 Servlet */
@@ -78,7 +78,7 @@ public class CrudServlet extends HttpServlet {
 		/** 一覧画面の新規登録ボタン → 登録画面の表示 */
 		@Override @SneakyThrows
 		protected void doGet(HttpServletRequest req, HttpServletResponse res) {
-			req.getRequestDispatcher("/WEB-INF/jsp/detail.jsp").forward(req, res);
+			forward("detail.jsp");
 		}
 		
 		/** 登録画面の登録ボタン → 一覧画面へリダイレクト (PRG パターン) */
@@ -86,7 +86,7 @@ public class CrudServlet extends HttpServlet {
 		protected void doPost(HttpServletRequest req, HttpServletResponse res) {
 			dao().insert(new Item(req).validate(req));
 			req.getSession().setAttribute("message", "登録しました。");
-			res.sendRedirect((String) req.getSession().getAttribute("searchUrl"));
+			redirect(req.getSession().getAttribute("searchUrl"));
 		}
 	}
 
@@ -97,9 +97,9 @@ public class CrudServlet extends HttpServlet {
 		/** 一覧画面の変更ボタン → 変更画面の表示 */
 		@Override @SneakyThrows
 		protected void doGet(HttpServletRequest req, HttpServletResponse res) {
-			Item item = dao().find(Item.class, new Item(req).id).orElseThrow();
+			Item item = dao().find(Item.class, req.getParameter("id")).orElseThrow();
 			req.setAttribute("item", item);
-			req.getRequestDispatcher("/WEB-INF/jsp/detail.jsp").forward(req, res);
+			forward("detail.jsp");
 		}
 		
 		/** 変更画面の更新ボタン → 一覧画面へリダイレクト (PRG パターン) */
@@ -107,7 +107,7 @@ public class CrudServlet extends HttpServlet {
 		protected void doPost(HttpServletRequest req, HttpServletResponse res) {
 			dao().update(new Item(req).validate(req));
 			req.getSession().setAttribute("message", "更新しました。");
-			res.sendRedirect((String) req.getSession().getAttribute("searchUrl"));
+			redirect(req.getSession().getAttribute("searchUrl"));
 		}
 	}
 
@@ -120,7 +120,7 @@ public class CrudServlet extends HttpServlet {
 		protected void doGet(HttpServletRequest req, HttpServletResponse res) {
 			dao().delete(new Item(req));
 			req.getSession().setAttribute("message", "削除しました。");
-			res.sendRedirect((String) req.getSession().getAttribute("searchUrl"));
+			redirect(req.getSession().getAttribute("searchUrl"));
 		}
 	}
 }
