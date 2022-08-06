@@ -74,7 +74,7 @@ public class SingleTierController extends HttpFilter {
 	 * @param message 上記が false の時に例外がスローされ、例外メッセージがリクエスト属性にセットされます。
 	 * @param args メッセージの %s や %d に String#format で埋め込む文字列
 	 */
-	public static void legal(boolean isLegal, String message, Object... args) {
+	public static void valid(boolean isLegal, String message, Object... args) {
 		if (!isLegal) {
 			throw new IllegalStateException(String.format(message, args));
 		}

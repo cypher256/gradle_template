@@ -40,11 +40,11 @@ public class CrudServlet extends HttpServlet {
 		
 		public Item validate(HttpServletRequest req) {
 			req.setAttribute("item", this); // エラー時の再表示用
-			legal(!name.isBlank(), "製品名は必須です。");
-			legal(name.length() <= 30, "製品名は 30 文字以内で入力してください。(%d 文字)", name.length());
-			legal(name.matches("[^<>]+"), "製品名に <> は使用できません。");
-			legal(!(name.matches("(?i).*iphone.*") && !faceAuth), "iPhone は顔認証を有効にしてください。");
-			legal(!releaseDate.endsWith("15"), "発売日は 15 日以外の日付を入力してください。");
+			valid(!name.isBlank(), "製品名は必須です。");
+			valid(name.length() <= 30, "製品名は 30 文字以内で入力してください。(%d 文字)", name.length());
+			valid(name.matches("[^<>]+"), "製品名に <> は使用できません。");
+			valid(!(name.matches("(?i).*iphone.*") && !faceAuth), "iPhone は顔認証を有効にしてください。");
+			valid(!releaseDate.endsWith("15"), "発売日は 15 日以外の日付を入力してください。");
 			return this;
 		}
 	}
@@ -65,7 +65,6 @@ public class CrudServlet extends HttpServlet {
 					/*END*/
 			""").paramBean(new Item(req)).collect(Item.class);
 		
-		log.debug("SELECT 結果 {} 件", list.size());
 		req.setAttribute("itemList", list);
 		req.getSession().setAttribute("searchUrl", DispatcherUtil.getFullUrl(req));
 		forward("list.jsp");
