@@ -12,9 +12,9 @@
 	<p>Servlet JSP CRUD サンプル</p>
 </header>
 <main>
-<blockquote style="visibility:${empty message ? 'hidden' : ''}">${fn:escapeXml(message)}&nbsp;</blockquote>
-<c:remove var="message" scope="session" /><%-- リダイレクト前セッション属性セットの場合の削除 --%>
+<blockquote style="visibility:${empty _message ? 'hidden' : ''}">${fn:escapeXml(_message)}&nbsp;</blockquote>
 <form method="post">
+	<input type="hidden" name="id" value="${item.id}"/>
 	<p><label>製品名 <mark>必須</mark></label><input type="text" name="name" value="${fn:escapeXml(item.name)}"
 		autofocus onfocus="this.setSelectionRange(99,99)" size="40"></p>
 	<p><label>発売日</label><input type="date" name="releaseDate" value="${fn:escapeXml(item.releaseDate)}"></p>
@@ -25,7 +25,6 @@
 			? '"登録" formaction="create"' 
 			: '"更新" formaction="update"'
 		}/>
-	<input type="hidden" name="id" value="${item.id}"/>
 </form>
 </main>
 <footer>

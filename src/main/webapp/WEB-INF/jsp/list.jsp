@@ -12,8 +12,7 @@
 	<p>Servlet JSP CRUD サンプル</p>
 </header>
 <main>
-<blockquote style="visibility:${empty message ? 'hidden' : ''}">${fn:escapeXml(message)}&nbsp;</blockquote>
-<c:remove var="message" scope="session" /><%-- リダイレクト前セッション属性セットの場合の削除 --%>
+<blockquote style="visibility:${empty _message ? 'hidden' : ''}">${fn:escapeXml(_message)}&nbsp;</blockquote>
 <form method="get">
 	<p><label>製品名</label><input type="text" name="name" value="${fn:escapeXml(param.name)}"
 		autofocus onfocus="this.setSelectionRange(99,99)"></p>

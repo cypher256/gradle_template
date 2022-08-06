@@ -40,11 +40,11 @@ public class CrudServlet extends HttpServlet {
 		
 		public Item validate(HttpServletRequest req) {
 			req.setAttribute("item", this); // エラー時の再表示用
-			valid(!name.isBlank(), "製品名は必須です。");
-			valid(name.length() <= 30, "製品名は 30 文字以内で入力してください。(%d 文字)", name.length());
-			valid(name.matches("[^<>]+"), "製品名に <> は使用できません。");
-			valid(!(name.matches("(?i).*iphone.*") && !faceAuth), "iPhone は顔認証を有効にしてください。");
-			valid(!releaseDate.endsWith("15"), "発売日は 15 日以外の日付を入力してください。");
+			legal(!name.isBlank(), "製品名は必須です。");
+			legal(name.length() <= 30, "製品名は 30 文字以内で入力してください。(%d 文字)", name.length());
+			legal(name.matches("[^<>]+"), "製品名に <> は使用できません。");
+			legal(!(name.matches("(?i).*iphone.*") && !faceAuth), "iPhone は顔認証を有効にしてください。");
+			legal(!releaseDate.endsWith("15"), "発売日は 15 日以外の日付を入力してください。");
 			return this;
 		}
 	}
@@ -85,7 +85,7 @@ public class CrudServlet extends HttpServlet {
 		@Override @SneakyThrows
 		protected void doPost(HttpServletRequest req, HttpServletResponse res) {
 			dao().insert(new Item(req).validate(req));
-			req.getSession().setAttribute("message", "登録しました。");
+			req.setAttribute(MESSAGE, "登録しました。");
 			redirect(req.getSession().getAttribute("searchUrl"));
 		}
 	}
@@ -106,7 +106,7 @@ public class CrudServlet extends HttpServlet {
 		@Override @SneakyThrows
 		protected void doPost(HttpServletRequest req, HttpServletResponse res) {
 			dao().update(new Item(req).validate(req));
-			req.getSession().setAttribute("message", "更新しました。");
+			req.setAttribute(MESSAGE, "更新しました。");
 			redirect(req.getSession().getAttribute("searchUrl"));
 		}
 	}
@@ -119,7 +119,7 @@ public class CrudServlet extends HttpServlet {
 		@Override @SneakyThrows
 		protected void doGet(HttpServletRequest req, HttpServletResponse res) {
 			dao().delete(new Item(req));
-			req.getSession().setAttribute("message", "削除しました。");
+			req.setAttribute(MESSAGE, "削除しました。");
 			redirect(req.getSession().getAttribute("searchUrl"));
 		}
 	}

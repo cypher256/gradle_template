@@ -2,9 +2,9 @@ plugins {
 	id 'war'
 }
 
+repositories.mavenCentral()
 sourceCompatibility = 17
 tasks.withType(JavaCompile) {options.encoding = 'UTF-8'}
-repositories.mavenCentral()
 
 dependencies {
 	
