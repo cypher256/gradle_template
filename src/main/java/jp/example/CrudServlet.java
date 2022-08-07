@@ -65,6 +65,7 @@ public class CrudServlet extends HttpServlet {
 					/*END*/
 			""").paramBean(new Item(req)).collect(Item.class);
 		
+		log.debug("SELECT 結果: {} 件 - {}", list.size(), list.stream().findFirst().orElse(null));
 		req.setAttribute("itemList", list);
 		req.getSession().setAttribute("searchUrl", DispatcherUtil.getFullUrl(req));
 		forward("list.jsp");
@@ -96,7 +97,7 @@ public class CrudServlet extends HttpServlet {
 		/** 一覧画面の変更ボタン → 変更画面の表示 */
 		@Override @SneakyThrows
 		protected void doGet(HttpServletRequest req, HttpServletResponse res) {
-			Item item = dao().find(Item.class, req.getParameter("id")).orElseThrow();
+			Item item = dao().find(Item.class, new Item(req).id).orElseThrow(() -> new Error("存在しません。"));
 			req.setAttribute("item", item);
 			forward("detail.jsp");
 		}

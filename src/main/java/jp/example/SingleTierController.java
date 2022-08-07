@@ -33,14 +33,14 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Servlet JSP 単一レイヤーアーキテクチャーコントローラーのサンプルです。
- * このコントローラーは、実行行 150 行ほどの Servlet API の薄いラッパーとして構成されています。
+ * Servlet JSP 単一レイヤーアーキテクチャーで構成されたフロントコントローラーサンプルです。
+ * このフロントコントローラーは、実行行 150 行ほどの Servlet API の薄いラッパーとなっています。
  * <ul>
- * <li>シンプルな単一レイヤーアーキテクチャー: 分散開発や分散実行が不要なプロジェクト向け。
- * <li>トランザクション制御: サーブレットでの DB コネクションの取得・解放やロールバック不要。
- * <li>エラーメッセージ制御: IllegalStateException スローで message 属性にセットして、現在の JSP にフォワード。
- * <li>自動二重送信 CSRF チェック: 各 Servlet でのチェックや JSP への埋め込み不要。
- * <li>自動フラッシュ属性: リダイレクト時はリクエスト属性を自動的にセッション経由で、リダイレクト先のリクエスト属性に転送。
+ * <li>単一レイヤーアーキテクチャー: 分散開発や分散実行が不要なプロジェクト向けの高効率でシンプルなアーキテクチャー。
+ * <li>自動フラッシュ属性: リダイレクト時は、自動的にリクエスト属性をセッション経由でリダイレクト先のリクエスト属性に転送。
+ * <li>自動 CSRF トークンチェック: Servlet でのチェックや、JSP への明示的な埋め込み不要。
+ * <li>自動トランザクション制御: サーブレットでの DB コネクションの取得・解放やロールバック不要。
+ * <li>エラー時の表示元 JSP へ自動フォワード: IllegalArgumentException スローで message 属性にセットして、表示元 JSP にフォワード。
  * </ul>
  * @author Pleiades All in One New Gradle Project Wizard (EPL)
  */
@@ -68,33 +68,31 @@ public class SingleTierController extends HttpFilter {
 	
 	/**
 	 * Servlet で使用するエラーチェック用のメソッドです。
-	 * isLegal が false の場合は Illegal として例外をスローし、セッション属性 FORWARD_PATH にフォワードします。
-	 * デフォルトでは、最後に {@link #forward(Object)} した jsp のパスが FORWARD_PATH にセットされています。
-	 * @param isLegal 入力チェックなどが正しい場合に true となる条件
+	 * 指定した条件が false の場合は例外をスローし、セッション属性 FORWARD_PATH にフォワードされます。
+	 * デフォルトでは、最後に {@link #forward(Object)} した jsp のパスが FORWARD_PATH
+	 * にセットされており、フォワード先を変更したい場合は、このメソッド呼び出し前にセッションにセットしてください。
+	 * @param isValid 入力チェックなどが正しい場合に true となる条件
 	 * @param message 上記が false の時に例外がスローされ、例外メッセージがリクエスト属性にセットされます。
 	 * @param args メッセージの %s や %d に String#format で埋め込む文字列
 	 */
-	public static void valid(boolean isLegal, String message, Object... args) {
-		if (!isLegal) {
-			throw new IllegalStateException(String.format(message, args));
+	public static void valid(boolean isValid, String message, Object... args) {
+		if (!isValid) {
+			forward(null);
+			throw new IllegalArgumentException(String.format(message, args));
 		}
 	}
 	
 	/**
 	 * JSP にフォワードします。
-	 * form 開始タグ (post) の下に CSRF トークンの hidden が自動追加されます。
+	 * form (method=post) タグ配下に CSRF トークンの hidden が自動追加されます。
 	 * @param jspPath JSP パス。先頭がスラッシュでない場合は "/WEB-INF/jsp/" が先頭に追加されます。
 	 */
 	@SneakyThrows
 	public static void forward(Object jspPath) {
 		String path = jspPath.toString();
 		if (!path.startsWith("/")) path = "/WEB-INF/jsp/" + jspPath;
-		
-		// 生成した CSRF_TOKEN、指定された FORWARD_PATH をセッション属性に保存
 		RequestContext context = requestContextThreadLocal.get();
 		HttpSession session = context.req.getSession();
-		String newCsrf = UUID.randomUUID().toString();
-		session.setAttribute(CSRF_TOKEN, newCsrf);
 		session.setAttribute(FORWARD_PATH, path);
 		log.debug("[FORWARD_PATH] {}", path);
 		
@@ -103,7 +101,8 @@ public class SingleTierController extends HttpFilter {
 		context.req.getRequestDispatcher(path).forward(context.req, tempRes);
 		String html = new String(tempRes.toByteArray(), tempRes.getCharacterEncoding());
 		html = html.replaceAll("(?si)([ \t]*)(<form[^>]*post[^>]*>)", 
-			format("$1$2\n$1\t<input type=\"hidden\" name=\"%s\" value=\"%s\">", CSRF_TOKEN, newCsrf));
+			format("$1$2\n$1\t<input type=\"hidden\" name=\"%s\" value=\"%s\">", 
+				CSRF_TOKEN, session.getAttribute(CSRF_TOKEN)));
 		context.res.getWriter().write(html);
 	}
 	
@@ -127,15 +126,16 @@ public class SingleTierController extends HttpFilter {
 		}
 	}
 	
-	//-------------------------------------------------------------------------
-	// Servlet フィルター処理
-	//-------------------------------------------------------------------------
-	
 	public static final String MESSAGE = "_message";
 	public static final String FORWARD_PATH = "_forward_path";
 	public static final String REDIRECT_URL = "_redirect_url";
 	public static final String CSRF_TOKEN = "_csrf";
 	public static final String FLASH_ATTRIBUTE = "_flash_attribute";
+	
+	//-------------------------------------------------------------------------
+	// Servlet フィルター処理
+	//-------------------------------------------------------------------------
+	
 	private static final ThreadLocal<RequestContext> requestContextThreadLocal = new ThreadLocal<>();
 	private static final ThreadLocal<SqlAgent> daoThreadLocal = new ThreadLocal<>();
 	private SqlConfig daoConfig;
@@ -168,29 +168,37 @@ public class SingleTierController extends HttpFilter {
 	@Override @SneakyThrows @SuppressWarnings("unchecked")
 	protected void doFilter(HttpServletRequest req, HttpServletResponse res, FilterChain chain) {
 		
-		// css や js など拡張子がある静的リソースを除外
+		// 拡張子がある (.css や .js など) 静的リソースを除外
 		if (req.getRequestURI().matches(".+\\.[^\\.]{3,4}")) {
 			super.doFilter(req, res, chain);
 			return;
 		}
-		
-		// リダイレクト時のフラッシュ属性をセッションからリクエスト属性に戻して、セッションから削除
+		req.setCharacterEncoding(StandardCharsets.UTF_8.name()); // post エンコーディング (getParameter 前)
+		requestContextThreadLocal.set(new RequestContext(req, res));
 		HttpSession session = req.getSession();
+		if (session.isNew() && !req.getRequestURI().equals(req.getContextPath() + "/")) {
+			req.setAttribute(MESSAGE, "セッションの有効期限が切れました。");
+			redirect(req.getContextPath());
+			return;
+		}
+		
+		// post 時の CSRF トークンチェック (二重送信も防げるが UX 向上のため、detail.jsp の JS のような二度押し防止推奨)
+		synchronized (this) {
+			String reqCsrf = req.getParameter(CSRF_TOKEN);
+			String sesCsrf = (String) session.getAttribute(CSRF_TOKEN);
+			session.setAttribute(CSRF_TOKEN, UUID.randomUUID().toString());
+			if ("POST".equals(req.getMethod()) && !StringUtils.equals(reqCsrf, sesCsrf)) {
+				req.setAttribute(MESSAGE, "不正なリクエストを無視しました。");
+				redirect(session.getAttribute(REDIRECT_URL));
+				return;
+			}
+		}
+		
+		// リダイレクト時のフラッシュ属性をセッションからリクエスト属性に復元し、セッションから削除
 		Map<String, Object> flashMap = (Map<String, Object>) session.getAttribute(FLASH_ATTRIBUTE);
 		if (flashMap != null) {
 			flashMap.forEach(req::setAttribute);
 			session.removeAttribute(FLASH_ATTRIBUTE);
-		}
-		req.setCharacterEncoding(StandardCharsets.UTF_8.name()); // post エンコーディング (getParameter 前)
-		requestContextThreadLocal.set(new RequestContext(req, res));
-		
-		// CSRF トークンチェック (JSP form 自動付加)
-		String reqCsrf = req.getParameter(CSRF_TOKEN);
-		String sesCsrf = (String) session.getAttribute(CSRF_TOKEN);
-		if ("POST".equals(req.getMethod()) && !StringUtils.equals(reqCsrf, sesCsrf)) {
-			req.setAttribute(MESSAGE, "二重送信または期限切れリクエストを無視しました。");
-			redirect(session.getAttribute(REDIRECT_URL));
-			return;
 		}
 		
 		// DB トランザクションブロック (正常時はコミット、例外発生時はロールバック)
@@ -202,16 +210,17 @@ public class SingleTierController extends HttpFilter {
 			} catch (Throwable e) {
 				dao.rollback();
 				
-				// 例外内容を message 属性にセットして、現在表示されている JSP にフォワード
+				// 例外内容を message 属性にセットして、表示元 JSP にフォワード
 				Throwable cause = ExceptionUtils.getRootCause(e);
 				req.setAttribute(MESSAGE, cause.getMessage());
 				String forwardPath = (String) session.getAttribute(FORWARD_PATH);
-				if (forwardPath != null && cause instanceof IllegalStateException) {
+				if (cause instanceof IllegalArgumentException && forwardPath != null) {
 					forward(forwardPath);
 				} else {
 					redirect(session.getAttribute(REDIRECT_URL));
-					log.warn(e.getMessage(), e);
+					log.warn(cause.getMessage(), cause);
 				}
+				
 			} finally {
 				daoThreadLocal.remove();
 				requestContextThreadLocal.remove();

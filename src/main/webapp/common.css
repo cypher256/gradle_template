@@ -10,7 +10,7 @@ form[method=get] p {
 }
 
 table {
-    display: table;
+    display: table; /* 横幅 100% */
 }
 
 mark {

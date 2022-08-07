@@ -20,6 +20,7 @@
 	<button formaction=".">検索</button>
 	<button formaction="create">新規登録</button>
 </form>
+<p style="margin:0 0.3rem -1rem; text-align:right;">検索結果 ${itemList.size()} 件</p>
 <table>
 	<tr style="display:${empty itemList ? 'none' : ''}">
 		<th>製品名</th>

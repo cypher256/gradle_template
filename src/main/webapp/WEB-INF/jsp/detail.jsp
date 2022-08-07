@@ -13,14 +13,14 @@
 </header>
 <main>
 <blockquote style="visibility:${empty _message ? 'hidden' : ''}">${fn:escapeXml(_message)}&nbsp;</blockquote>
-<form method="post">
+<form method="post" onsubmit="_submitButton.disabled = true"><%-- クライアント側の二重送信抑止 (サーバーは CSRF) --%>
 	<input type="hidden" name="id" value="${item.id}"/>
 	<p><label>製品名 <mark>必須</mark></label><input type="text" name="name" value="${fn:escapeXml(item.name)}"
-		autofocus onfocus="this.setSelectionRange(99,99)" size="40"></p>
+		required autofocus onfocus="this.setSelectionRange(99,99)" size="40"></p>
 	<p><label>発売日</label><input type="date" name="releaseDate" value="${fn:escapeXml(item.releaseDate)}"></p>
 	<p><label>顔認証</label><input type="checkbox" name="faceAuth" ${item.faceAuth ? 'checked' : ''}></p>
 	<button type="button" onclick="location.href='${searchUrl}'">戻る</button>
-	<input type="submit" value=
+	<input id="_submitButton" type="submit" value=
 		${empty item || item.id == 0
 			? '"登録" formaction="create"' 
 			: '"更新" formaction="update"'
