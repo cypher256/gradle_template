@@ -34,7 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * Servlet JSP 単一レイヤーアーキテクチャーで構成されたフロントコントローラーサンプルです。
- * このフロントコントローラーは、実行行 150 行ほどの Servlet API の薄いラッパーとなっています。
+ * このフロントコントローラーは、有効行 150 行ほどの Servlet API の薄いラッパーとなっています。
  * <ul>
  * <li>単一レイヤーアーキテクチャー: 分散開発や分散実行が不要なプロジェクト向けの高効率でシンプルなアーキテクチャー。
  * <li>自動フラッシュ属性: リダイレクト時は、自動的にリクエスト属性をセッション経由でリダイレクト先のリクエスト属性に転送。
@@ -53,7 +53,7 @@ public class SingleTierController extends HttpFilter {
 	//-------------------------------------------------------------------------
 	
 	/**
-	 * Servlet で使用する DAO インスタンスを取得します。
+	 * DAO インスタンスを取得します。
 	 * <pre>
 	 * 自動採番の主キーを持つテーブは、id などのエンティティに関するアノテーションは不要です。
 	 * スネークケース、キャメルケースは自動変換されます。ただし、バインドパラメータ名は変換されません。
@@ -67,23 +67,28 @@ public class SingleTierController extends HttpFilter {
 	}
 	
 	/**
-	 * Servlet で使用するエラーチェック用のメソッドです。
-	 * 指定した条件が false の場合は例外をスローし、セッション属性 FORWARD_PATH にフォワードされます。
-	 * デフォルトでは、最後に {@link #forward(Object)} した jsp のパスが FORWARD_PATH
-	 * にセットされており、フォワード先を変更したい場合は、このメソッド呼び出し前にセッションにセットしてください。
+	 * エラーチェック用のメソッドです。
+	 * 指定した条件が false の場合、message が IllegalArgumentException にセットされスローされます。
+	 * 以下、このメソッド以外にも適用される、例外がスローされた場合の共通動作です。
+	 * <ul>
+	 * <li>例外の種類に関わらずロールバックされ、例外の getMessage() がリクエスト属性にセットされます。
+	 * <li>IllegalArgumentException の場合、セッション属性 FORWARD_PATH (通常は表示元) にフォワードされます。
+	 * <li>上記以外の例外の場合は、セッション属性 REDIRECT_URL にリダイレクトされます。
+	 * <li>セッションに FORWARD_PATH も REDIRECT_URL もセットされていない場合は、コンテキストルートにリダイレクトされます。
+	 * </ul>
 	 * @param isValid 入力チェックなどが正しい場合に true となる条件
-	 * @param message 上記が false の時に例外がスローされ、例外メッセージがリクエスト属性にセットされます。
+	 * @param message リクエスト属性にセットするメッセージ
 	 * @param args メッセージの %s や %d に String#format で埋め込む文字列
 	 */
 	public static void valid(boolean isValid, String message, Object... args) {
 		if (!isValid) {
-			forward(null);
 			throw new IllegalArgumentException(String.format(message, args));
 		}
 	}
 	
 	/**
 	 * JSP にフォワードします。
+	 * フォワード先の JSP パスがセッション属性 FORWARD_PATH に保存されます。
 	 * form (method=post) タグ配下に CSRF トークンの hidden が自動追加されます。
 	 * @param jspPath JSP パス。先頭がスラッシュでない場合は "/WEB-INF/jsp/" が先頭に追加されます。
 	 */
@@ -108,6 +113,7 @@ public class SingleTierController extends HttpFilter {
 	
 	/**
 	 * リダイレクトします。
+	 * リダイレクト先の URL がセッション属性 REDIRECT_URL に保存されます。
 	 * 現在のリクエスト属性は、フラッシュ属性としてセッション経由でリダイレクト先に引き継がれます。
 	 * @param redirectUrl リダイレクト先 URL。null の場合はコンテキストルート。
 	 */
@@ -117,8 +123,9 @@ public class SingleTierController extends HttpFilter {
 		String url = redirectUrl == null ? context.req.getContextPath() : redirectUrl.toString();
 		context.req.getSession().setAttribute(REDIRECT_URL, url);
 		context.res.sendRedirect(url);
+		log.debug("[REDIRECT_URL] {}", url);
 		
-		// リクエスト属性をフラッシュ属性としてセッションに保存 (リダイレクト後に削除される)
+		// リクエスト属性をフラッシュ属性としてセッションに保存 (リダイレクト後にフィルターで削除)
 		if (!url.contains("//")) {
 			context.req.getSession().setAttribute(FLASH_ATTRIBUTE, 
 					Collections.list(context.req.getAttributeNames()).stream()
