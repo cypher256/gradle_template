@@ -32,3 +32,9 @@
 </footer>
 </body>
 </html>
+<!-- 
+change keyup
+new FormData(form);
+axios put
+https://flaviocopes.com/how-to-add-event-listener-multiple-elements-javascript/
+-->

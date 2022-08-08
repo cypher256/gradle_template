@@ -9,11 +9,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.beanutils.BeanUtils;
-
 import jodd.servlet.DispatcherUtil;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
@@ -23,31 +19,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @WebServlet("")
 @Slf4j
-public class CrudServlet extends HttpServlet {
-	
-	/** item エンティティクラス */
-	@Data @NoArgsConstructor
-	public static class Item {
-		public long id;
-		public String name;
-		public String releaseDate;
-		public boolean faceAuth;
-		
-		@SneakyThrows
-		public Item(HttpServletRequest req) {
-			BeanUtils.copyProperties(this, req.getParameterMap());
-		}
-		
-		public Item validate(HttpServletRequest req) {
-			req.setAttribute("item", this); // エラー時の再表示用
-			valid(!name.isBlank(), "製品名は必須です。");
-			valid(name.length() <= 30, "製品名は 30 文字以内で入力してください。(%d 文字)", name.length());
-			valid(name.matches("[^<>]+"), "製品名に <> は使用できません。");
-			valid(!(name.matches("(?i).*iphone.*") && !faceAuth), "iPhone は顔認証を有効にしてください。");
-			valid(!releaseDate.endsWith("15"), "発売日は 15 日以外の日付を入力してください。");
-			return this;
-		}
-	}
+public class ItemCrudServlet extends HttpServlet {
 	
 	/** CRUD の R: Read (SELECT) 検索して一覧画面を表示 */
 	@Override @SneakyThrows
@@ -84,7 +56,7 @@ public class CrudServlet extends HttpServlet {
 		/** 登録画面の登録ボタン → 一覧画面へリダイレクト (PRG パターン) */
 		@Override @SneakyThrows
 		protected void doPost(HttpServletRequest req, HttpServletResponse res) {
-			dao().insert(new Item(req).validate(req));
+			dao().insert(new Item(req).validate());
 			req.setAttribute(MESSAGE, "登録しました。");
 			redirect(req.getSession().getAttribute("searchUrl"));
 		}
@@ -105,7 +77,7 @@ public class CrudServlet extends HttpServlet {
 		/** 変更画面の更新ボタン → 一覧画面へリダイレクト (PRG パターン) */
 		@Override @SneakyThrows
 		protected void doPost(HttpServletRequest req, HttpServletResponse res) {
-			dao().update(new Item(req).validate(req));
+			dao().update(new Item(req).validate());
 			req.setAttribute(MESSAGE, "更新しました。");
 			redirect(req.getSession().getAttribute("searchUrl"));
 		}
@@ -121,6 +93,22 @@ public class CrudServlet extends HttpServlet {
 			dao().delete(new Item(req));
 			req.setAttribute(MESSAGE, "削除しました。");
 			redirect(req.getSession().getAttribute("searchUrl"));
+		}
+	}
+
+	/** 入力チェック API Servlet */
+	@WebServlet("/validate")
+	public static class ValidateApiServlet extends HttpServlet {
+		
+		/** 登録、変更画面の入力中エラーメッセージ → エラーがあればメッセージ文字列返却 */
+		@Override @SneakyThrows
+		protected void doPut(HttpServletRequest req, HttpServletResponse res) {
+			try {
+				new Item(req).validate();
+				res.getWriter().write("");
+			} catch (Exception e) {
+				res.getWriter().write(e.getMessage());
+			}
 		}
 	}
 }

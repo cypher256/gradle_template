@@ -193,12 +193,14 @@ public class SingleTierController extends HttpFilter {
 		synchronized (this) {
 			String reqCsrf = req.getParameter(CSRF_TOKEN);
 			String sesCsrf = (String) session.getAttribute(CSRF_TOKEN);
-			session.setAttribute(CSRF_TOKEN, UUID.randomUUID().toString());
+			String newCsrf = UUID.randomUUID().toString();
+			session.setAttribute(CSRF_TOKEN, newCsrf);
 			if ("POST".equals(req.getMethod()) && !StringUtils.equals(reqCsrf, sesCsrf)) {
 				req.setAttribute(MESSAGE, "不正なリクエストを無視しました。");
 				redirect(session.getAttribute(REDIRECT_URL));
 				return;
 			}
+			res.setHeader(CSRF_TOKEN, newCsrf); // API 用
 		}
 		
 		// リダイレクト時のフラッシュ属性をセッションからリクエスト属性に復元し、セッションから削除
