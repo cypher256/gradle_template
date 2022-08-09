@@ -100,15 +100,10 @@ public class ItemCrudServlet extends HttpServlet {
 	@WebServlet("/validate")
 	public static class ValidateApiServlet extends HttpServlet {
 		
-		/** 登録、変更画面の入力中エラーメッセージ → エラーがあればメッセージ文字列返却 */
+		/** エラーがあればメッセージ文字列返却 */
 		@Override @SneakyThrows
-		protected void doPut(HttpServletRequest req, HttpServletResponse res) {
-			try {
-				new Item(req).validate();
-				res.getWriter().write("");
-			} catch (Exception e) {
-				res.getWriter().write(e.getMessage());
-			}
+		protected void doPost(HttpServletRequest req, HttpServletResponse res) {
+			new Item(req).validate();
 		}
 	}
 }

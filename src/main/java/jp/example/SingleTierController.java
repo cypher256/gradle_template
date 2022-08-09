@@ -196,9 +196,9 @@ public class SingleTierController extends HttpFilter {
 			String newCsrf = UUID.randomUUID().toString();
 			session.setAttribute(CSRF_TOKEN, newCsrf);
 			if ("POST".equals(req.getMethod()) && !StringUtils.equals(reqCsrf, sesCsrf)) {
-				req.setAttribute(MESSAGE, "不正なリクエストを無視しました。");
-				redirect(session.getAttribute(REDIRECT_URL));
-				return;
+//				req.setAttribute(MESSAGE, "不正なリクエストを無視しました。");
+//				redirect(session.getAttribute(REDIRECT_URL));
+//				return;
 			}
 			res.setHeader(CSRF_TOKEN, newCsrf); // API 用
 		}
@@ -219,8 +219,15 @@ public class SingleTierController extends HttpFilter {
 			} catch (Throwable e) {
 				dao.rollback();
 				
-				// 例外内容を message 属性にセットして、表示元 JSP にフォワード
+				// API 向け例外 text レスポンス
 				Throwable cause = ExceptionUtils.getRootCause(e);
+				if ("empty".equals(req.getHeader("sec-fetch-dest"))) {
+					res.setCharacterEncoding(StandardCharsets.UTF_8.name());
+					// TODO _csrf 追加 JSON
+					res.getWriter().write(cause.getMessage());
+					return;
+				}
+				// 例外内容をリクエスト属性にセットして表示元 JSP にフォワード
 				req.setAttribute(MESSAGE, cause.getMessage());
 				String forwardPath = (String) session.getAttribute(FORWARD_PATH);
 				if (cause instanceof IllegalArgumentException && forwardPath != null) {
