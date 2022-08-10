@@ -12,16 +12,18 @@
 	<p>Servlet JSP CRUD サンプル</p>
 </header>
 <main>
-<blockquote id="_msg" style="visibility:${empty _message ? 'hidden' : ''}">${fn:escapeXml(_message)}&nbsp;</blockquote>
+<blockquote id="_msg">${fn:escapeXml(_message)}</blockquote>
 <form id="_form" method="post" onsubmit="_submitButton.disabled = true"><%-- クライアント側の二重送信抑止 (サーバーは CSRF) --%>
 	<input type="hidden" name="id" value="${item.id}"/>
 	<p><label>製品名 <mark>必須</mark></label>
 		<input type="text" name="name" value="${fn:escapeXml(item.name)}"
 			onkeyup="validate()" required autofocus onfocus="this.setSelectionRange(99,99)" size="40"></p>
 	<p><label>発売日</label>
-		<input type="date" name="releaseDate" value="${fn:escapeXml(item.releaseDate)}"></p>
+		<input type="date" name="releaseDate" value="${fn:escapeXml(item.releaseDate)}"
+			onchange="validate()"></p>
 	<p><label>顔認証</label>
-		<input type="checkbox" name="faceAuth" ${item.faceAuth ? 'checked' : ''}></p>
+		<input type="checkbox" name="faceAuth" ${item.faceAuth ? 'checked' : ''}
+			onchange="validate()"></p>
 	<button type="button" onclick="location.href='${searchUrl}'">戻る</button>
 	<input id="_submitButton" type="submit" value=
 		${empty item || item.id == 0
@@ -36,11 +38,9 @@
 </body>
 <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 <script>
-const validate = () => {
-	axios.post('validate', new URLSearchParams(new FormData(_form))).then(res => {
-		_msg.textContent = res.data || '&nbsp;';
-		_msg.style.visibility = res.data ? '' : 'hidden';
-	});
-}
+const validate = async() => {
+	const res = await axios.post('ajax', new URLSearchParams(new FormData(_form)));
+	_msg.textContent = res.data;
+};
 </script>
 </html>

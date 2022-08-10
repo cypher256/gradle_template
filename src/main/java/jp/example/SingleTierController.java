@@ -10,6 +10,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import javax.servlet.FilterChain;
+import javax.servlet.ServletContext;
 import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpFilter;
 import javax.servlet.http.HttpServletRequest;
@@ -154,7 +155,7 @@ public class SingleTierController extends HttpFilter {
 		final HttpServletResponse res;
 	}
 
-	/** Web アプリ起動時のデータベース初期化 */
+	/** Web アプリ起動時のデータベース初期化と共通エンコーディング設定 */
 	@Override @SneakyThrows
 	public void init() {
 		dataSource = new HikariDataSource(new HikariConfig("/database.properties"));
@@ -162,6 +163,9 @@ public class SingleTierController extends HttpFilter {
 		try (SqlAgent dao = daoConfig.agent()) {
 			dao.update("create_table").count(); // ファイル実行 /src/main/resources/sql/create_table.sql
 		}
+		ServletContext sc = getServletContext();
+		sc.setRequestCharacterEncoding(StandardCharsets.UTF_8.name()); // post エンコーディング (getParameter)
+		sc.setResponseCharacterEncoding(StandardCharsets.UTF_8.name()); // AJAX レスポンス
 	}
 	
 	/** Web アプリ終了時のデータベースリソース破棄 */
@@ -180,8 +184,8 @@ public class SingleTierController extends HttpFilter {
 			super.doFilter(req, res, chain);
 			return;
 		}
-		req.setCharacterEncoding(StandardCharsets.UTF_8.name()); // post エンコーディング (getParameter 前)
 		requestContextThreadLocal.set(new RequestContext(req, res));
+		boolean isAjax = StringUtils.contains(req.getHeader("accept"), "application/json");
 		HttpSession session = req.getSession();
 		if (session.isNew() && !req.getRequestURI().equals(req.getContextPath() + "/")) {
 			req.setAttribute(MESSAGE, "セッションの有効期限が切れました。");
@@ -193,14 +197,14 @@ public class SingleTierController extends HttpFilter {
 		synchronized (this) {
 			String reqCsrf = req.getParameter(CSRF_TOKEN);
 			String sesCsrf = (String) session.getAttribute(CSRF_TOKEN);
-			String newCsrf = UUID.randomUUID().toString();
-			session.setAttribute(CSRF_TOKEN, newCsrf);
-			if ("POST".equals(req.getMethod()) && !StringUtils.equals(reqCsrf, sesCsrf)) {
-//				req.setAttribute(MESSAGE, "不正なリクエストを無視しました。");
-//				redirect(session.getAttribute(REDIRECT_URL));
-//				return;
+			if (!isAjax) {
+				session.setAttribute(CSRF_TOKEN, UUID.randomUUID().toString());
 			}
-			res.setHeader(CSRF_TOKEN, newCsrf); // API 用
+			if ("POST".equals(req.getMethod()) && !StringUtils.equals(reqCsrf, sesCsrf)) {
+				req.setAttribute(MESSAGE, "不正なリクエストを無視しました。");
+				redirect(session.getAttribute(REDIRECT_URL));
+				return;
+			}
 		}
 		
 		// リダイレクト時のフラッシュ属性をセッションからリクエスト属性に復元し、セッションから削除
@@ -219,28 +223,27 @@ public class SingleTierController extends HttpFilter {
 			} catch (Throwable e) {
 				dao.rollback();
 				
-				// API 向け例外 text レスポンス
+				// ルート例外の getMessage() を返却
 				Throwable cause = ExceptionUtils.getRootCause(e);
-				if ("empty".equals(req.getHeader("sec-fetch-dest"))) {
-					res.setCharacterEncoding(StandardCharsets.UTF_8.name());
-					// TODO _csrf 追加 JSON
-					res.getWriter().write(cause.getMessage());
+				if (cause instanceof IllegalArgumentException == false) {
+					log.warn(cause.getMessage(), cause);
+				}
+				if (isAjax) { 
+					res.getWriter().print(cause.getMessage());
 					return;
 				}
-				// 例外内容をリクエスト属性にセットして表示元 JSP にフォワード
 				req.setAttribute(MESSAGE, cause.getMessage());
 				String forwardPath = (String) session.getAttribute(FORWARD_PATH);
 				if (cause instanceof IllegalArgumentException && forwardPath != null) {
 					forward(forwardPath);
 				} else {
 					redirect(session.getAttribute(REDIRECT_URL));
-					log.warn(cause.getMessage(), cause);
 				}
 				
 			} finally {
 				daoThreadLocal.remove();
 				requestContextThreadLocal.remove();
-				log.debug("処理時間 {} {}", stopwatch, DispatcherUtil.getFullUrl(req));
+				log.debug("処理時間 {} [{}] {}", stopwatch, req.getMethod(), DispatcherUtil.getFullUrl(req));
 			}
 		}
 	}

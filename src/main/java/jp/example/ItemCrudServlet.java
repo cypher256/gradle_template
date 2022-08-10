@@ -20,23 +20,27 @@ import lombok.extern.slf4j.Slf4j;
 @WebServlet("")
 @Slf4j
 public class ItemCrudServlet extends HttpServlet {
+
+	/** 
+	 * 検索 SQL From 以降 (2WaySQL OGNL)
+	 * https://future-architect.github.io/uroborosql-doc/background/#条件分岐-if-elif-else-end
+	 */
+	private static final String SEARCH_SQL = """
+			FROM item
+			WHERE 1 = 1
+				/*IF SF.isNotBlank(name)*/ 
+					AND name LIKE /*SF.contains(name)*/'Pro' escape /*#ESC_CHAR*/'$' 
+				/*END*/
+				/*IF SF.isNotBlank(releaseDate)*/ 
+					AND release_date = /*releaseDate*/'2022-09-11'
+				/*END*/
+		""";
 	
 	/** CRUD の R: Read (SELECT) 検索して一覧画面を表示 */
 	@Override @SneakyThrows
 	protected void doGet(HttpServletRequest req, HttpServletResponse res) {
-
-		// 2WaySQL OGNL - https://future-architect.github.io/uroborosql-doc/background/#条件分岐-if-elif-else-end
-		List<Item> list = dao().queryWith("""
-				SELECT * FROM item
-				WHERE 1 = 1
-					/*IF SF.isNotBlank(name)*/ 
-						AND name LIKE /*SF.contains(name)*/'Pro' escape /*#ESC_CHAR*/'$' 
-					/*END*/
-					/*IF SF.isNotBlank(releaseDate)*/ 
-						AND release_date = /*releaseDate*/'2022-09-11'
-					/*END*/
-			""").paramBean(new Item(req)).collect(Item.class);
-		
+		String sql = "SELECT * " + SEARCH_SQL;
+		List<Item> list = dao().queryWith(sql).paramBean(new Item(req)).collect(Item.class);
 		log.debug("SELECT 結果: {} 件 - {}", list.size(), list.stream().findFirst().orElse(null));
 		req.setAttribute("itemList", list);
 		req.getSession().setAttribute("searchUrl", DispatcherUtil.getFullUrl(req));
@@ -96,11 +100,19 @@ public class ItemCrudServlet extends HttpServlet {
 		}
 	}
 
-	/** 入力チェック API Servlet */
-	@WebServlet("/validate")
-	public static class ValidateApiServlet extends HttpServlet {
+	/** AJAX Servlet */
+	@WebServlet("/ajax")
+	public static class ItemAjaxServlet extends HttpServlet {
 		
-		/** エラーがあればメッセージ文字列返却 */
+		/** 検索画面でのリアルタイム検索結果件数の取得 */
+		@Override @SneakyThrows
+		protected void doGet(HttpServletRequest req, HttpServletResponse res) {
+			String sql = "SELECT COUNT(*) " + SEARCH_SQL;
+			Object count = dao().queryWith(sql).paramBean(new Item(req)).one().values().iterator().next();
+			res.getWriter().print(count);
+		}
+		
+		/** 登録、変更画面のリアルタイム入力チェック */
 		@Override @SneakyThrows
 		protected void doPost(HttpServletRequest req, HttpServletResponse res) {
 			new Item(req).validate();

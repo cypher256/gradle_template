@@ -11,10 +11,11 @@ import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 
 /** 
- * item エンティティフォームクラスです。
+ * item DTO クラスです。
  * @author Pleiades All in One New Gradle Project Wizard (EPL)
  */
-@Data @NoArgsConstructor
+@Data
+@NoArgsConstructor
 public class Item {
 	
 	public long id;
@@ -30,7 +31,7 @@ public class Item {
 	
 	public Item validate() {
 		valid(!name.isBlank(), "製品名は必須です。");
-		valid(name.length() <= 30, "製品名は 30 文字以内で入力してください。(%d 文字)", name.length());
+		valid(name.matches(".{10,25}"), "製品名は 10 〜 25 文字で入力してください。(現在 %d 文字)", name.length());
 		valid(name.matches("[^<>]+"), "製品名に <> は使用できません。");
 		valid(!(name.matches("(?i).*iphone.*") && !faceAuth), "iPhone は顔認証を有効にしてください。");
 		valid(!releaseDate.endsWith("15"), "発売日は 15 日以外の日付を入力してください。");

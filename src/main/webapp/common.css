@@ -1,23 +1,42 @@
 @charset "UTF-8";
+/*
+-----------------------------------------------------------
+Simple.css ベース
+https://github.com/kevquirk/simple.css
+-----------------------------------------------------------
+*/
 
+/* ヘッダーを狭く */
 body > header {
 	padding-bottom: 0rem;
 }
 
+/* メッセージ */
+blockquote {
+    height: 2.5rem;
+}
+blockquote:empty {
+	border-left: none;
+}
+
+/* フォーム横並び */
 form[method=get] p {
 	display: inline-block;
 	margin-inline-end: 1em;
 }
 
+/* テーブル 横幅 100% */
 table {
-    display: table; /* 横幅 100% */
+    display: table;
 }
 
+/* 必須ラベル */
 mark {
     font-size: small;
     vertical-align: text-bottom;
 }
 
+/* 横中央寄せ */
 ._center {
 	text-align: center;
 }
