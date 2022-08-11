@@ -13,7 +13,7 @@
 </header>
 <main>
 <blockquote id="_message">${fn:escapeXml(MESSAGE)}</blockquote>
-<form id="_form" method="post" onsubmit="_submitButton.disabled = true"><%-- クライアント側の二重送信抑止 (サーバーは CSRF) --%>
+<form id="_form" method="post" onsubmit="_submitButton.disabled = true"><%-- クライアント側の二重送信抑止 (CSRF でもエラー) --%>
 	<input type="hidden" name="id" value="${item.id}"/>
 	<p><label>製品名 <mark>必須</mark></label>
 		<input type="text" name="name" value="${fn:escapeXml(item.name)}"
@@ -38,7 +38,7 @@
 </body>
 <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 <script>
-<%-- 入力中のリアルタイム AJAX チェック --%>
+<%-- 入力中のリアルタイム AJAX チェック (form が post のため _csrf が含まれる) --%>
 const validate = async() => {
 	const res = await axios.post('ajax', new URLSearchParams(new FormData(_form)));
 	_message.textContent = res.data;

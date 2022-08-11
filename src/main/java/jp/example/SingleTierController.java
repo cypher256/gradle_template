@@ -39,11 +39,11 @@ import lombok.extern.slf4j.Slf4j;
  * Servlet JSP 単層アーキテクチャーで構成されたフロントコントローラーサンプルです。
  * このフロントコントローラーは、有効行 150 行ほどの Servlet API の薄いラッパーとなっています。
  * <ul>
- * <li>シンプルな単層アーキテクチャー: 多層に対して、管理・保守が容易で、分散が不要なトラフィックが少ないサイトに理想的なソリューション。
+ * <li>シンプルな単層アーキテクチャー: 多層に対して、管理・保守が容易で分散が不要なトラフィックが少ないサイトに理想的なソリューション。
  * <li>自動フラッシュ属性: リダイレクト時は、リクエスト属性をセッション経由でリダイレクト先のリクエスト属性に自動転送。
  * <li>自動 CSRF トークン: Servlet でのチェックや、JSP への明示的な埋め込み不要。
  * <li>自動トランザクション: DB コネクションの取得・解放の考慮不要。例外スローでロールバックし、例外にセットしたメッセージを画面に表示。
- * <li>エラー時の表示元 JSP へ自動フォワード: IllegalArgumentException スローで、表示元 JSP にフォワード。
+ * <li>エラー時の表示元 JSP へ自動フォワード: new IllegalArgumentException(画面メッセージ) スローで、表示元 JSP にフォワード。
  * </ul>
  * @author Pleiades All in One New Gradle Project Wizard (EPL)
  */
@@ -76,8 +76,8 @@ public class SingleTierController extends HttpFilter {
 	 * <ul>
 	 * <li>例外の種類に関わらずロールバックされ、例外の getMessage() がリクエスト属性にセットされます。
 	 * <li>IllegalArgumentException の場合、セッション属性 FORWARD_PATH (通常は表示元) にフォワードされます。
-	 * <li>上記以外の例外の場合は、セッション属性 REDIRECT_URL にリダイレクトされます。
-	 * <li>セッションに FORWARD_PATH も REDIRECT_URL もセットされていない場合は、コンテキストルートにリダイレクトされます。
+	 * <li>上記以外の例外の場合は、セッション属性 REDIRECT_URL にリダイレクト (自動フラッシュ) されます。
+	 * <li>セッションに FORWARD_PATH も REDIRECT_URL も無い場合は、コンテキストルートにリダイレクト (自動フラッシュ) されます。
 	 * </ul>
 	 * @param isValid 入力チェックなどが正しい場合に true となる条件
 	 * @param message リクエスト属性にセットするメッセージ
@@ -92,8 +92,9 @@ public class SingleTierController extends HttpFilter {
 	/**
 	 * JSP にフォワードします。
 	 * <ul>
-	 * <li>JSP パース後、form (method=post) タグ配下に CSRF トークンの hidden が追加されます。
+	 * <li>JSP パース後、meta タグと form method="post" の input hidden に CSRF トークンが追加されます。
 	 * <li>フォワード先パスがセッション属性 FORWARD_PATH にセットされます。
+	 * <li>AJAX リクエストの場合は、リクエスト属性の MESSAGE をレスポンスに書き込んでフォワードしません。 
 	 * </ul>
 	 * @param jspPath JSP パス。先頭がスラッシュでない場合は "/WEB-INF/jsp/" が先頭に追加れます。
 	 */
@@ -106,13 +107,15 @@ public class SingleTierController extends HttpFilter {
 		context.req.getSession().setAttribute(FORWARD_PATH, path);
 		log.debug("[{}] {}", FORWARD_PATH, path);
 		
-		// JSP にフォワードして、処理後の HTML form に CSRF トークン埋め込み (手動でも JSP で ${_csrf} 参照可能)
+		// JSP にフォワードして、処理後の HTML に CSRF トークン埋め込み
 		ByteArrayResponseWrapper tempRes = new ByteArrayResponseWrapper(context.res);
 		context.req.getRequestDispatcher(path).forward(context.req, tempRes);
-		String html = new String(tempRes.toByteArray(), tempRes.getCharacterEncoding())
-			.replaceAll("(?si)([ \t]*)(<form[^>]*post[^>]*>)", 
-				format("$1$2\n$1\t<input type=\"hidden\" name=\"%s\" value=\"%s\">", 
-					CSRF_TOKEN, context.req.getSession().getAttribute(CSRF_TOKEN)));
+		String csrfValue = (String) context.req.getSession().getAttribute(CSRF_TOKEN);
+		String html = new String(tempRes.toByteArray(), tempRes.getCharacterEncoding());
+		html = html.replaceFirst("(?i)(<head>)", 
+			format("\n$1<meta name=\"%s\" content=\"%s\">", CSRF_TOKEN, csrfValue));
+		html = html.replaceAll("(?is)([ \t]*)(<form[^>]*post[^>]*>)", 
+			format("$1$2\n$1\t<input type=\"hidden\" name=\"%s\" value=\"%s\">", CSRF_TOKEN, csrfValue));
 		context.res.getWriter().print(html);
 	}
 	
@@ -121,6 +124,7 @@ public class SingleTierController extends HttpFilter {
 	 * <ul>
 	 * <li>現在のリクエスト属性は、フラッシュ属性としてセッション経由でリダイレクト先に引き継がれます。
 	 * <li>リダイレクト先 URL がセッション属性 REDIRECT_URL にセットされます。
+	 * <li>AJAX リクエストの場合は、リクエスト属性の MESSAGE をレスポンスに書き込んでリダイレクトしません。 
 	 * </ul>
 	 * @param redirectUrl リダイレクト先 URL。null の場合はコンテキストルート。
 	 */
@@ -199,16 +203,16 @@ public class SingleTierController extends HttpFilter {
 			return;
 		}
 		
-		// post 時の CSRF トークンチェック (二重送信も防げるが UX 向上のため、detail.jsp の JS のような二度押し防止推奨)
+		// post 時の CSRF トークンチェック (リクエスト値: パラメーター _csrf が無ければ、リクエストヘッダ X-CSRF-TOKEN)
 		synchronized (this) {
-			String reqCsrf = req.getParameter(CSRF_TOKEN);
+			String reqCsrf = StringUtils.defaultIfBlank(req.getParameter(CSRF_TOKEN), req.getHeader("X-CSRF-TOKEN"));
 			String sesCsrf = (String) session.getAttribute(CSRF_TOKEN);
 			if ("POST".equals(req.getMethod()) && !StringUtils.equals(reqCsrf, sesCsrf) && !isMultipartRequest(req)) {
 				req.setAttribute(MESSAGE, "不正なリクエストを無視しました。");
 				redirect(session.getAttribute(REDIRECT_URL));
 				return;
 			}
-			if (!isAjaxRequest()) {
+			if (!isAjax()) {
 				// AJAX ではない通常の画面遷移の場合は CSRF トークンを新しくする
 				session.setAttribute(CSRF_TOKEN, UUID.randomUUID().toString());
 			}
@@ -250,10 +254,10 @@ public class SingleTierController extends HttpFilter {
 		}
 	}
 
-	/** AJAX リクエストの場合はリクエスト属性の MESSAGE をレスポンスに書き込んで true 返却 */
+	/** AJAX リクエストの場合は、リクエスト属性の MESSAGE をレスポンスに書き込んで true 返却 */
 	@SneakyThrows
 	private static boolean isAjaxMessageResponse() {
-		if (isAjaxRequest()) {
+		if (isAjax()) {
 			RequestContext context = requestContextThreadLocal.get();
 			Object message = Objects.toString(context.req.getAttribute(MESSAGE), "処理できません。リロードしてください。");
 			context.res.getWriter().print(message);
@@ -263,8 +267,9 @@ public class SingleTierController extends HttpFilter {
 	}
 
 	/** AJAX リクエストの場合は true */
-	private static boolean isAjaxRequest() {
+	private static boolean isAjax() {
 		HttpServletRequest req = requestContextThreadLocal.get().req;
-		return StringUtils.contains(req.getHeader("accept"), "application/json");
+		return "XMLHttpRequest".equals(req.getHeader("X-Requested-With")) ||
+				StringUtils.contains(req.getHeader("Accept"), "/json");
 	}
 }
