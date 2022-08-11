@@ -1,6 +1,7 @@
 package jp.example;
 
 import static java.lang.String.*;
+import static jodd.servlet.ServletUtil.*;
 
 import java.nio.charset.StandardCharsets;
 import java.sql.DriverManager;
@@ -35,14 +36,14 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Servlet JSP 単一レイヤーアーキテクチャーで構成されたフロントコントローラーサンプルです。
+ * Servlet JSP 単層アーキテクチャーで構成されたフロントコントローラーサンプルです。
  * このフロントコントローラーは、有効行 150 行ほどの Servlet API の薄いラッパーとなっています。
  * <ul>
- * <li>単一レイヤーアーキテクチャー: 分散開発や分散実行が不要なプロジェクト向けの高効率でシンプルなアーキテクチャー。
- * <li>自動フラッシュ属性: リダイレクト時は、自動的にリクエスト属性をセッション経由でリダイレクト先のリクエスト属性に転送。
- * <li>自動 CSRF トークンチェック: Servlet でのチェックや、JSP への明示的な埋め込み不要。
- * <li>自動トランザクション制御: サーブレットでの DB コネクションの取得・解放やロールバック不要。
- * <li>エラー時の表示元 JSP へ自動フォワード: IllegalArgumentException スローで message 属性にセットして、表示元 JSP にフォワード。
+ * <li>シンプルな単層アーキテクチャー: 多層に対して、管理・保守が容易で、分散が不要なトラフィックが少ないサイトに理想的なソリューション。
+ * <li>自動フラッシュ属性: リダイレクト時は、リクエスト属性をセッション経由でリダイレクト先のリクエスト属性に自動転送。
+ * <li>自動 CSRF トークン: Servlet でのチェックや、JSP への明示的な埋め込み不要。
+ * <li>自動トランザクション: DB コネクションの取得・解放の考慮不要。例外スローでロールバックし、例外にセットしたメッセージを画面に表示。
+ * <li>エラー時の表示元 JSP へ自動フォワード: IllegalArgumentException スローで、表示元 JSP にフォワード。
  * </ul>
  * @author Pleiades All in One New Gradle Project Wizard (EPL)
  */
@@ -70,7 +71,7 @@ public class SingleTierController extends HttpFilter {
 	
 	/**
 	 * エラーチェック用のメソッドです。
-	 * 指定した条件が false の場合、message が IllegalArgumentException にセットされスローされます。
+	 * 指定した条件が false の場合、引数のメッセージを持つ IllegalArgumentException がスローされます。
 	 * 以下、このメソッド以外にも適用される、例外がスローされた場合の共通動作です。
 	 * <ul>
 	 * <li>例外の種類に関わらずロールバックされ、例外の getMessage() がリクエスト属性にセットされます。
@@ -90,9 +91,11 @@ public class SingleTierController extends HttpFilter {
 	
 	/**
 	 * JSP にフォワードします。
-	 * フォワード先の JSP パスがセッション属性 FORWARD_PATH に保存されます。
-	 * 自動的に form (method=post) タグ配下に CSRF トークンの hidden が自動追加されます。
-	 * @param jspPath JSP パス。先頭がスラッシュでない場合は "/WEB-INF/jsp/" が先頭に追加されます。
+	 * <ul>
+	 * <li>JSP パース後、form (method=post) タグ配下に CSRF トークンの hidden が追加されます。
+	 * <li>フォワード先パスがセッション属性 FORWARD_PATH にセットされます。
+	 * </ul>
+	 * @param jspPath JSP パス。先頭がスラッシュでない場合は "/WEB-INF/jsp/" が先頭に追加れます。
 	 */
 	@SneakyThrows
 	public static void forward(Object jspPath) {
@@ -115,15 +118,17 @@ public class SingleTierController extends HttpFilter {
 	
 	/**
 	 * リダイレクトします。
-	 * リダイレクト先の URL がセッション属性 REDIRECT_URL に保存されます。
-	 * 現在のリクエスト属性は、フラッシュ属性としてセッション経由でリダイレクト先に引き継がれます。
+	 * <ul>
+	 * <li>現在のリクエスト属性は、フラッシュ属性としてセッション経由でリダイレクト先に引き継がれます。
+	 * <li>リダイレクト先 URL がセッション属性 REDIRECT_URL にセットされます。
+	 * </ul>
 	 * @param redirectUrl リダイレクト先 URL。null の場合はコンテキストルート。
 	 */
 	@SneakyThrows
 	public static void redirect(Object redirectUrl) {
 		if (isAjaxMessageResponse()) return;
 		RequestContext context = requestContextThreadLocal.get();
-		String url = redirectUrl == null ? context.req.getContextPath() : redirectUrl.toString();
+		String url = Objects.toString(redirectUrl, context.req.getContextPath());
 		context.res.sendRedirect(url);
 		context.req.getSession().setAttribute(REDIRECT_URL, url);
 		log.debug("[{}] {}", REDIRECT_URL, url);
@@ -198,14 +203,14 @@ public class SingleTierController extends HttpFilter {
 		synchronized (this) {
 			String reqCsrf = req.getParameter(CSRF_TOKEN);
 			String sesCsrf = (String) session.getAttribute(CSRF_TOKEN);
-			if (!isAjaxRequest()) {
-				// 画面遷移の場合は CSRF トークンを新しくする
-				session.setAttribute(CSRF_TOKEN, UUID.randomUUID().toString());
-			}
-			if ("POST".equals(req.getMethod()) && !StringUtils.equals(reqCsrf, sesCsrf)) {
+			if ("POST".equals(req.getMethod()) && !StringUtils.equals(reqCsrf, sesCsrf) && !isMultipartRequest(req)) {
 				req.setAttribute(MESSAGE, "不正なリクエストを無視しました。");
 				redirect(session.getAttribute(REDIRECT_URL));
 				return;
+			}
+			if (!isAjaxRequest()) {
+				// AJAX ではない通常の画面遷移の場合は CSRF トークンを新しくする
+				session.setAttribute(CSRF_TOKEN, UUID.randomUUID().toString());
 			}
 		}
 		
@@ -227,15 +232,13 @@ public class SingleTierController extends HttpFilter {
 				
 				// ルート例外の getMessage() をリクエスト属性にセットしてフォワードまたはリダイレクト
 				Throwable cause = ExceptionUtils.getRootCause(e);
-				if (cause instanceof IllegalArgumentException == false) {
-					log.warn(cause.getMessage(), cause);
-				}
 				req.setAttribute(MESSAGE, cause.getMessage());
 				String forwardPath = (String) session.getAttribute(FORWARD_PATH);
 				if (cause instanceof IllegalArgumentException && forwardPath != null) {
 					forward(forwardPath);
 				} else {
 					redirect(session.getAttribute(REDIRECT_URL));
+					log.warn(cause.getMessage(), cause);
 				}
 				
 			} finally {
@@ -247,7 +250,7 @@ public class SingleTierController extends HttpFilter {
 		}
 	}
 
-	/** AJAX リクエストの場合は true */
+	/** AJAX リクエストの場合はリクエスト属性の MESSAGE をレスポンスに書き込んで true 返却 */
 	@SneakyThrows
 	private static boolean isAjaxMessageResponse() {
 		if (isAjaxRequest()) {
