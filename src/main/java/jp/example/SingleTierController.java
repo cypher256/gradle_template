@@ -109,11 +109,11 @@ public class SingleTierController extends HttpFilter {
 		// JSP にフォワードして、処理後の HTML form に CSRF トークン埋め込み (手動でも JSP で ${_csrf} 参照可能)
 		ByteArrayResponseWrapper tempRes = new ByteArrayResponseWrapper(context.res);
 		context.req.getRequestDispatcher(path).forward(context.req, tempRes);
-		String html = new String(tempRes.toByteArray(), tempRes.getCharacterEncoding());
-		html = html.replaceAll("(?si)([ \t]*)(<form[^>]*post[^>]*>)", 
-			format("$1$2\n$1\t<input type=\"hidden\" name=\"%s\" value=\"%s\">", 
-				CSRF_TOKEN, context.req.getSession().getAttribute(CSRF_TOKEN)));
-		context.res.getWriter().write(html);
+		String html = new String(tempRes.toByteArray(), tempRes.getCharacterEncoding())
+			.replaceAll("(?si)([ \t]*)(<form[^>]*post[^>]*>)", 
+				format("$1$2\n$1\t<input type=\"hidden\" name=\"%s\" value=\"%s\">", 
+					CSRF_TOKEN, context.req.getSession().getAttribute(CSRF_TOKEN)));
+		context.res.getWriter().print(html);
 	}
 	
 	/**
@@ -130,14 +130,14 @@ public class SingleTierController extends HttpFilter {
 		RequestContext context = requestContextThreadLocal.get();
 		String url = Objects.toString(redirectUrl, context.req.getContextPath());
 		context.res.sendRedirect(url);
-		context.req.getSession().setAttribute(REDIRECT_URL, url);
 		log.debug("[{}] {}", REDIRECT_URL, url);
 		
-		// リクエスト属性をフラッシュ属性としてセッションに保存 (リダイレクト後にフィルターで削除)
+		// リクエスト属性をフラッシュ属性としてセッションに一時保存 ("//" が含まれる場合は外部サイトとみなし除外)
 		if (!url.contains("//")) {
+			context.req.getSession().setAttribute(REDIRECT_URL, url);
 			context.req.getSession().setAttribute(FLASH_ATTRIBUTE, 
-					Collections.list(context.req.getAttributeNames()).stream()
-						.collect(Collectors.toMap(name -> name, context.req::getAttribute)));
+				Collections.list(context.req.getAttributeNames()).stream()
+					.collect(Collectors.toMap(name -> name, context.req::getAttribute)));
 		}
 	}
 
