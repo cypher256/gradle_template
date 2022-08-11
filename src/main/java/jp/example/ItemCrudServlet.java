@@ -25,7 +25,7 @@ public class ItemCrudServlet extends HttpServlet {
 	 * 検索 SQL From 以降 (2WaySQL OGNL)
 	 * https://future-architect.github.io/uroborosql-doc/background/#条件分岐-if-elif-else-end
 	 */
-	private static final String SEARCH_SQL = """
+	private static final String SEARCH_FROM_SQL = """
 			FROM item
 			WHERE 1 = 1
 				/*IF SF.isNotBlank(name)*/ 
@@ -39,7 +39,7 @@ public class ItemCrudServlet extends HttpServlet {
 	/** CRUD の R: Read (SELECT) 検索して一覧画面を表示 */
 	@Override @SneakyThrows
 	protected void doGet(HttpServletRequest req, HttpServletResponse res) {
-		String sql = "SELECT * " + SEARCH_SQL;
+		String sql = "SELECT * " + SEARCH_FROM_SQL;
 		List<Item> list = dao().queryWith(sql).paramBean(new Item(req)).collect(Item.class);
 		log.debug("SELECT 結果: {} 件 - {}", list.size(), list.stream().findFirst().orElse(null));
 		req.setAttribute("itemList", list);
@@ -60,7 +60,7 @@ public class ItemCrudServlet extends HttpServlet {
 		/** 登録画面の登録ボタン → 一覧画面へリダイレクト (PRG パターン) */
 		@Override @SneakyThrows
 		protected void doPost(HttpServletRequest req, HttpServletResponse res) {
-			dao().insert(new Item(req).validate());
+			dao().insert(new Item(req).validate()); // 例外スローで例外 getMessage() がセッション MESSAGE にセットされる
 			req.setAttribute(MESSAGE, "登録しました。");
 			redirect(req.getSession().getAttribute("searchUrl"));
 		}
@@ -81,7 +81,7 @@ public class ItemCrudServlet extends HttpServlet {
 		/** 変更画面の更新ボタン → 一覧画面へリダイレクト (PRG パターン) */
 		@Override @SneakyThrows
 		protected void doPost(HttpServletRequest req, HttpServletResponse res) {
-			dao().update(new Item(req).validate());
+			dao().update(new Item(req).validate()); // 例外スローで例外 getMessage() がセッション MESSAGE にセットされる
 			req.setAttribute(MESSAGE, "更新しました。");
 			redirect(req.getSession().getAttribute("searchUrl"));
 		}
@@ -100,14 +100,14 @@ public class ItemCrudServlet extends HttpServlet {
 		}
 	}
 
-	/** AJAX Servlet */
+	/** AJAX Servlet (レスポンスは text) */
 	@WebServlet("/ajax")
 	public static class ItemAjaxServlet extends HttpServlet {
 		
 		/** 検索画面でのリアルタイム検索結果件数の取得 */
 		@Override @SneakyThrows
 		protected void doGet(HttpServletRequest req, HttpServletResponse res) {
-			String sql = "SELECT COUNT(*) " + SEARCH_SQL;
+			String sql = "SELECT COUNT(*) " + SEARCH_FROM_SQL;
 			Object count = dao().queryWith(sql).paramBean(new Item(req)).one().values().iterator().next();
 			res.getWriter().print(count);
 		}
@@ -115,7 +115,7 @@ public class ItemCrudServlet extends HttpServlet {
 		/** 登録、変更画面のリアルタイム入力チェック */
 		@Override @SneakyThrows
 		protected void doPost(HttpServletRequest req, HttpServletResponse res) {
-			new Item(req).validate();
+			new Item(req).validate(); // AJAX リクエストの場合、例外スローで例外 getMessage() がレスポンスに書き込まれる
 		}
 	}
 }

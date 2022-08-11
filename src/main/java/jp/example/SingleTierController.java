@@ -6,6 +6,7 @@ import java.nio.charset.StandardCharsets;
 import java.sql.DriverManager;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -90,25 +91,25 @@ public class SingleTierController extends HttpFilter {
 	/**
 	 * JSP にフォワードします。
 	 * フォワード先の JSP パスがセッション属性 FORWARD_PATH に保存されます。
-	 * form (method=post) タグ配下に CSRF トークンの hidden が自動追加されます。
+	 * 自動的に form (method=post) タグ配下に CSRF トークンの hidden が自動追加されます。
 	 * @param jspPath JSP パス。先頭がスラッシュでない場合は "/WEB-INF/jsp/" が先頭に追加されます。
 	 */
 	@SneakyThrows
 	public static void forward(Object jspPath) {
+		if (isAjaxMessageResponse()) return;
 		String path = jspPath.toString();
 		if (!path.startsWith("/")) path = "/WEB-INF/jsp/" + jspPath;
 		RequestContext context = requestContextThreadLocal.get();
-		HttpSession session = context.req.getSession();
-		session.setAttribute(FORWARD_PATH, path);
-		log.debug("[FORWARD_PATH] {}", path);
+		context.req.getSession().setAttribute(FORWARD_PATH, path);
+		log.debug("[{}] {}", FORWARD_PATH, path);
 		
-		// JSP にフォワードして、処理後の HTML form に hidden として CSRF トークン埋め込み
+		// JSP にフォワードして、処理後の HTML form に CSRF トークン埋め込み (手動でも JSP で ${_csrf} 参照可能)
 		ByteArrayResponseWrapper tempRes = new ByteArrayResponseWrapper(context.res);
 		context.req.getRequestDispatcher(path).forward(context.req, tempRes);
 		String html = new String(tempRes.toByteArray(), tempRes.getCharacterEncoding());
 		html = html.replaceAll("(?si)([ \t]*)(<form[^>]*post[^>]*>)", 
 			format("$1$2\n$1\t<input type=\"hidden\" name=\"%s\" value=\"%s\">", 
-				CSRF_TOKEN, session.getAttribute(CSRF_TOKEN)));
+				CSRF_TOKEN, context.req.getSession().getAttribute(CSRF_TOKEN)));
 		context.res.getWriter().write(html);
 	}
 	
@@ -120,11 +121,12 @@ public class SingleTierController extends HttpFilter {
 	 */
 	@SneakyThrows
 	public static void redirect(Object redirectUrl) {
+		if (isAjaxMessageResponse()) return;
 		RequestContext context = requestContextThreadLocal.get();
 		String url = redirectUrl == null ? context.req.getContextPath() : redirectUrl.toString();
-		context.req.getSession().setAttribute(REDIRECT_URL, url);
 		context.res.sendRedirect(url);
-		log.debug("[REDIRECT_URL] {}", url);
+		context.req.getSession().setAttribute(REDIRECT_URL, url);
+		log.debug("[{}] {}", REDIRECT_URL, url);
 		
 		// リクエスト属性をフラッシュ属性としてセッションに保存 (リダイレクト後にフィルターで削除)
 		if (!url.contains("//")) {
@@ -133,12 +135,12 @@ public class SingleTierController extends HttpFilter {
 						.collect(Collectors.toMap(name -> name, context.req::getAttribute)));
 		}
 	}
-	
-	public static final String MESSAGE = "_message";
-	public static final String FORWARD_PATH = "_forward_path";
-	public static final String REDIRECT_URL = "_redirect_url";
+
+	public static final String MESSAGE = "MESSAGE";
+	public static final String FORWARD_PATH = "FORWARD_PATH";
+	public static final String REDIRECT_URL = "REDIRECT_URL";
+	public static final String FLASH_ATTRIBUTE = "FLASH_ATTRIBUTE";
 	public static final String CSRF_TOKEN = "_csrf";
-	public static final String FLASH_ATTRIBUTE = "_flash_attribute";
 	
 	//-------------------------------------------------------------------------
 	// Servlet フィルター処理
@@ -185,7 +187,6 @@ public class SingleTierController extends HttpFilter {
 			return;
 		}
 		requestContextThreadLocal.set(new RequestContext(req, res));
-		boolean isAjax = StringUtils.contains(req.getHeader("accept"), "application/json");
 		HttpSession session = req.getSession();
 		if (session.isNew() && !req.getRequestURI().equals(req.getContextPath() + "/")) {
 			req.setAttribute(MESSAGE, "セッションの有効期限が切れました。");
@@ -197,7 +198,8 @@ public class SingleTierController extends HttpFilter {
 		synchronized (this) {
 			String reqCsrf = req.getParameter(CSRF_TOKEN);
 			String sesCsrf = (String) session.getAttribute(CSRF_TOKEN);
-			if (!isAjax) {
+			if (!isAjaxRequest()) {
+				// 画面遷移の場合は CSRF トークンを新しくする
 				session.setAttribute(CSRF_TOKEN, UUID.randomUUID().toString());
 			}
 			if ("POST".equals(req.getMethod()) && !StringUtils.equals(reqCsrf, sesCsrf)) {
@@ -223,14 +225,10 @@ public class SingleTierController extends HttpFilter {
 			} catch (Throwable e) {
 				dao.rollback();
 				
-				// ルート例外の getMessage() を返却
+				// ルート例外の getMessage() をリクエスト属性にセットしてフォワードまたはリダイレクト
 				Throwable cause = ExceptionUtils.getRootCause(e);
 				if (cause instanceof IllegalArgumentException == false) {
 					log.warn(cause.getMessage(), cause);
-				}
-				if (isAjax) { 
-					res.getWriter().print(cause.getMessage());
-					return;
 				}
 				req.setAttribute(MESSAGE, cause.getMessage());
 				String forwardPath = (String) session.getAttribute(FORWARD_PATH);
@@ -243,8 +241,27 @@ public class SingleTierController extends HttpFilter {
 			} finally {
 				daoThreadLocal.remove();
 				requestContextThreadLocal.remove();
-				log.debug("処理時間 {} [{}] {}", stopwatch, req.getMethod(), DispatcherUtil.getFullUrl(req));
+				log.debug("処理時間 {} [{}] {} {}", stopwatch, req.getMethod(), DispatcherUtil.getFullUrl(req),
+						Objects.toString(req.getAttribute(MESSAGE), ""));
 			}
 		}
+	}
+
+	/** AJAX リクエストの場合は true */
+	@SneakyThrows
+	private static boolean isAjaxMessageResponse() {
+		if (isAjaxRequest()) {
+			RequestContext context = requestContextThreadLocal.get();
+			Object message = Objects.toString(context.req.getAttribute(MESSAGE), "処理できません。リロードしてください。");
+			context.res.getWriter().print(message);
+			return true;
+		}
+		return false;
+	}
+
+	/** AJAX リクエストの場合は true */
+	private static boolean isAjaxRequest() {
+		HttpServletRequest req = requestContextThreadLocal.get().req;
+		return StringUtils.contains(req.getHeader("accept"), "application/json");
 	}
 }

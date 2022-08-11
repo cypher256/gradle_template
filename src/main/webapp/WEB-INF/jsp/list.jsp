@@ -12,7 +12,7 @@
 	<p>Servlet JSP CRUD サンプル</p>
 </header>
 <main>
-<blockquote id="_msg">${fn:escapeXml(_message)}</blockquote>
+<blockquote id="_message">${fn:escapeXml(MESSAGE)}</blockquote>
 <form id="_form" method="get">
 	<p><label>製品名</label>
 		<input type="text" name="name" value="${fn:escapeXml(param.name)}"
@@ -52,9 +52,10 @@
 </body>
 <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 <script>
+<%-- 検索条件入力中のリアルタイム AJAX 件数取得 --%>
 const count = async() => {
 	const res = await axios.get('ajax?' + new URLSearchParams(new FormData(_form)));
-	_msg.textContent = '結果予想件数: ' + res.data + ' 件';
+	_message.textContent = '結果予想件数: ' + res.data + ' 件';
 };
 </script>
 </html>

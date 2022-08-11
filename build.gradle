@@ -24,7 +24,6 @@ dependencies {
 	//runtimeOnly 'jakarta.servlet.jsp.jstl:jakarta.servlet.jsp.jstl-api:3.0.+'
 	//runtimeOnly 'org.glassfish.web:jakarta.servlet.jsp.jstl:3.0.+'
 
-	implementation 'com.fasterxml.jackson.core:jackson-databind:2.13.+'
 	implementation 'com.google.guava:guava:31.+'
 	implementation 'com.zaxxer:HikariCP:5.0.+'
 	implementation 'commons-beanutils:commons-beanutils:1.9.+'

@@ -12,7 +12,7 @@
 	<p>Servlet JSP CRUD サンプル</p>
 </header>
 <main>
-<blockquote id="_msg">${fn:escapeXml(_message)}</blockquote>
+<blockquote id="_message">${fn:escapeXml(MESSAGE)}</blockquote>
 <form id="_form" method="post" onsubmit="_submitButton.disabled = true"><%-- クライアント側の二重送信抑止 (サーバーは CSRF) --%>
 	<input type="hidden" name="id" value="${item.id}"/>
 	<p><label>製品名 <mark>必須</mark></label>
@@ -24,7 +24,7 @@
 	<p><label>顔認証</label>
 		<input type="checkbox" name="faceAuth" ${item.faceAuth ? 'checked' : ''}
 			onchange="validate()"></p>
-	<button type="button" onclick="location.href='${searchUrl}'">戻る</button>
+	<button type="button" onclick="location.href='${searchUrl == null ? '.' : searchUrl}'">戻る</button>
 	<input id="_submitButton" type="submit" value=
 		${empty item || item.id == 0
 			? '"登録" formaction="create"' 
@@ -38,9 +38,10 @@
 </body>
 <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 <script>
+<%-- 入力中のリアルタイム AJAX チェック --%>
 const validate = async() => {
 	const res = await axios.post('ajax', new URLSearchParams(new FormData(_form)));
-	_msg.textContent = res.data;
+	_message.textContent = res.data;
 };
 </script>
 </html>
