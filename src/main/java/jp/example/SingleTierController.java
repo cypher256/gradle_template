@@ -1,7 +1,6 @@
 package jp.example;
 
 import static java.lang.String.*;
-import static jodd.servlet.ServletUtil.*;
 
 import java.nio.charset.StandardCharsets;
 import java.sql.DriverManager;
@@ -41,11 +40,11 @@ import lombok.extern.slf4j.Slf4j;
  * <ul>
  * <li>シンプルな単層アーキテクチャー: 多層に対して、管理・保守が容易で分散が不要なトラフィックが少ないサイトに理想的なソリューション。
  * <li>自動フラッシュ属性: リダイレクト時は、リクエスト属性をセッション経由でリダイレクト先のリクエスト属性に自動転送。
- * <li>自動 CSRF トークン: Servlet でのチェックや、JSP への明示的な埋め込み不要。
+ * <li>自動 CSRF トークン: Servlet でのチェック、JSP や form ベースの AJAX は対応不要。meta、input hidden 自動出力。
  * <li>自動トランザクション: DB コネクションの取得・解放の考慮不要。例外スローでロールバックし、例外にセットしたメッセージを画面に表示。
  * <li>エラー時の表示元 JSP へ自動フォワード: new IllegalArgumentException(画面メッセージ) スローで、表示元 JSP にフォワード。
  * </ul>
- * @author Pleiades All in One New Gradle Project Wizard (EPL)
+ * @author Pleiades All in One (License MIT: https://opensource.org/licenses/MIT)
  */
 @WebFilter("/*")
 @Slf4j
@@ -107,15 +106,17 @@ public class SingleTierController extends HttpFilter {
 		context.req.getSession().setAttribute(FORWARD_PATH, path);
 		log.debug("[{}] {}", FORWARD_PATH, path);
 		
-		// JSP にフォワードして、処理後の HTML に CSRF トークン埋め込み
+		// JSP にフォワードして、処理後の HTML に CSRF トークン自動埋め込み (meta と form input hidden)
+		// アップロード用の multipart form は未対応。JSP に action クエリー文字列 _csrf 手動追加が必要。
+		// 例: <form method="post" enctype="multipart/form-data" action="/upload?_csrf=${_csrf}">
 		ByteArrayResponseWrapper tempRes = new ByteArrayResponseWrapper(context.res);
 		context.req.getRequestDispatcher(path).forward(context.req, tempRes);
-		String csrfValue = (String) context.req.getSession().getAttribute(CSRF_TOKEN);
+		String csrfValue = (String) context.req.getSession().getAttribute(_csrf);
 		String html = new String(tempRes.toByteArray(), tempRes.getCharacterEncoding());
 		html = html.replaceFirst("(?i)(<head>)", 
-			format("\n$1<meta name=\"%s\" content=\"%s\">", CSRF_TOKEN, csrfValue));
+			format("\n$1<meta name=\"_csrf\" content=\"%s\">", csrfValue));
 		html = html.replaceAll("(?is)([ \t]*)(<form[^>]*post[^>]*>)", 
-			format("$1$2\n$1\t<input type=\"hidden\" name=\"%s\" value=\"%s\">", CSRF_TOKEN, csrfValue));
+			format("$1$2\n$1\t<input type=\"hidden\" name=\"_csrf\" value=\"%s\">", csrfValue));
 		context.res.getWriter().print(html);
 	}
 	
@@ -149,7 +150,7 @@ public class SingleTierController extends HttpFilter {
 	public static final String FORWARD_PATH = "FORWARD_PATH";
 	public static final String REDIRECT_URL = "REDIRECT_URL";
 	public static final String FLASH_ATTRIBUTE = "FLASH_ATTRIBUTE";
-	public static final String CSRF_TOKEN = "_csrf";
+	public static final String _csrf = "_csrf";
 	
 	//-------------------------------------------------------------------------
 	// Servlet フィルター処理
@@ -205,16 +206,16 @@ public class SingleTierController extends HttpFilter {
 		
 		// post 時の CSRF トークンチェック (リクエスト値: パラメーター _csrf が無ければ、リクエストヘッダ X-CSRF-TOKEN)
 		synchronized (this) {
-			String reqCsrf = StringUtils.defaultIfBlank(req.getParameter(CSRF_TOKEN), req.getHeader("X-CSRF-TOKEN"));
-			String sesCsrf = (String) session.getAttribute(CSRF_TOKEN);
-			if ("POST".equals(req.getMethod()) && !StringUtils.equals(reqCsrf, sesCsrf) && !isMultipartRequest(req)) {
+			String reqCsrf = StringUtils.defaultIfBlank(req.getParameter(_csrf), req.getHeader("X-CSRF-TOKEN"));
+			String sesCsrf = (String) session.getAttribute(_csrf);
+			if ("POST".equals(req.getMethod()) && !StringUtils.equals(reqCsrf, sesCsrf)) {
 				req.setAttribute(MESSAGE, "不正なリクエストを無視しました。");
 				redirect(session.getAttribute(REDIRECT_URL));
 				return;
 			}
 			if (!isAjax()) {
 				// AJAX ではない通常の画面遷移の場合は CSRF トークンを新しくする
-				session.setAttribute(CSRF_TOKEN, UUID.randomUUID().toString());
+				session.setAttribute(_csrf, UUID.randomUUID().toString());
 			}
 		}
 		

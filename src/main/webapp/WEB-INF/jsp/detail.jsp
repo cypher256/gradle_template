@@ -40,8 +40,7 @@
 <script>
 <%-- 入力中のリアルタイム AJAX チェック (form が post のため _csrf が含まれる) --%>
 const validate = async() => {
-	const res = await axios.post('ajax', new URLSearchParams(new FormData(_form)));
-	_message.textContent = res.data;
+	_message.textContent = (await axios.post('ajax', new URLSearchParams(new FormData(_form)))).data;
 };
 </script>
 </html>

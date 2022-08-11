@@ -15,7 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * Servlet JSP CRUD サンプルクラスです。
- * @author Pleiades All in One New Gradle Project Wizard (EPL)
+ * @author Pleiades All in One (License MIT: https://opensource.org/licenses/MIT)
  */
 @WebServlet("")
 @Slf4j
@@ -109,7 +109,7 @@ public class ItemCrudServlet extends HttpServlet {
 		protected void doGet(HttpServletRequest req, HttpServletResponse res) {
 			String sql = "SELECT COUNT(*) " + SEARCH_FROM_SQL;
 			Object count = dao().queryWith(sql).paramBean(new Item(req)).one().values().iterator().next();
-			res.getWriter().print(count);
+			res.getWriter().printf("結果予想件数: %d 件", count);
 		}
 		
 		/** 登録、変更画面のリアルタイム入力チェック */

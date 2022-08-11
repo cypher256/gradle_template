@@ -52,10 +52,9 @@
 </body>
 <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 <script>
-<%-- 入力中のリアルタイム AJAX チェック (form が get のため _csrf が含まれない) --%>
+<%-- 検索条件入力中のリアルタイム AJAX 件数取得 (form が get のため _csrf が含まれない) --%>
 const count = async() => {
-	const res = await axios.get('ajax?' + new URLSearchParams(new FormData(_form)));
-	_message.textContent = '結果予想件数: ' + res.data + ' 件';
+	_message.textContent = (await axios.get('ajax?' + new URLSearchParams(new FormData(_form)))).data;
 };
 </script>
 </html>

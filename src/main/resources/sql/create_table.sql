@@ -6,7 +6,7 @@ CREATE TABLE item (
 	PRIMARY KEY (id)
 );
 INSERT INTO item (name, release_date, face_auth) VALUES 
-	('iPhone 13 Pro Docomo版','2022-09-11',true),
-	('iPhone 13 Pro Max Docomo版','2022-12-05',true),
-	('Xperia 1 IV 国内版','2022-07-22',false)
+	('iPhone 14 Pro Docomo版','2023-09-11',true),
+	('iPhone 14 Pro Max Docomo版','2023-12-15',true),
+	('Xperia 1 V 国内版','2023-07-12',false)
 ;
