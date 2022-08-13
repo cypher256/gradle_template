@@ -55,7 +55,7 @@ public class SingleTierController extends HttpFilter {
 	//-------------------------------------------------------------------------
 	
 	/**
-	 * DAO インスタンスを取得します。
+	 * uroboroSQL DAO インスタンスを取得します。
 	 * <pre>
 	 * 自動採番の主キーを持つテーブは、id などのエンティティに関するアノテーションは不要です。
 	 * スネークケース、キャメルケースは自動変換されます。ただし、バインドパラメータ名は変換されません。
@@ -100,20 +100,21 @@ public class SingleTierController extends HttpFilter {
 	 */
 	@SneakyThrows
 	public static void forward(Object jspPath) {
-		String path = "/WEB-INF/jsp/" + jspPath;
 		RequestContext context = requestContextThreadLocal.get();
+		String path = "/WEB-INF/jsp/" + jspPath;
 		context.req.getSession().setAttribute(FORWARD_PATH, path);
 		log.debug("[{}] {}", FORWARD_PATH, path);
 		
 		// CSRF トークン自動埋め込み: アップロード用の multipart form は未対応のため、手動で action 属性にクエリー文字列追加が必要
 		// 例: <form action="/upload?_csrf=${_csrf}" method="post" enctype="multipart/form-data">
-		ByteArrayResponseWrapper tempRes = new ByteArrayResponseWrapper(context.res);
-		context.req.getRequestDispatcher(path).forward(context.req, tempRes);
+		ByteArrayResponseWrapper resWrapper = new ByteArrayResponseWrapper(context.res);
+		context.req.getRequestDispatcher(path).forward(context.req, resWrapper);
 		String csrfValue = (String) context.req.getSession().getAttribute(_csrf);
-		String html = new String(tempRes.toByteArray(), tempRes.getCharacterEncoding());
-		html = html.replaceFirst("(?i)(<head>)", format("\n$1<meta name=\"_csrf\" content=\"%s\">", csrfValue));
-		html = html.replaceAll("(?is)([ \t]*)(<form[^>]*post[^>]*>)", 
-			format("$1$2\n$1\t<input type=\"hidden\" name=\"_csrf\" value=\"%s\">", csrfValue));
+		String html = new String(resWrapper.toByteArray(), resWrapper.getCharacterEncoding())
+			.replaceFirst("(?i)(<head>)", format("""
+				$1\n<meta name="_csrf" content="%s">""", csrfValue))
+			.replaceAll("(?is)([ \t]*)(<form[^>]*post[^>]*>)", format("""
+				$1$2\n$1\t<input type="hidden" name="_csrf" value="%s">""", csrfValue));
 		context.res.getWriter().print(html);
 	}
 	

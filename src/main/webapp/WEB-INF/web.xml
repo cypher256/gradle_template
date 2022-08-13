@@ -11,6 +11,7 @@
 			<url-pattern>*.jsp</url-pattern>
 			<page-encoding>UTF-8</page-encoding>
 			<include-prelude>/WEB-INF/jsp/header.jsp</include-prelude>
+			<trim-directive-whitespaces>true</trim-directive-whitespaces>
 		</jsp-property-group>
 	</jsp-config>
 
