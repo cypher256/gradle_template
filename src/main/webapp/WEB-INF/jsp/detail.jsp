@@ -13,7 +13,7 @@
 </header>
 <main>
 <blockquote id="_message">${fn:escapeXml(MESSAGE)}</blockquote>
-<form id="_form" method="post" onsubmit="_submitButton.disabled = true"><%-- クライアント側の二重送信抑止 (CSRF でもエラー) --%>
+<form id="_form" method="post" onsubmit="_submitButton.disabled = true"><%-- 二度押し防止 --%>
 	<input type="hidden" name="id" value="${item.id}"/>
 	<p><label>製品名 <mark>必須</mark></label>
 		<input type="text" name="name" value="${fn:escapeXml(item.name)}"

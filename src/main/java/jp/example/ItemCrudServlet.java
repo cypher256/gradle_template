@@ -60,7 +60,7 @@ public class ItemCrudServlet extends HttpServlet {
 		/** 登録画面の登録ボタン → 一覧画面へリダイレクト (PRG パターン) */
 		@Override @SneakyThrows
 		protected void doPost(HttpServletRequest req, HttpServletResponse res) {
-			dao().insert(new Item(req).validate()); // 例外スローで例外 getMessage() がセッション MESSAGE にセットされる
+			dao().insert(new Item(req).validate()); // validate での例外スローでセッションに MESSAGE にセットされる
 			req.setAttribute(MESSAGE, "登録しました。");
 			redirect(req.getSession().getAttribute("searchUrl"));
 		}
@@ -81,7 +81,7 @@ public class ItemCrudServlet extends HttpServlet {
 		/** 変更画面の更新ボタン → 一覧画面へリダイレクト (PRG パターン) */
 		@Override @SneakyThrows
 		protected void doPost(HttpServletRequest req, HttpServletResponse res) {
-			dao().update(new Item(req).validate()); // 例外スローで例外 getMessage() がセッション MESSAGE にセットされる
+			dao().update(new Item(req).validate()); // validate での例外スローでセッションに MESSAGE にセットされる
 			req.setAttribute(MESSAGE, "更新しました。");
 			redirect(req.getSession().getAttribute("searchUrl"));
 		}
