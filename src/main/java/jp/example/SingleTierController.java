@@ -2,6 +2,7 @@ package jp.example;
 
 import static java.lang.String.*;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.sql.DriverManager;
 import java.util.Collections;
@@ -51,9 +52,18 @@ import lombok.extern.slf4j.Slf4j;
 public class SingleTierController extends HttpFilter {
 	
 	//-------------------------------------------------------------------------
-	// Servlet から使用する static メソッド
+	// Servlet から使用する public static 定数とメソッド
 	//-------------------------------------------------------------------------
+
+	/** リクエスト属性名: String 画面に表示するメッセージ (サーブレットから自分でセット、エラー時は例外メッセージがセットされる) */
+	public static final String MESSAGE = "MESSAGE";
 	
+	/** セッション属性名: String アプリエラー時のフォワード先パス (デフォルトは表示元、変更する場合はサーブレットでセット) */
+	public static final String APP_ERROR_FORWARD_PATH = "APP_ERROR_FORWARD_PATH";
+	
+	/** セッション属性名: String システムエラー時のリダイレクト先 URL (デフォルトは最後のリダイレクト先、変更する場合はサーブレットでセット) */
+	public static final String SYS_ERROR_REDIRECT_URL = "SYS_ERROR_REDIRECT_URL";
+
 	/**
 	 * uroboroSQL DAO インスタンスを取得します。
 	 * <pre>
@@ -70,13 +80,13 @@ public class SingleTierController extends HttpFilter {
 	
 	/**
 	 * エラーチェック用のメソッドです。
-	 * 指定した条件が false の場合、引数のメッセージを持つ IllegalArgumentException がスローされます。
-	 * 以下、このメソッド以外にも適用される、サーブレットで例外がスローされた場合の共通動作です。
+	 * 指定した条件が false の場合、引数のメッセージを持つ IllegalArgumentException がスローします。
+	 * 以下、このメソッド以外でも適用される、サーブレットで例外がスローされた場合の共通動作です。
 	 * <pre>
 	 * 1. 例外の種類に関わらずロールバックされ、例外の getMessage() がリクエスト属性 MESSAGE にセットされます。
-	 * 2. IllegalArgumentException の場合、アプリエラーとしてセッション属性 FORWARD_PATH (通常は表示元) にフォワードされます。
-	 * 3. 上記以外の例外の場合は、システムエラーとしてセッション属性 REDIRECT_URL にリダイレクト (自動フラッシュ) されます。
-	 * 4. セッションに FORWARD_PATH も REDIRECT_URL も無い場合は、コンテキストルートにリダイレクト (自動フラッシュ) されます。
+	 * 2. IllegalArgumentException の場合、アプリエラーとしてセッション属性 APP_ERROR_FORWARD_PATH (通常は表示元) にフォワードされます。
+	 * 3. 上記以外の例外の場合は、システムエラーとしてセッション属性 SYS_ERROR_REDIRECT_URL にリダイレクト (自動フラッシュ) されます。
+	 * 4. セッションに APP_ERROR_FORWARD_PATH も SYS_ERROR_REDIRECT_URL も無い場合は、コンテキストルートにリダイレクト (自動フラッシュ)。
 	 * <prel>
 	 * @param isValid 入力チェックなどが正しい場合に true となる条件
 	 * @param message リクエスト属性にセットするメッセージ
@@ -93,7 +103,7 @@ public class SingleTierController extends HttpFilter {
 	 * JSP 以外へのフォワードは標準の req.getRequestDispatcher(path).forward(req, res) を使用してください。
 	 * <pre>
 	 * 1. "/WEB-INF/jsp/" + 指定した jspPath をフォワード先パスとしてフォワードします。
-	 * 2. フォワード先パスをセッション属性 FORWARD_PATH に保存します (入力エラーなどのアプリエラー時のフォワード先として使用)。
+	 * 2. フォワード先パスをセッション属性 APP_ERROR_FORWARD_PATH に保存します (入力エラーなどのアプリエラー時のフォワード先として使用)。
 	 * 3. JSP 処理後の HTML の meta と form input hidden に name="_csrf" として CSRF トークンを埋め込みます。
 	 * </pre>
 	 * @param jspPath JSP パス
@@ -102,8 +112,8 @@ public class SingleTierController extends HttpFilter {
 	public static void forward(Object jspPath) {
 		RequestContext context = requestContextThreadLocal.get();
 		String path = "/WEB-INF/jsp/" + jspPath;
-		context.req.getSession().setAttribute(FORWARD_PATH, path);
-		log.debug("[{}] {}", FORWARD_PATH, path);
+		context.req.getSession().setAttribute(APP_ERROR_FORWARD_PATH, path);
+		log.debug("[{}] {}", APP_ERROR_FORWARD_PATH, path);
 		
 		// CSRF トークン自動埋め込み: アップロード用の multipart form は未対応のため、手動で action 属性にクエリー文字列追加が必要
 		// 例: <form action="/upload?_csrf=${_csrf}" method="post" enctype="multipart/form-data">
@@ -123,7 +133,7 @@ public class SingleTierController extends HttpFilter {
 	 * 別のアプリや外部サイトへのリダイレクトは標準の res.sendRedirect(url) を使用してください。
 	 * <pre>
 	 * 1. 指定した redirectUrl (null の場合はコンテキストルート) にリダイレクトします。
-	 * 2. リダイレクト先 URL をセッション属性 REDIRECT_URL に保存します (システムエラー時のリダイレクト先として使用)。
+	 * 2. リダイレクト先 URL をセッション属性 SYS_ERROR_REDIRECT_URL に保存します (システムエラー時のリダイレクト先として使用)。
 	 * 3. 現在のリクエスト属性をフラッシュ属性としてセッションに保存します (リダイレクト後にリクエスト属性に復元)。
 	 * </pre>
 	 * @param redirectUrl リダイレクト先 URL
@@ -133,25 +143,21 @@ public class SingleTierController extends HttpFilter {
 		RequestContext context = requestContextThreadLocal.get();
 		String url = Objects.toString(redirectUrl, context.req.getContextPath());
 		context.res.sendRedirect(url);
-		context.req.getSession().setAttribute(REDIRECT_URL, url);
-		log.debug("[{}] {}", REDIRECT_URL, url);
+		context.req.getSession().setAttribute(SYS_ERROR_REDIRECT_URL, url);
+		log.debug("[{}] {}", SYS_ERROR_REDIRECT_URL, url);
 		
 		// リクエスト属性をフラッシュ属性としてセッションに一時保存 (リダイレクト後に復元)
 		context.req.getSession().setAttribute(FLASH_ATTRIBUTE, 
 			Collections.list(context.req.getAttributeNames()).stream()
 				.collect(Collectors.toMap(name -> name, context.req::getAttribute)));
 	}
-
-	public static final String MESSAGE = "MESSAGE";
-	public static final String FORWARD_PATH = "FORWARD_PATH";
-	public static final String REDIRECT_URL = "REDIRECT_URL";
-	public static final String FLASH_ATTRIBUTE = "FLASH_ATTRIBUTE";
-	public static final String _csrf = "_csrf";
 	
 	//-------------------------------------------------------------------------
 	// Servlet フィルター処理
 	//-------------------------------------------------------------------------
 	
+	public static final String FLASH_ATTRIBUTE = "FLASH_ATTRIBUTE";
+	public static final String _csrf = "_csrf";
 	private static final ThreadLocal<RequestContext> requestContextThreadLocal = new ThreadLocal<>();
 	private static final ThreadLocal<SqlAgent> daoThreadLocal = new ThreadLocal<>();
 	private SqlConfig daoConfig;
@@ -188,9 +194,9 @@ public class SingleTierController extends HttpFilter {
 	/** すべての Servlet 呼び出しのフィルター処理 */
 	@Override @SneakyThrows @SuppressWarnings("unchecked")
 	protected void doFilter(HttpServletRequest req, HttpServletResponse res, FilterChain chain) {
-		
-		// 拡張子がある (.css や .js など) 静的リソースを除外
-		if (req.getRequestURI().matches(".+\\.[^\\.]{3,4}")) {
+
+		// サーブレット呼び出し除外チェック
+		if (req.getRequestURI().matches(".+\\.[^\\.]{2,5}")) { // 拡張子 (js css woff2 など) がある静的リソース
 			super.doFilter(req, res, chain);
 			return;
 		}
@@ -201,29 +207,9 @@ public class SingleTierController extends HttpFilter {
 			sendAjaxOr(() -> redirect(req.getContextPath()));
 			return;
 		}
-		
-		// post 時の CSRF トークンチェック (標準的な名前を使用)
-		synchronized (this) {
-			String reqCsrf = StringUtils.firstNonEmpty(
-				req.getParameter(_csrf), 		// form hidden "_csrf" → サブミットやフォームベースの AJAX
-				req.getHeader("X-CSRF-TOKEN"),	// meta "_csrf" → jQuery などで meta タグからの手動セットでよく使われる名前
-				req.getHeader("X-XSRF-TOKEN")	// Cookie "XSRF-TOKEN" → Angular、Axios などで自動的に使用される名前
-			);
-			String sesCsrf = (String) session.getAttribute(_csrf);
-			if ("POST".equals(req.getMethod()) && !StringUtils.equals(reqCsrf, sesCsrf)) {
-				// 登録などの二重送信も防げるが、403 エラーとなり UX 的に優れないため、JSP でも二度押し防止する
-				res.sendError(HttpServletResponse.SC_FORBIDDEN);
-				return;
-			}
-			if (!isAjax()) {
-				// 画面遷移ごとに新しい CSRF トークン生成 (ブラウザの戻るなどによる不正画面遷移対策のトランザクショントークンとして使用)
-				session.setAttribute(_csrf, UUID.randomUUID().toString());
-			}
-			// Cookie 書き込み
-			// * Secure: 指定あり。localhost を除く https サーバのみに送信。指定に関係なくブラウザには返せるのでプロトコル判定しない。
-			// * SameSite: 指定なし。モダンブラウザのデフォルトは Lax (別サイトから POST で送信不可、GET は送信可能)。
-			// * HttpOnly: 指定なし。JavaScript から参照可能にするために指定しない。
-			res.addHeader("Set-Cookie", format("XSRF-TOKEN=%s; Secure;", session.getAttribute(_csrf)));
+		if (notMatchCsrfToken(req, res)) {
+			// TODO ここに redirect or sendError
+			return;
 		}
 		
 		// リダイレクト時のフラッシュ属性をセッションからリクエスト属性に復元し、セッションから削除
@@ -245,13 +231,13 @@ public class SingleTierController extends HttpFilter {
 				// ルート例外の getMessage() をリクエスト属性にセットしてフォワードまたはリダイレクト
 				Throwable cause = ExceptionUtils.getRootCause(e);
 				req.setAttribute(MESSAGE, cause.getMessage());
-				String forwardPath = (String) session.getAttribute(FORWARD_PATH);
+				String forwardPath = (String) session.getAttribute(APP_ERROR_FORWARD_PATH);
 				if (cause instanceof IllegalArgumentException && forwardPath != null) {
 					// 入力エラーなどのアプリエラー
 					sendAjaxOr(() -> forward(forwardPath));
 				} else {
 					// システムエラー
-					sendAjaxOr(() -> redirect(session.getAttribute(REDIRECT_URL)));
+					sendAjaxOr(() -> redirect(session.getAttribute(SYS_ERROR_REDIRECT_URL)));
 					log.warn(cause.getMessage(), cause);
 				}
 				
@@ -264,7 +250,43 @@ public class SingleTierController extends HttpFilter {
 		}
 	}
 
-	/** AJAX リクエストの場合は MESSAGE を返却、そうでない場合は nonAjaxAction 実行 */
+	/**
+	 * post 時の CSRF トークンをチェックします。
+	 * リクエスト、ヘッダー、 Cookie 名は標準的な名前を使用します。
+	 * @return CSRF エラーの場合は true
+	 */
+	synchronized private boolean notMatchCsrfToken(HttpServletRequest req, HttpServletResponse res) throws IOException {
+		HttpSession session = req.getSession();
+		if ("POST".equals(req.getMethod())) {
+			String sesCsrf = (String) session.getAttribute(_csrf);
+			String reqCsrf = StringUtils.firstNonEmpty(
+				req.getParameter(_csrf), 		// form hidden "_csrf" → サブミットやフォームベースの AJAX
+				req.getHeader("X-CSRF-TOKEN"),	// meta "_csrf" → jQuery などで meta タグからの手動セットでよく使われる名前
+				req.getHeader("X-XSRF-TOKEN")	// Cookie "XSRF-TOKEN" → Angular、Axios などで自動的に使用される名前
+			);
+			if (!StringUtils.equals(reqCsrf, sesCsrf)) {
+				// 登録などの二重送信も防げるが、403 エラーとなり UX 的に優れないため、JSP でも二度押し防止が望ましい
+				// TODO AJAX 判定、画面遷移の場合は、戻るなどの不正画面遷移エラー、リダイレクト、↑説明変更
+				res.sendError(HttpServletResponse.SC_FORBIDDEN); // TODO 呼び出し元で ajax 判定
+				return true;
+			}
+		}
+		if (!isAjax()) {
+			// 画面遷移ごとに新しい CSRF トークン生成 (ブラウザの戻るなどによる不正画面遷移対策のトランザクショントークンとして使用)
+			session.setAttribute(_csrf, UUID.randomUUID().toString());
+		}
+		// Cookie 書き込み
+		// * Secure: 指定あり。localhost を除く https サーバのみに送信。指定に関係なくブラウザには返せるのでプロトコル判定しない。
+		// * SameSite: 指定なし。モダンブラウザのデフォルトは Lax (別サイトから POST で送信不可、GET は送信可能)。
+		// * HttpOnly: 指定なし。JavaScript から参照可能にするために指定しない。
+		res.addHeader("Set-Cookie", format("XSRF-TOKEN=%s; Secure;", session.getAttribute(_csrf)));
+		return false;
+	}
+
+	/**
+	 * AJAX リクエストの場合は MESSAGE を返却、そうでない場合は nonAjaxAction 実行します。
+	 * @param nonAjaxAction AJAX でない場合の処理
+	 */
 	@SneakyThrows
 	private void sendAjaxOr(Runnable nonAjaxAction) {
 		if (isAjax()) {
@@ -275,7 +297,9 @@ public class SingleTierController extends HttpFilter {
 		}
 	}
 
-	/** AJAX リクエストの場合は true */
+	/**
+	 * @return AJAX リクエストの場合は true
+	 */
 	private boolean isAjax() {
 		HttpServletRequest req = requestContextThreadLocal.get().req;
 		return "XMLHttpRequest".equals(req.getHeader("X-Requested-With")) ||
