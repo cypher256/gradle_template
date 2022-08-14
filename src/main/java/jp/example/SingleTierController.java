@@ -27,6 +27,7 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
 import jodd.servlet.DispatcherUtil;
+import jodd.servlet.ServletUtil;
 import jodd.servlet.filter.ByteArrayResponseWrapper;
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
@@ -102,7 +103,7 @@ public class SingleTierController extends HttpFilter {
 	 * JSP にフォワードします。
 	 * JSP 以外へのフォワードは標準の req.getRequestDispatcher(path).forward(req, res) を使用してください。
 	 * <pre>
-	 * 1. "/WEB-INF/jsp/" + 指定した jspPath をフォワード先パスとしてフォワードします。
+	 * 1. 先頭がスラッシュの場合はそのまま、スラッシュでない場合は "/WEB-INF/jsp/" + jspPath をフォワード先パスとしてフォワードします。
 	 * 2. フォワード先パスをセッション属性 APP_ERROR_FORWARD_PATH に保存します (入力エラーなどのアプリエラー時のフォワード先として使用)。
 	 * 3. JSP 処理後の HTML の meta と form input hidden に name="_csrf" として CSRF トークンを埋め込みます。
 	 * </pre>
@@ -111,7 +112,7 @@ public class SingleTierController extends HttpFilter {
 	@SneakyThrows
 	public static void forward(Object jspPath) {
 		RequestContext context = requestContextThreadLocal.get();
-		String path = "/WEB-INF/jsp/" + jspPath;
+		String path = ((String) jspPath).startsWith("/") ? (String) jspPath : "/WEB-INF/jsp/" + jspPath;
 		context.req.getSession().setAttribute(APP_ERROR_FORWARD_PATH, path);
 		log.debug("[{}] {}", APP_ERROR_FORWARD_PATH, path);
 		
@@ -195,11 +196,12 @@ public class SingleTierController extends HttpFilter {
 	@Override @SneakyThrows @SuppressWarnings("unchecked")
 	protected void doFilter(HttpServletRequest req, HttpServletResponse res, FilterChain chain) {
 
-		// サーブレット呼び出し除外チェック
+		// サーブレット呼び出し除外 (ファイル拡張子、セッション無し、CSRF エラー)
 		if (req.getRequestURI().matches(".+\\.[^\\.]{2,5}")) { // 拡張子 (js css woff2 など) がある静的リソース
 			super.doFilter(req, res, chain);
 			return;
 		}
+		ServletUtil.preventCaching(res); // UX 向上のため bfcache を無効化し、基本的に戻るボタンでも動作するようにする
 		requestContextThreadLocal.set(new RequestContext(req, res));
 		HttpSession session = req.getSession();
 		if (session.isNew() && !req.getRequestURI().equals(req.getContextPath() + "/")) {
@@ -208,7 +210,8 @@ public class SingleTierController extends HttpFilter {
 			return;
 		}
 		if (notMatchCsrfToken(req, res)) {
-			// TODO ここに redirect or sendError
+			// 二重送信も検出できるが UX 向上のため、送信前に JavaScript でボタンを押せなくするなどの二度押し防止推奨
+			res.sendError(HttpServletResponse.SC_FORBIDDEN);
 			return;
 		}
 		
@@ -228,7 +231,7 @@ public class SingleTierController extends HttpFilter {
 			} catch (Throwable e) {
 				dao.rollback();
 				
-				// ルート例外の getMessage() をリクエスト属性にセットしてフォワードまたはリダイレクト
+				// ルート例外の getMessage() をリクエスト属性 MESSAGE にセットして画面に表示
 				Throwable cause = ExceptionUtils.getRootCause(e);
 				req.setAttribute(MESSAGE, cause.getMessage());
 				String forwardPath = (String) session.getAttribute(APP_ERROR_FORWARD_PATH);
@@ -251,7 +254,7 @@ public class SingleTierController extends HttpFilter {
 	}
 
 	/**
-	 * post 時の CSRF トークンをチェックします。
+	 * post 時の CSRF トークンをチェックします (並行リクエスト対応のため synchronized)。
 	 * リクエスト、ヘッダー、 Cookie 名は標準的な名前を使用します。
 	 * @return CSRF エラーの場合は true
 	 */
@@ -264,23 +267,20 @@ public class SingleTierController extends HttpFilter {
 				req.getHeader("X-CSRF-TOKEN"),	// meta "_csrf" → jQuery などで meta タグからの手動セットでよく使われる名前
 				req.getHeader("X-XSRF-TOKEN")	// Cookie "XSRF-TOKEN" → Angular、Axios などで自動的に使用される名前
 			);
-			if (!StringUtils.equals(reqCsrf, sesCsrf)) {
-				// 登録などの二重送信も防げるが、403 エラーとなり UX 的に優れないため、JSP でも二度押し防止が望ましい
-				// TODO AJAX 判定、画面遷移の場合は、戻るなどの不正画面遷移エラー、リダイレクト、↑説明変更
-				res.sendError(HttpServletResponse.SC_FORBIDDEN); // TODO 呼び出し元で ajax 判定
-				return true;
+			if (reqCsrf == null || !reqCsrf.equals(sesCsrf)) {
+				return true; // エラー
 			}
 		}
 		if (!isAjax()) {
-			// 画面遷移ごとに新しい CSRF トークン生成 (ブラウザの戻るなどによる不正画面遷移対策のトランザクショントークンとして使用)
+			// 画面遷移ごとのワンタイムトークン (リプレイアタック抑止であり、戻る抑止ではない)
 			session.setAttribute(_csrf, UUID.randomUUID().toString());
 		}
 		// Cookie 書き込み
-		// * Secure: 指定あり。localhost を除く https サーバのみに送信。指定に関係なくブラウザには返せるのでプロトコル判定しない。
+		// * Secure: 指定あり。localhost を除く https サーバのみに送信。指定に関係なくブラウザには返せるので isSecure 判定しない。
 		// * SameSite: 指定なし。モダンブラウザのデフォルトは Lax (別サイトから POST で送信不可、GET は送信可能)。
 		// * HttpOnly: 指定なし。JavaScript から参照可能にするために指定しない。
 		res.addHeader("Set-Cookie", format("XSRF-TOKEN=%s; Secure;", session.getAttribute(_csrf)));
-		return false;
+		return false; // 正常
 	}
 
 	/**

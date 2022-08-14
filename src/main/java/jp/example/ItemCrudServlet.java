@@ -57,7 +57,7 @@ public class ItemCrudServlet extends HttpServlet {
 			forward("detail.jsp");
 		}
 		
-		/** 登録画面の登録ボタン → 一覧画面へリダイレクト (PRG パターン) */
+		/** 登録画面の登録ボタン → 一覧画面へリダイレクト (PRG パターン: リロードによる二重登録抑止) */
 		@Override @SneakyThrows
 		protected void doPost(HttpServletRequest req, HttpServletResponse res) {
 			dao().insert(new Item(req).validate()); // validate での例外スローでセッションに MESSAGE にセットされる
@@ -78,7 +78,7 @@ public class ItemCrudServlet extends HttpServlet {
 			forward("detail.jsp");
 		}
 		
-		/** 変更画面の更新ボタン → 一覧画面へリダイレクト (PRG パターン) */
+		/** 変更画面の更新ボタン → 一覧画面へリダイレクト (PRG パターン: リロードによる二回更新抑止) */
 		@Override @SneakyThrows
 		protected void doPost(HttpServletRequest req, HttpServletResponse res) {
 			dao().update(new Item(req).validate()); // validate での例外スローでセッションに MESSAGE にセットされる
@@ -91,7 +91,7 @@ public class ItemCrudServlet extends HttpServlet {
 	@WebServlet("/delete")
 	public static class DeleteServlet extends HttpServlet {
 		
-		/** 一覧画面の削除ボタン → 一覧画面へリダイレクト (F5 対策のリダイレクト) */
+		/** 一覧画面の削除ボタン → 一覧画面へリダイレクト (リロードによる二回削除抑止) */
 		@Override @SneakyThrows
 		protected void doGet(HttpServletRequest req, HttpServletResponse res) {
 			dao().delete(new Item(req));
