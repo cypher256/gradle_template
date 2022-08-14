@@ -255,7 +255,7 @@ public class SingleTierController extends HttpFilter {
 
 	/**
 	 * post 時の CSRF トークンをチェックします (並行リクエスト対応のため synchronized)。
-	 * リクエスト、ヘッダー、 Cookie 名は標準的な名前を使用します。
+	 * リクエスト、ヘッダー、Cookie 名は標準的な名前を使用します。
 	 * @return CSRF エラーの場合は true
 	 */
 	synchronized private boolean notMatchCsrfToken(HttpServletRequest req, HttpServletResponse res) throws IOException {
@@ -263,7 +263,7 @@ public class SingleTierController extends HttpFilter {
 		if ("POST".equals(req.getMethod())) {
 			String sesCsrf = (String) session.getAttribute(_csrf);
 			String reqCsrf = StringUtils.firstNonEmpty(
-				req.getParameter(_csrf), 		// form hidden "_csrf" → サブミットやフォームベースの AJAX
+				req.getParameter(_csrf), 		// form hidden "_csrf" → フォームサブミットやフォームベースの AJAX
 				req.getHeader("X-CSRF-TOKEN"),	// meta "_csrf" → jQuery などで meta タグからの手動セットでよく使われる名前
 				req.getHeader("X-XSRF-TOKEN")	// Cookie "XSRF-TOKEN" → Angular、Axios などで自動的に使用される名前
 			);
