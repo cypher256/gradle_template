@@ -107,8 +107,8 @@ public class ItemCrudServlet extends HttpServlet {
 		/** 検索画面でのリアルタイム検索結果件数の取得 */
 		@Override @SneakyThrows
 		protected void doGet(HttpServletRequest req, HttpServletResponse res) {
-			String sql = "SELECT COUNT(*) " + SEARCH_FROM_SQL;
-			Object count = dao().queryWith(sql).paramBean(new Item(req)).one().values().iterator().next();
+			String sql = "SELECT COUNT(*) AS CNT " + SEARCH_FROM_SQL;
+			Object count = dao().queryWith(sql).paramBean(new Item(req)).one().get("CNT");
 			res.getWriter().printf("結果予想件数: %d 件", count);
 		}
 		

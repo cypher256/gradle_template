@@ -179,7 +179,6 @@ public class SingleTierController extends HttpFilter {
 		try (SqlAgent dao = daoConfig.agent()) {
 			dao.update("create_table").count(); // ファイル実行 /src/main/resources/sql/create_table.sql
 		}
-		// デフォルトエンコーディングの設定 (Servlet 4.0 以降)
 		ServletContext sc = getServletContext();
 		sc.setRequestCharacterEncoding(StandardCharsets.UTF_8.name()); // post getParameter エンコーディング
 		sc.setResponseCharacterEncoding(StandardCharsets.UTF_8.name()); // AJAX レスポンス
@@ -201,7 +200,7 @@ public class SingleTierController extends HttpFilter {
 			super.doFilter(req, res, chain);
 			return;
 		}
-		ServletUtil.preventCaching(res); // UX 向上のため bfcache を無効化し、基本的に戻るボタンでも動作するようにする
+		ServletUtil.preventCaching(res); // bfcache を無効化してある程度ブラウザの戻るボタンを使用可能にする
 		requestContextThreadLocal.set(new RequestContext(req, res));
 		HttpSession session = req.getSession();
 		if (session.isNew() && !req.getRequestURI().equals(req.getContextPath() + "/")) {
@@ -211,7 +210,8 @@ public class SingleTierController extends HttpFilter {
 		}
 		if (notMatchCsrfToken(req, res)) {
 			// 二重送信も検出できるが UX 向上のため、送信前に JavaScript でボタンを押せなくするなどの二度押し防止推奨
-			res.sendError(HttpServletResponse.SC_FORBIDDEN);
+			req.setAttribute(MESSAGE, "不正なデータが送信されました。");
+			sendAjaxOr(() -> redirect(session.getAttribute(SYS_ERROR_REDIRECT_URL)));
 			return;
 		}
 		
