@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import javax.servlet.FilterChain;
@@ -200,7 +201,7 @@ public class SingleTierController extends HttpFilter {
 			super.doFilter(req, res, chain);
 			return;
 		}
-		ServletUtil.preventCaching(res); // bfcache を無効化してある程度ブラウザの戻るボタンを使用可能にする
+		ServletUtil.preventCaching(res); // bfcache 無効化 (ブラウザ戻るボタンでの get ページ表示はサーバ再取得するようにする)
 		requestContextThreadLocal.set(new RequestContext(req, res));
 		HttpSession session = req.getSession();
 		if (session.isNew() && !req.getRequestURI().equals(req.getContextPath() + "/")) {
@@ -247,8 +248,8 @@ public class SingleTierController extends HttpFilter {
 			} finally {
 				daoThreadLocal.remove();
 				requestContextThreadLocal.remove();
-				log.debug("処理時間 {} [{}] {} {}", stopwatch, req.getMethod(), DispatcherUtil.getFullUrl(req),
-						Objects.toString(req.getAttribute(MESSAGE), ""));
+				log.debug("処理時間 {}ms [{}] {} {}", stopwatch.elapsed(TimeUnit.MILLISECONDS), req.getMethod(), 
+						DispatcherUtil.getFullUrl(req), Objects.toString(req.getAttribute(MESSAGE), ""));
 			}
 		}
 	}
