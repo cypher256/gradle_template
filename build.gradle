@@ -1,10 +1,20 @@
+buildscript {
+    dependencies {
+        classpath 'com.bmuschko:gradle-tomcat-plugin:2.7.0'
+    }
+}
+
 plugins {
 	id 'war'
 }
+apply plugin: 'eclipse'
+apply plugin: 'com.bmuschko.tomcat'
 
 repositories.mavenCentral()
 sourceCompatibility = 17
 tasks.withType(JavaCompile) {options.encoding = 'UTF-8'}
+
+//sourceSets.main.java.srcDirs = ['build/jasper']
 
 dependencies {
 	
@@ -13,6 +23,13 @@ dependencies {
 	runtimeOnly 'jakarta.servlet.jsp.jstl:jakarta.servlet.jsp.jstl-api:1.2.+'
 	runtimeOnly 'org.apache.taglibs:taglibs-standard-impl:1.2.+'
 	implementation 'org.jodd:jodd-servlet:6.0.+'
+	
+	// Tomcat 9 (JSP)
+	providedCompile 'javax.el:javax.el-api:3.0.1-+'
+	providedCompile 'javax.servlet.jsp:javax.servlet.jsp-api:2.3.+'
+	providedCompile 'org.apache.tomcat:tomcat-jasper:9.0.+'
+	tomcat "org.apache.tomcat.embed:tomcat-embed-core:9.0.+",
+           "org.apache.tomcat.embed:tomcat-embed-jasper:9.0.+"
 	
 	// Tomcat 10.0 (jakarta)
 	//compileOnly 'jakarta.servlet:jakarta.servlet-api:5.0.+'
