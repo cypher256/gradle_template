@@ -231,35 +231,39 @@ public class SingleTierController extends HttpFilter {
 			flashMap.forEach(req::setAttribute);
 			session.removeAttribute(FLASH_ATTRIBUTE);
 		}
+		Stopwatch stopwatch = Stopwatch.createStarted();
 		
-		// DB トランザクションブロック (正常時はコミット、例外発生時はロールバック)
+		// DB トランザクションブロック
 		try (SqlAgent dao = daoConfig.agent()) {
-			Stopwatch stopwatch = Stopwatch.createStarted();
 			try {
 				daoThreadLocal.set(dao);
 				super.doFilter(req, res, chain); // 各 Servlet 呼び出し
+				dao.commit();
 			} catch (Throwable e) {
 				dao.rollback();
-				
-				// ルート例外の getMessage() をリクエスト属性 MESSAGE にセットして画面に表示
-				Throwable cause = ExceptionUtils.getRootCause(e);
-				req.setAttribute(MESSAGE, cause.getMessage());
-				String forwardPath = (String) session.getAttribute(APP_ERROR_FORWARD_PATH);
-				if (cause instanceof IllegalArgumentException && forwardPath != null) {
-					// 入力エラーなどのアプリエラー
-					sendAjaxOr(() -> forward(forwardPath));
-				} else {
-					// システムエラー
-					sendAjaxOr(() -> redirect(session.getAttribute(SYS_ERROR_REDIRECT_URL)));
-					log.warn(cause.getMessage(), cause);
-				}
-				
+				throw e;
 			} finally {
 				daoThreadLocal.remove();
-				requestContextThreadLocal.remove();
-				log.debug("処理時間 {}ms [{}] {} {}", stopwatch.elapsed(TimeUnit.MILLISECONDS), req.getMethod(), 
-						DispatcherUtil.getFullUrl(req), Objects.toString(req.getAttribute(MESSAGE), ""));
 			}
+		
+		// ルート例外の getMessage() をリクエスト属性 MESSAGE にセットして画面に表示
+		} catch (Throwable e) {
+			Throwable cause = ExceptionUtils.getRootCause(e);
+			req.setAttribute(MESSAGE, cause.getMessage());
+			String forwardPath = (String) session.getAttribute(APP_ERROR_FORWARD_PATH);
+			if (cause instanceof IllegalArgumentException && forwardPath != null) {
+				// アプリエラー (入力エラーなどの業務エラー)
+				sendAjaxOr(() -> forward(forwardPath));
+			} else {
+				// システムエラー (DB エラーなど)
+				sendAjaxOr(() -> redirect(session.getAttribute(SYS_ERROR_REDIRECT_URL)));
+				log.warn(cause.getMessage(), cause);
+			}
+			
+		} finally {
+			requestContextThreadLocal.remove();
+			log.debug("処理時間 {}ms [{}] {} {}", stopwatch.elapsed(TimeUnit.MILLISECONDS), req.getMethod(), 
+					DispatcherUtil.getFullUrl(req), Objects.toString(req.getAttribute(MESSAGE), ""));
 		}
 	}
 
