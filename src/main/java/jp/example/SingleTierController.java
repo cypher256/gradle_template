@@ -108,6 +108,15 @@ public class SingleTierController extends HttpFilter {
 	 * 2. フォワード先パスをセッション属性 APP_ERROR_FORWARD_PATH に保存します (入力エラーなどのアプリエラー時のフォワード先として使用)。
 	 * 3. JSP 処理後の HTML の meta と form input hidden に name="_csrf" として CSRF トークンを埋め込みます。
 	 * </pre>
+	 * CSRF トークンの扱い
+	 * <pre>
+	 * form サブミット、form の AJAX 送信、Angular、Axios の場合は、自動的にリクエストに含まれるため、何もする必要はありません。
+	 * JavaScript で手動で設定する場合は下記で取得し、post リクエストヘッダー X-XSRF-TOKEN にセットする必要があります。
+	 *     // meta タグから取得する場合 
+	 *     document.querySelector("meta[name='_csrf']").content
+	 *     // Cookie から取得する場合
+	 *     document.cookie.split('; ').find(e => e.startsWith('XSRF-TOKEN')).split('=')[1]
+	 * </pre>
 	 * @param jspPath JSP パス
 	 */
 	@SneakyThrows
