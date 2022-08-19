@@ -45,7 +45,7 @@ import lombok.extern.slf4j.Slf4j;
  * <li>自動フラッシュ属性: リダイレクト時は、リクエスト属性をセッション経由でリダイレクト先のリクエスト属性に自動転送。
  * <li>自動 CSRF トークン: hidden 埋め込み不要、form ベース AJAX 対応不要。Angular，Axios などでも対応不要。
  * <li>自動トランザクション: DB コネクションの取得・解放の考慮不要。例外スローでロールバックし、例外にセットしたメッセージを画面に表示。
- * <li>エラー時の表示元 JSP へ自動フォワード: new IllegalArgumentException(画面メッセージ) スローで、表示元 JSP にフォワード。
+ * <li>エラー時の表示元 JSP へ自動フォワード: new IllegalStateException(画面メッセージ) スローで、表示元 JSP にフォワード。
  * </ul>
  * @author Pleiades All in One (License MIT: https://opensource.org/licenses/MIT)
  */
@@ -82,11 +82,11 @@ public class SingleTierController extends HttpFilter {
 	
 	/**
 	 * エラーチェック用のメソッドです。
-	 * 指定した条件が false の場合、引数のメッセージを持つ IllegalArgumentException がスローします。
+	 * 指定した条件が false の場合、引数のメッセージを持つ IllegalStateException をスローします。
 	 * 以下、このメソッド以外でも適用される、サーブレットで例外がスローされた場合の共通動作です。
 	 * <pre>
 	 * 1. 例外の種類に関わらずロールバックされ、例外の getMessage() がリクエスト属性 MESSAGE にセットされます。
-	 * 2. IllegalArgumentException の場合、アプリエラーとしてセッション属性 APP_ERROR_FORWARD_PATH (通常は表示元) にフォワードされます。
+	 * 2. IllegalStateException の場合、アプリエラーとしてセッション属性 APP_ERROR_FORWARD_PATH (通常は表示元) にフォワードされます。
 	 * 3. 上記以外の例外の場合は、システムエラーとしてセッション属性 SYS_ERROR_REDIRECT_URL にリダイレクト (自動フラッシュ) されます。
 	 * 4. セッションに APP_ERROR_FORWARD_PATH も SYS_ERROR_REDIRECT_URL も無い場合は、コンテキストルートにリダイレクト (自動フラッシュ)。
 	 * <prel>
@@ -96,7 +96,7 @@ public class SingleTierController extends HttpFilter {
 	 */
 	public static void valid(boolean isValid, String message, Object... args) {
 		if (!isValid) {
-			throw new IllegalArgumentException(String.format(message, args));
+			throw new IllegalStateException(String.format(message, args));
 		}
 	}
 	
@@ -213,7 +213,6 @@ public class SingleTierController extends HttpFilter {
 			super.doFilter(req, res, chain);
 			return;
 		}
-		ServletUtil.preventCaching(res); // bfcache 無効化 (ブラウザ戻るボタンでの get ページ表示はサーバ再取得するようにする)
 		requestContextThreadLocal.set(new RequestContext(req, res));
 		HttpSession session = req.getSession();
 		if (session.isNew() && !req.getRequestURI().equals(req.getContextPath() + "/")) {
@@ -234,6 +233,13 @@ public class SingleTierController extends HttpFilter {
 			flashMap.forEach(req::setAttribute);
 			session.removeAttribute(FLASH_ATTRIBUTE);
 		}
+		
+		// レスポンスヘッダーの設定
+		res.setHeader("X-Content-Type-Options", "nosniff");
+		res.setHeader("Strict-Transport-Security", "max-age=315360000 ; includeSubDomains");
+		res.setHeader("X-Frame-Options", "DENY");
+		res.setHeader("X-XSS-Protection", "1; mode=block");
+		ServletUtil.preventCaching(res); // bfcache 無効化 (ブラウザ戻るボタンでの get ページ表示はサーバ再取得するようにする)
 		Stopwatch stopwatch = Stopwatch.createStarted();
 		
 		// DB トランザクションブロック
@@ -254,7 +260,7 @@ public class SingleTierController extends HttpFilter {
 			Throwable cause = ExceptionUtils.getRootCause(e);
 			req.setAttribute(MESSAGE, cause.getMessage());
 			String forwardPath = (String) session.getAttribute(APP_ERROR_FORWARD_PATH);
-			if (cause instanceof IllegalArgumentException && forwardPath != null) {
+			if (cause instanceof IllegalStateException && forwardPath != null) {
 				// アプリエラー (入力エラーなどの業務エラー)
 				sendAjaxOr(() -> forward(forwardPath));
 			} else {
@@ -289,7 +295,7 @@ public class SingleTierController extends HttpFilter {
 			}
 		}
 		if (!isAjax()) {
-			// 画面遷移ごとのワンタイムトークン (リプレイアタック抑止であり、戻る抑止ではない)
+			// 画面遷移ごとのワンタイムトークン (リプレイアタック抑止であり、ブラウザの戻るボタンでは bfcache 無効化によりリロードされる)
 			session.setAttribute(_csrf, UUID.randomUUID().toString());
 		}
 		// Cookie 書き込み
