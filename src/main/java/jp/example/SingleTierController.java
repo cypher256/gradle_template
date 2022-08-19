@@ -110,11 +110,14 @@ public class SingleTierController extends HttpFilter {
 	 * </pre>
 	 * CSRF トークンの扱い
 	 * <pre>
-	 * form サブミット、form の AJAX 送信、Angular、Axios の場合は、自動的にリクエストに含まれるため、何もする必要はありません。
-	 * JavaScript で手動で設定する場合は下記で取得し、post リクエストヘッダー X-XSRF-TOKEN にセットする必要があります。
-	 *     // meta タグから取得する場合 
+	 * form サブミット、form 内容を JavaScript で送信、Angular、Axios の場合は、自動的にリクエストに含まれるため、何もする必要はありません。
+	 * JavaScript で手動で設定する場合は、下記のいずれかで取得し、post リクエストヘッダー X-XSRF-TOKEN にセットする必要があります。
+	 * 
+	 *     // form の hidden から取得 (post form がある画面のみ)
+	 *     document.forms[0]._csrf.value
+	 *     // meta タグから取得する場合 (すべての画面)
 	 *     document.querySelector("meta[name='_csrf']").content
-	 *     // Cookie から取得する場合
+	 *     // Cookie から取得する場合 (すべての画面)
 	 *     document.cookie.split('; ').find(e => e.startsWith('XSRF-TOKEN')).split('=')[1]
 	 * </pre>
 	 * @param jspPath JSP パス
