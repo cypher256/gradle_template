@@ -284,8 +284,6 @@ public class SingleTierController extends HttpFilter {
 				sendAjaxOr(() -> redirect(session.getAttribute(SYS_ERROR_REDIRECT_URL)));
 				log.warn(cause.getMessage(), cause);
 			}
-			
-		} finally {
 		}
 	}
 
