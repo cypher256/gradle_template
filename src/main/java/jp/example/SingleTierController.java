@@ -307,7 +307,7 @@ public class SingleTierController extends HttpFilter {
 				return true; // エラー
 			}
 		}
-		if (!isAjax()) {
+		if (!isAjax() || session.getAttribute(_csrf) == null) {
 			// 画面遷移ごとのワンタイムトークン (リプレイアタック抑止であり、ブラウザの戻るボタンでは bfcache 無効化によりリロードされる)
 			session.setAttribute(_csrf, UUID.randomUUID().toString());
 		}
