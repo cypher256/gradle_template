@@ -57,13 +57,13 @@ public class SingleTierController extends HttpFilter {
 	// Servlet から使用する public static 定数とメソッド
 	//-------------------------------------------------------------------------
 
-	/** リクエスト属性名: String 画面に表示するメッセージ (サーブレットから自分でセット、エラー時は例外メッセージがセットされる) */
+	/** リクエスト属性名: 画面に表示するメッセージ (サーブレットから自分でセット、エラー時は例外メッセージがセットされる) */
 	public static final String MESSAGE = "MESSAGE";
 	
-	/** セッション属性名: String アプリエラー時のフォワード先パス (デフォルトは表示元、変更する場合はサーブレットでセット) */
+	/** セッション属性名: アプリエラー時のフォワード先パス (デフォルトは表示元、変更する場合はサーブレットでセット) */
 	public static final String APP_ERROR_FORWARD_PATH = "APP_ERROR_FORWARD_PATH";
 	
-	/** セッション属性名: String システムエラー時のリダイレクト先 URL (デフォルトは最後のリダイレクト先、変更する場合はサーブレットでセット) */
+	/** セッション属性名: システムエラー時のリダイレクト先 URL (デフォルトは最後のリダイレクト先、変更する場合はサーブレットでセット) */
 	public static final String SYS_ERROR_REDIRECT_URL = "SYS_ERROR_REDIRECT_URL";
 
 	/**
@@ -110,7 +110,7 @@ public class SingleTierController extends HttpFilter {
 	 * </pre>
 	 * CSRF トークンの扱い
 	 * <pre>
-	 * form サブミット、form 内容を JavaScript で送信、Angular、Axios の場合は、自動的にリクエストに含まれるため、何もする必要はありません。
+	 * form サブミット、form 内容の JavaScript 送信、Angular、Axios の場合は、自動的にリクエストに含まれるため、何もする必要はありません。
 	 * JavaScript で手動で設定する場合は、下記のいずれかで取得し、post リクエストヘッダー X-XSRF-TOKEN にセットする必要があります。
 	 * 
 	 *     // form の hidden から取得 (post form がある画面のみ)
@@ -119,6 +119,12 @@ public class SingleTierController extends HttpFilter {
 	 *     document.querySelector("meta[name='_csrf']").content
 	 *     // Cookie から取得する場合 (すべての画面)
 	 *     document.cookie.split('; ').find(e => e.startsWith('XSRF-TOKEN')).split('=')[1]
+	 * 
+	 * アップロード用の multipart post form の場合は、hidden が getParameter で取得できないため、action 属性にクエリー文字列として
+	 * 指定する必要があります。リクエストパラメーター名は _csrf とし、値は ${_csrf} で取得できまます。
+	 * 
+	 *     form タグ
+	 *     action="/upload?_csrf=${_csrf}" method="post" enctype="multipart/form-data"
 	 * </pre>
 	 * @param jspPath JSP パス
 	 */
@@ -126,19 +132,18 @@ public class SingleTierController extends HttpFilter {
 	public static void forward(Object jspPath) {
 		RequestContext context = requestContextThreadLocal.get();
 		String path = ((String) jspPath).startsWith("/") ? (String) jspPath : "/WEB-INF/jsp/" + jspPath;
-		context.req.getSession().setAttribute(APP_ERROR_FORWARD_PATH, path);
 		log.debug("[{}] {}", APP_ERROR_FORWARD_PATH, path);
-		
-		// CSRF トークン自動埋め込み: アップロード用の multipart form は未対応のため、手動で action 属性にクエリー文字列追加が必要
-		// 例: <form action="/upload?_csrf=${_csrf}" method="post" enctype="multipart/form-data">
 		ByteArrayResponseWrapper resWrapper = new ByteArrayResponseWrapper(context.res);
 		context.req.getRequestDispatcher(path).forward(context.req, resWrapper);
-		String csrfValue = (String) context.req.getSession().getAttribute(_csrf);
+		context.req.getSession().setAttribute(APP_ERROR_FORWARD_PATH, path);
+		
+		// CSRF トークンを自動埋め込み
+		String csrfToken = (String) context.req.getSession().getAttribute(_csrf);
 		String html = new String(resWrapper.toByteArray(), resWrapper.getCharacterEncoding())
 			.replaceFirst("(?i)(<head>)", format("""
-				$1\n<meta name="_csrf" content="%s">""", csrfValue))
-			.replaceAll("(?is)([ \t]*)(<form[^>]*post[^>]*>)", format("""
-				$1$2\n$1\t<input type="hidden" name="_csrf" value="%s">""", csrfValue));
+				$1\n<meta name="_csrf" content="%s">""", csrfToken))
+			.replaceAll("(?is)([ \t]*)(<form[^>]+post[^>]+>)", format("""
+				$1$2\n$1\t<input type="hidden" name="_csrf" value="%s">""", csrfToken));
 		context.res.getWriter().print(html);
 	}
 	
@@ -148,7 +153,7 @@ public class SingleTierController extends HttpFilter {
 	 * <pre>
 	 * 1. 指定した redirectUrl (null の場合はコンテキストルート) にリダイレクトします。
 	 * 2. リダイレクト先 URL をセッション属性 SYS_ERROR_REDIRECT_URL に保存します (システムエラー時のリダイレクト先として使用)。
-	 * 3. 現在のリクエスト属性をフラッシュ属性としてセッションに保存します (リダイレクト後にリクエスト属性に復元)。
+	 * 3. 現在のリクエスト属性をフラッシュ属性としてセッションに退避します (リダイレクト先でリクエスト属性に復元)。
 	 * </pre>
 	 * @param redirectUrl リダイレクト先 URL
 	 */
@@ -156,9 +161,9 @@ public class SingleTierController extends HttpFilter {
 	public static void redirect(Object redirectUrl) {
 		RequestContext context = requestContextThreadLocal.get();
 		String url = Objects.toString(redirectUrl, context.req.getContextPath());
+		log.debug("[{}] {}", SYS_ERROR_REDIRECT_URL, url);
 		context.res.sendRedirect(url);
 		context.req.getSession().setAttribute(SYS_ERROR_REDIRECT_URL, url);
-		log.debug("[{}] {}", SYS_ERROR_REDIRECT_URL, url);
 		
 		// リクエスト属性をフラッシュ属性としてセッションに一時保存 (リダイレクト後に復元)
 		context.req.getSession().setAttribute(FLASH_ATTRIBUTE, 
@@ -170,8 +175,8 @@ public class SingleTierController extends HttpFilter {
 	// Servlet フィルター処理
 	//-------------------------------------------------------------------------
 	
-	public static final String FLASH_ATTRIBUTE = "FLASH_ATTRIBUTE";
-	public static final String _csrf = "_csrf";
+	private static final String FLASH_ATTRIBUTE = "FLASH_ATTRIBUTE";
+	private static final String _csrf = "_csrf";
 	private static final ThreadLocal<RequestContext> requestContextThreadLocal = new ThreadLocal<>();
 	private static final ThreadLocal<SqlAgent> daoThreadLocal = new ThreadLocal<>();
 	private SqlConfig daoConfig;
@@ -204,16 +209,28 @@ public class SingleTierController extends HttpFilter {
 		DriverManager.deregisterDriver(DriverManager.getDrivers().nextElement()); // Tomcat 警告抑止
 	}
 	
-	/** すべての Servlet 呼び出しのフィルター処理 */
-	@Override @SneakyThrows @SuppressWarnings("unchecked")
+	/** すべての呼び出しのフィルター処理 */
+	@Override @SneakyThrows
 	protected void doFilter(HttpServletRequest req, HttpServletResponse res, FilterChain chain) {
-
-		// サーブレット呼び出し除外 (ファイル拡張子、セッション無し、CSRF エラー)
-		if (req.getRequestURI().matches(".+\\.[^\\.]{2,5}")) { // 拡張子 (js css woff2 など) がある静的リソース
+		if (req.getRequestURI().matches(".+\\.[^\\.]{2,5}")) {
+			// 静的リソース拡張子除外 (js css woff2 など)
 			super.doFilter(req, res, chain);
 			return;
 		}
-		requestContextThreadLocal.set(new RequestContext(req, res));
+		Stopwatch stopwatch = Stopwatch.createStarted();
+		try {
+			requestContextThreadLocal.set(new RequestContext(req, res));
+			processServlet(req, res, chain);
+		} finally {
+			requestContextThreadLocal.remove();
+			log.debug("処理時間 {}ms [{}] {} {}", stopwatch.elapsed(TimeUnit.MILLISECONDS), req.getMethod(), 
+					DispatcherUtil.getFullUrl(req), Objects.toString(req.getAttribute(MESSAGE), ""));
+		}
+	}
+	
+	/** Servlet 呼び出しの前後共通処理 */
+	@SneakyThrows @SuppressWarnings("unchecked")
+	private void processServlet(HttpServletRequest req, HttpServletResponse res, FilterChain chain) {
 		HttpSession session = req.getSession();
 		if (session.isNew() && !req.getRequestURI().equals(req.getContextPath() + "/")) {
 			req.setAttribute(MESSAGE, "セッションの有効期限が切れました。");
@@ -240,7 +257,6 @@ public class SingleTierController extends HttpFilter {
 		res.setHeader("X-Frame-Options", "DENY");
 		res.setHeader("X-XSS-Protection", "1; mode=block");
 		ServletUtil.preventCaching(res); // bfcache 無効化 (ブラウザ戻るボタンでの get ページ表示はサーバ再取得するようにする)
-		Stopwatch stopwatch = Stopwatch.createStarted();
 		
 		// DB トランザクションブロック
 		try (SqlAgent dao = daoConfig.agent()) {
@@ -270,9 +286,6 @@ public class SingleTierController extends HttpFilter {
 			}
 			
 		} finally {
-			requestContextThreadLocal.remove();
-			log.debug("処理時間 {}ms [{}] {} {}", stopwatch.elapsed(TimeUnit.MILLISECONDS), req.getMethod(), 
-					DispatcherUtil.getFullUrl(req), Objects.toString(req.getAttribute(MESSAGE), ""));
 		}
 	}
 
@@ -298,7 +311,7 @@ public class SingleTierController extends HttpFilter {
 			// 画面遷移ごとのワンタイムトークン (リプレイアタック抑止であり、ブラウザの戻るボタンでは bfcache 無効化によりリロードされる)
 			session.setAttribute(_csrf, UUID.randomUUID().toString());
 		}
-		// Cookie 書き込み
+		// AJAX 取得用 Cookie 書き込み
 		// * Secure: 指定あり。localhost を除く https サーバのみに送信。指定に関係なくブラウザには返せるので isSecure 判定しない。
 		// * SameSite: 指定なし。モダンブラウザのデフォルトは Lax (別サイトから POST で送信不可、GET は送信可能)。
 		// * HttpOnly: 指定なし。JavaScript から参照可能にするために指定しない。
