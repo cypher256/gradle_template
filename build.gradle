@@ -28,7 +28,7 @@ dependencies {
 	implementation 'com.zaxxer:HikariCP:5.0.+'
 	implementation 'commons-beanutils:commons-beanutils:1.9.+'
 	implementation 'org.apache.commons:commons-lang3:3.12.+'	
-	implementation 'jp.co.future:uroborosql:0.24.+'
+	implementation 'jp.co.future:uroborosql:0.25.+'
 	compileOnly 'org.projectlombok:lombok:1.18.+'
 	annotationProcessor 'org.projectlombok:lombok:1.18.+'
 	runtimeOnly 'com.h2database:h2:2.1.+'
