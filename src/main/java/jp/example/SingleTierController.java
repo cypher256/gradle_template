@@ -197,6 +197,14 @@ public class SingleTierController extends HttpFilter {
 		try (SqlAgent dao = daoConfig.agent()) {
 			dao.update("create_table").count(); // ファイル実行 /src/main/resources/sql/create_table.sql
 		}
+		
+		// TODO web.xml filter
+		// Tomcat コンテナ提供のフィルタ: SetCharacterEncodingFilter AddDefaultCharsetFilter
+		// https://tomcat.apache.org/tomcat-9.0-doc/config/filter.html#HTTP_Header_Security_Filter
+		// Servlet3.0でFilterの順序を指定する
+		// https://qiita.com/opengl-8080/items/db385b934690d6c3d13a
+		// 超簡単だからやっておこうTomcatの脆弱性対策
+		// https://qiita.com/takasan/items/bccdffaea5d3f7906782
 		ServletContext sc = getServletContext();
 		sc.setRequestCharacterEncoding(StandardCharsets.UTF_8.name()); // post getParameter エンコーディング
 		sc.setResponseCharacterEncoding(StandardCharsets.UTF_8.name()); // AJAX レスポンス
