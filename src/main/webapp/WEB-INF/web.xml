@@ -6,7 +6,10 @@
 						http://www.oracle.com/webfolder/technetwork/jsc/xml/ns/javaee/web-app_4_0.xsd"
 	version="4.0">
 
-	<!--  Tomcat 標準フィルター: レスポンスセキュリティヘッダーのセット -->
+	<!--
+	Tomcat 標準フィルター: レスポンスセキュリティヘッダーのセット
+	https://tomcat.apache.org/tomcat-9.0-doc/config/filter.html#HTTP_Header_Security_Filter
+	-->
 	<filter>
 		<filter-name>SecurityFilter</filter-name>
 		<filter-class>org.apache.catalina.filters.HttpHeaderSecurityFilter</filter-class>
@@ -16,7 +19,23 @@
 		<url-pattern>/*</url-pattern>
 	</filter-mapping>
 	
-	<!-- 単層コントローラー (urlPatterns はアノテーション定義) -->
+	<!-- 
+	Tomcat 標準フィルター: CORS フィルター
+	https://tomcat.apache.org/tomcat-9.0-doc/config/filter.html#CORS_Filter
+	-->
+	<filter>
+		<filter-name>CorsFilter</filter-name>
+		<filter-class>org.apache.catalina.filters.CorsFilter</filter-class>
+	</filter>
+	<filter-mapping>
+		<filter-name>CorsFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+
+	<!--
+	単層コントローラーサンプル (urlPatterns はアノテーション定義)
+	SingleTierFilter.java
+	-->
 	<filter-mapping>
 		<filter-name>SingleTierFilter</filter-name>
 		<url-pattern/>
