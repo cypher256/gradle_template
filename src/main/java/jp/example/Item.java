@@ -1,6 +1,6 @@
 package jp.example;
 
-import static jp.example.SingleTierController.*;
+import static jp.example.SingleTierFilter.*;
 
 import javax.servlet.http.HttpServletRequest;
 

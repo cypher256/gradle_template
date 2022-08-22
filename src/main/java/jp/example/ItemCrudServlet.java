@@ -1,6 +1,6 @@
 package jp.example;
 
-import static jp.example.SingleTierController.*;
+import static jp.example.SingleTierFilter.*;
 
 import java.util.List;
 

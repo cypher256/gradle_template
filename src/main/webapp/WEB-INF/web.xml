@@ -6,6 +6,23 @@
 						http://www.oracle.com/webfolder/technetwork/jsc/xml/ns/javaee/web-app_4_0.xsd"
 	version="4.0">
 
+	<!--  Tomcat 標準フィルター: レスポンスセキュリティヘッダーのセット -->
+	<filter>
+		<filter-name>SecurityFilter</filter-name>
+		<filter-class>org.apache.catalina.filters.HttpHeaderSecurityFilter</filter-class>
+	</filter>
+	<filter-mapping>
+		<filter-name>SecurityFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+	
+	<!-- 単層コントローラー (urlPatterns はアノテーション定義) -->
+	<filter-mapping>
+		<filter-name>SingleTierFilter</filter-name>
+		<url-pattern/>
+	</filter-mapping>
+
+	<!-- JSP 共通設定 (文字エンコーディング、共通ヘッダ) -->
 	<jsp-config>
 		<jsp-property-group>
 			<url-pattern>*.jsp</url-pattern>

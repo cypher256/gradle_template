@@ -44,14 +44,15 @@ import lombok.extern.slf4j.Slf4j;
  * <li>単層アーキテクチャー: 多層に対して、シンプルで直感的、管理・保守が容易。クラウドなどでの分散が不要なプロジェクト向け。
  * <li>自動フラッシュ属性: リダイレクト時は、リクエスト属性をセッション経由でリダイレクト先のリクエスト属性に自動転送。
  * <li>自動 CSRF トークン: hidden 埋め込み不要、form 内容の JavaScript 送信、Angular，Axios などでも対応不要。
+ * <li>自動同期トークン: CSRF トークンを画面遷移ごとに生成。AJAX アクセスの場合はトークン更新なし。
  * <li>自動トランザクション: DB コネクションの取得・解放の考慮不要。例外スローでロールバックし、例外にセットしたメッセージを画面に表示。
  * <li>エラー時の表示元 JSP へ自動フォワード: new IllegalStateException(画面メッセージ) スローで、表示元 JSP にフォワード。
  * </ul>
  * @author Pleiades All in One (License MIT: https://opensource.org/licenses/MIT)
  */
-@WebFilter("/*")
+@WebFilter(urlPatterns = "/*", filterName = "SingleTierFilter")
 @Slf4j
-public class SingleTierController extends HttpFilter {
+public class SingleTierFilter extends HttpFilter {
 	
 	//-------------------------------------------------------------------------
 	// Servlet から使用する public static 定数とメソッド
@@ -197,14 +198,6 @@ public class SingleTierController extends HttpFilter {
 		try (SqlAgent dao = daoConfig.agent()) {
 			dao.update("create_table").count(); // ファイル実行 /src/main/resources/sql/create_table.sql
 		}
-		
-		// TODO web.xml filter
-		// Tomcat コンテナ提供のフィルタ: SetCharacterEncodingFilter AddDefaultCharsetFilter
-		// https://tomcat.apache.org/tomcat-9.0-doc/config/filter.html#HTTP_Header_Security_Filter
-		// Servlet3.0でFilterの順序を指定する
-		// https://qiita.com/opengl-8080/items/db385b934690d6c3d13a
-		// 超簡単だからやっておこうTomcatの脆弱性対策
-		// https://qiita.com/takasan/items/bccdffaea5d3f7906782
 		ServletContext sc = getServletContext();
 		sc.setRequestCharacterEncoding(StandardCharsets.UTF_8.name()); // post getParameter エンコーディング
 		sc.setResponseCharacterEncoding(StandardCharsets.UTF_8.name()); // AJAX レスポンス
@@ -245,8 +238,7 @@ public class SingleTierController extends HttpFilter {
 			sendAjaxOr(() -> redirect(req.getContextPath()));
 			return;
 		}
-		if (notMatchCsrfToken(req, res)) {
-			// 二重送信も検出できるが UX 向上のため、送信前に JavaScript でボタンを押せなくするなどの二度押し防止推奨
+		if (notMatchToken(req, res)) {
 			req.setAttribute(MESSAGE, "不正なデータが送信されました。");
 			sendAjaxOr(() -> redirect(session.getAttribute(SYS_ERROR_REDIRECT_URL)));
 			return;
@@ -258,13 +250,6 @@ public class SingleTierController extends HttpFilter {
 			flashMap.forEach(req::setAttribute);
 			session.removeAttribute(FLASH_ATTRIBUTE);
 		}
-		
-		// レスポンスヘッダーの設定
-		res.setHeader("X-Content-Type-Options", "nosniff");
-		res.setHeader("Strict-Transport-Security", "max-age=315360000 ; includeSubDomains");
-		res.setHeader("X-Frame-Options", "DENY");
-		res.setHeader("X-XSS-Protection", "1; mode=block");
-		ServletUtil.preventCaching(res); // bfcache 無効化 (ブラウザ戻るボタンでの get ページ表示はサーバ再取得するようにする)
 		
 		// DB トランザクションブロック
 		try (SqlAgent dao = daoConfig.agent()) {
@@ -296,11 +281,11 @@ public class SingleTierController extends HttpFilter {
 	}
 
 	/**
-	 * post 時の CSRF トークンをチェックします (並行リクエスト対応のため synchronized)。
+	 * post 時のトークンをチェックします (並行リクエスト対応のため synchronized)。
 	 * リクエスト、ヘッダー、Cookie 名は標準的な名前を使用します。
 	 * @return CSRF エラーの場合は true
 	 */
-	synchronized private boolean notMatchCsrfToken(HttpServletRequest req, HttpServletResponse res) throws IOException {
+	synchronized private boolean notMatchToken(HttpServletRequest req, HttpServletResponse res) throws IOException {
 		HttpSession session = req.getSession();
 		if ("POST".equals(req.getMethod())) {
 			String sesCsrf = (String) session.getAttribute(_csrf);
@@ -314,7 +299,9 @@ public class SingleTierController extends HttpFilter {
 			}
 		}
 		if (!isAjax() || session.getAttribute(_csrf) == null) {
-			// 画面遷移ごとのワンタイムトークン (リプレイアタック抑止であり、ブラウザの戻るボタンでは bfcache 無効化によりリロードされる)
+			// 画面遷移ごとにトークンを生成
+			// * 同期トークンとして機能する (ただし、意図的に bfcache 無効化により、戻るボタンからの送信は正常に機能する)
+			// * 二重送信やリロード多重送信も検出できるが UX 向上のため、JavaScript でボタン disabled および PRG パターンで防止推奨
 			session.setAttribute(_csrf, UUID.randomUUID().toString());
 		}
 		// AJAX 取得用 Cookie 書き込み
@@ -322,6 +309,9 @@ public class SingleTierController extends HttpFilter {
 		// * SameSite: 指定なし。モダンブラウザのデフォルトは Lax (別サイトから POST で送信不可、GET は送信可能)。
 		// * HttpOnly: 指定なし。JavaScript から参照可能にするために指定しない。
 		res.addHeader("Set-Cookie", format("XSRF-TOKEN=%s; Secure;", session.getAttribute(_csrf)));
+		
+		// レスポンスヘッダー bfcache 無効化 (ブラウザ戻るボタンでの get ページ表示はサーバ再取得するようにする)
+		ServletUtil.preventCaching(res);
 		return false; // 正常
 	}
 
