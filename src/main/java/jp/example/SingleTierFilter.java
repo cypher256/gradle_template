@@ -237,7 +237,7 @@ public class SingleTierFilter extends HttpFilter {
 	protected boolean beforeProcess(HttpServletRequest req, HttpServletResponse res) {
 		HttpSession session = req.getSession();
 		if (session.isNew() && !req.getRequestURI().equals(req.getContextPath() + "/")) {
-			// セッション切れ
+			req.setAttribute(MESSAGE, "セッションが切れました。");
 			sendAjaxOr(() -> redirect(req.getContextPath()));
 			return false;
 		}
