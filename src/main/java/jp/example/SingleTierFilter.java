@@ -14,7 +14,6 @@ import java.util.stream.Collectors;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletContext;
-import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpFilter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -38,19 +37,18 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Servlet JSP 単層アーキテクチャーで構成されたフロントコントローラーサンプルです。
- * このフロントコントローラーは、有効行 200 行に満たない Servlet API の薄いラッパーとなっています。
+ * Servlet JSP 単層アーキテクチャーで構成されたフロントコントローラーフィルターサンプルです。
+ * このフィルターは、有効行 200 行に満たない Servlet API の薄いラッパーとなっています。
  * <ul>
  * <li>単層アーキテクチャー: 多層に対して、シンプルで直感的、管理・保守が容易。クラウドなどでの分散が不要なプロジェクト向け。
  * <li>自動フラッシュ属性: リダイレクト時は、リクエスト属性をセッション経由でリダイレクト先のリクエスト属性に自動転送。
  * <li>自動 CSRF トークン: hidden 埋め込み不要、form 内容の JavaScript 送信、Angular，Axios などでも対応不要。
- * <li>自動同期トークン: CSRF トークンを画面遷移ごとに生成。AJAX アクセスの場合はトークン更新なし。
+ * <li>自動同期トークン: CSRF トークンを同期トークンとして使用するために画面遷移ごとに生成。AJAX アクセスの場合はトークン更新しない。
  * <li>自動トランザクション: DB コネクションの取得・解放の考慮不要。例外スローでロールバックし、例外にセットしたメッセージを画面に表示。
  * <li>エラー時の表示元 JSP へ自動フォワード: new IllegalStateException(画面メッセージ) スローで、表示元 JSP にフォワード。
  * </ul>
  * @author Pleiades All in One (License MIT: https://opensource.org/licenses/MIT)
  */
-@WebFilter(urlPatterns = "/*", filterName = "SingleTierFilter")
 @Slf4j
 public class SingleTierFilter extends HttpFilter {
 	
@@ -133,7 +131,7 @@ public class SingleTierFilter extends HttpFilter {
 	public static void forward(Object jspPath) {
 		RequestContext context = requestContextThreadLocal.get();
 		String path = ((String) jspPath).startsWith("/") ? (String) jspPath : "/WEB-INF/jsp/" + jspPath;
-		log.debug("[{}] {}", APP_ERROR_FORWARD_PATH, path);
+		log.debug("フォワード {}", path);
 		ByteArrayResponseWrapper resWrapper = new ByteArrayResponseWrapper(context.res);
 		context.req.getRequestDispatcher(path).forward(context.req, resWrapper);
 		context.req.getSession().setAttribute(APP_ERROR_FORWARD_PATH, path);
@@ -162,7 +160,7 @@ public class SingleTierFilter extends HttpFilter {
 	public static void redirect(Object redirectUrl) {
 		RequestContext context = requestContextThreadLocal.get();
 		String url = Objects.toString(redirectUrl, context.req.getContextPath());
-		log.debug("[{}] {}", SYS_ERROR_REDIRECT_URL, url);
+		log.debug("リダイレクト {}", url);
 		context.res.sendRedirect(url);
 		context.req.getSession().setAttribute(SYS_ERROR_REDIRECT_URL, url);
 		
@@ -214,14 +212,16 @@ public class SingleTierFilter extends HttpFilter {
 	@Override @SneakyThrows
 	protected void doFilter(HttpServletRequest req, HttpServletResponse res, FilterChain chain) {
 		if (req.getRequestURI().matches(".+\\.[^\\.]{2,5}")) {
-			// 静的リソース拡張子除外 (js css woff2 など)
+			// 拡張子がある URL 除外 (js css woff2 など)
 			super.doFilter(req, res, chain);
 			return;
 		}
 		Stopwatch stopwatch = Stopwatch.createStarted();
 		try {
 			requestContextThreadLocal.set(new RequestContext(req, res));
-			processServlet(req, res, chain);
+			if (beforeProcess(req, res)) {
+				processTransaction(req, res, chain);
+			}
 		} finally {
 			requestContextThreadLocal.remove();
 			log.debug("処理時間 {}ms [{}] {} {}", stopwatch.elapsed(TimeUnit.MILLISECONDS), req.getMethod(), 
@@ -229,22 +229,32 @@ public class SingleTierFilter extends HttpFilter {
 		}
 	}
 	
-	/** Servlet 呼び出しの前後共通処理 */
-	@SneakyThrows @SuppressWarnings("unchecked")
-	private void processServlet(HttpServletRequest req, HttpServletResponse res, FilterChain chain) {
+	/**
+	 * 前処理として、リクエストやセッション状態を判定 (場合によっては認証など) し、必要に応じてリダイレクトします。
+	 * @return 後続のフィルターやサーブレット処理を続行する場合は true
+	 */
+	@SneakyThrows
+	protected boolean beforeProcess(HttpServletRequest req, HttpServletResponse res) {
 		HttpSession session = req.getSession();
 		if (session.isNew() && !req.getRequestURI().equals(req.getContextPath() + "/")) {
-			req.setAttribute(MESSAGE, "セッションの有効期限が切れました。");
+			// セッション切れ
 			sendAjaxOr(() -> redirect(req.getContextPath()));
-			return;
+			return false;
 		}
-		if (notMatchToken(req, res)) {
+		if (notMatchPostToken(req, res)) {
 			req.setAttribute(MESSAGE, "不正なデータが送信されました。");
 			sendAjaxOr(() -> redirect(session.getAttribute(SYS_ERROR_REDIRECT_URL)));
-			return;
+			return false;
 		}
-		
+		return true;
+	}
+
+	/** Servlet 呼び出しトランザクション処理 */
+	@SuppressWarnings("unchecked")
+	protected void processTransaction(HttpServletRequest req, HttpServletResponse res, FilterChain chain) {
+
 		// リダイレクト時のフラッシュ属性をセッションからリクエスト属性に復元し、セッションから削除
+		HttpSession session = req.getSession();
 		Map<String, Object> flashMap = (Map<String, Object>) session.getAttribute(FLASH_ATTRIBUTE);
 		if (flashMap != null) {
 			flashMap.forEach(req::setAttribute);
@@ -283,9 +293,9 @@ public class SingleTierFilter extends HttpFilter {
 	/**
 	 * post 時のトークンをチェックします (並行リクエスト対応のため synchronized)。
 	 * リクエスト、ヘッダー、Cookie 名は標準的な名前を使用します。
-	 * @return CSRF エラーの場合は true
+	 * @return トークンが一致しない場合は true
 	 */
-	synchronized private boolean notMatchToken(HttpServletRequest req, HttpServletResponse res) throws IOException {
+	synchronized protected boolean notMatchPostToken(HttpServletRequest req, HttpServletResponse res) throws IOException {
 		HttpSession session = req.getSession();
 		if ("POST".equals(req.getMethod())) {
 			String sesCsrf = (String) session.getAttribute(_csrf);
@@ -304,13 +314,13 @@ public class SingleTierFilter extends HttpFilter {
 			// * 二重送信やリロード多重送信も検出できるが UX 向上のため、JavaScript でボタン disabled および PRG パターンで防止推奨
 			session.setAttribute(_csrf, UUID.randomUUID().toString());
 		}
-		// AJAX 取得用 Cookie 書き込み
+		// AJAX 参照用 Cookie 書き込み
 		// * Secure: 指定あり。localhost を除く https サーバのみに送信。指定に関係なくブラウザには返せるので isSecure 判定しない。
 		// * SameSite: 指定なし。モダンブラウザのデフォルトは Lax (別サイトから POST で送信不可、GET は送信可能)。
 		// * HttpOnly: 指定なし。JavaScript から参照可能にするために指定しない。
 		res.addHeader("Set-Cookie", format("XSRF-TOKEN=%s; Secure;", session.getAttribute(_csrf)));
 		
-		// レスポンスヘッダー bfcache 無効化 (ブラウザ戻るボタンでの get ページ表示はサーバ再取得するようにする)
+		// レスポンスヘッダー bfcache 無効化 (ブラウザ戻るボタンでの get ページ表示はキャッシュではなくサーバ再取得するようにする)
 		ServletUtil.preventCaching(res);
 		return false; // 正常
 	}
@@ -320,7 +330,7 @@ public class SingleTierFilter extends HttpFilter {
 	 * @param nonAjaxAction AJAX でない場合の処理
 	 */
 	@SneakyThrows
-	private void sendAjaxOr(Runnable nonAjaxAction) {
+	protected void sendAjaxOr(Runnable nonAjaxAction) {
 		if (isAjax()) {
 			RequestContext context = requestContextThreadLocal.get();
 			context.res.getWriter().print(context.req.getAttribute(MESSAGE));
@@ -332,7 +342,7 @@ public class SingleTierFilter extends HttpFilter {
 	/**
 	 * @return AJAX リクエストの場合は true
 	 */
-	private boolean isAjax() {
+	protected boolean isAjax() {
 		HttpServletRequest req = requestContextThreadLocal.get().req;
 		return "XMLHttpRequest".equals(req.getHeader("X-Requested-With")) ||
 				StringUtils.contains(req.getHeader("Accept"), "/json");
