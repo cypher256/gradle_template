@@ -42,10 +42,11 @@ import lombok.extern.slf4j.Slf4j;
  * <ul>
  * <li>単層アーキテクチャー: 多層に対して、シンプルで直感的、管理・保守が容易。クラウドなどでの分散が不要なプロジェクト向け。
  * <li>自動フラッシュ属性: リダイレクト時は、リクエスト属性をセッション経由でリダイレクト先のリクエスト属性に自動転送。
- * <li>自動 CSRF トークン: hidden 埋め込み不要、form 内容の JavaScript 送信、Angular，Axios などでも対応不要。
- * <li>自動同期トークン: CSRF トークンを同期トークンとして使用するために画面遷移ごとに生成。AJAX アクセスの場合はトークン更新しない。
+ * <li>自動 CSRF トークン: hidden、meta、Cookie 自動セット。form 内容の JavaScript 送信、Angular，Axios などでも対応不要。
+ * <li>自動同期トークン: CSRF トークンを同期トークンとして使用するために画面遷移ごと (AJAX アクセス除く) に生成。
  * <li>自動トランザクション: DB コネクションの取得・解放の考慮不要。例外スローでロールバックし、例外にセットしたメッセージを画面に表示。
  * <li>エラー時の表示元 JSP へ自動フォワード: new IllegalStateException(画面メッセージ) スローで、表示元 JSP にフォワード。
+ * <li>CORS やレスポンスセヘッダのセキュリティ設定は web.xml を参照してください。
  * </ul>
  * @author Pleiades All in One (License MIT: https://opensource.org/licenses/MIT)
  */
@@ -81,9 +82,10 @@ public class SingleTierFilter extends HttpFilter {
 	
 	/**
 	 * エラーチェック用のメソッドです。
+	 * <pre>
 	 * 指定した条件が false の場合、引数のメッセージを持つ IllegalStateException をスローします。
 	 * 以下、このメソッド以外でも適用される、サーブレットで例外がスローされた場合の共通動作です。
-	 * <pre>
+	 * 
 	 * 1. 例外の種類に関わらずロールバックされ、例外の getMessage() がリクエスト属性 MESSAGE にセットされます。
 	 * 2. IllegalStateException の場合、アプリエラーとしてセッション属性 APP_ERROR_FORWARD_PATH (通常は表示元) にフォワードされます。
 	 * 3. 上記以外の例外の場合は、システムエラーとしてセッション属性 SYS_ERROR_REDIRECT_URL にリダイレクト (自動フラッシュ) されます。
@@ -101,8 +103,10 @@ public class SingleTierFilter extends HttpFilter {
 	
 	/**
 	 * JSP にフォワードします。
-	 * JSP 以外へのフォワードは標準の req.getRequestDispatcher(path).forward(req, res) を使用してください。
 	 * <pre>
+	 * 標準の req.getRequestDispatcher(path).forward(req, res) の代わりに使用します。
+	 * JSP 以外へのフォワードは上記の標準のメソッドを使用してください。このメソッドは、以下の処理を行います。
+	 * 
 	 * 1. 先頭がスラッシュの場合はそのまま、スラッシュでない場合は "/WEB-INF/jsp/" + jspPath をフォワード先パスとしてフォワードします。
 	 * 2. フォワード先パスをセッション属性 APP_ERROR_FORWARD_PATH に保存します (入力エラーなどのアプリエラー時のフォワード先として使用)。
 	 * 3. JSP 処理後の HTML の meta と form input hidden に name="_csrf" として CSRF トークンを埋め込みます。
@@ -148,11 +152,13 @@ public class SingleTierFilter extends HttpFilter {
 	
 	/**
 	 * リダイレクトします。
-	 * 別のアプリや外部サイトへのリダイレクトは標準の res.sendRedirect(url) を使用してください。
 	 * <pre>
+	 * 標準の res.sendRedirect(url) の代わりに使用します。
+	 * 別のアプリや外部サイトへのリダイレクトは上記の標準のメソッドを使用してください。このメソッドは、以下の処理を行います。
+	 * 
 	 * 1. 指定した redirectUrl (null の場合はコンテキストルート) にリダイレクトします。
 	 * 2. リダイレクト先 URL をセッション属性 SYS_ERROR_REDIRECT_URL に保存します (システムエラー時のリダイレクト先として使用)。
-	 * 3. 現在のリクエスト属性をフラッシュ属性としてセッションに退避します (リダイレクト先でリクエスト属性に復元)。
+	 * 3. 現在のリクエスト属性をフラッシュ属性としてセッションに退避します (リダイレクト後にリクエスト属性に復元)。
 	 * </pre>
 	 * @param redirectUrl リダイレクト先 URL
 	 */
@@ -219,7 +225,7 @@ public class SingleTierFilter extends HttpFilter {
 		Stopwatch stopwatch = Stopwatch.createStarted();
 		try {
 			requestContextThreadLocal.set(new RequestContext(req, res));
-			if (beforeProcess(req, res)) {
+			if (canProcess(req, res)) {
 				processTransaction(req, res, chain);
 			}
 		} finally {
@@ -230,11 +236,11 @@ public class SingleTierFilter extends HttpFilter {
 	}
 	
 	/**
-	 * 前処理として、リクエストやセッション状態を判定 (場合によっては認証など) し、必要に応じてリダイレクトします。
-	 * @return 後続のフィルターやサーブレット処理を続行する場合は true
+	 * リクエストやセッション状態を判定 (場合によっては認証など) し、リダイレクトなどを行い、処理が可能か返します。
+	 * @return 後続の処理が可能な場合は true
 	 */
 	@SneakyThrows
-	protected boolean beforeProcess(HttpServletRequest req, HttpServletResponse res) {
+	protected boolean canProcess(HttpServletRequest req, HttpServletResponse res) {
 		HttpSession session = req.getSession();
 		if (session.isNew() && !req.getRequestURI().equals(req.getContextPath() + "/")) {
 			req.setAttribute(MESSAGE, "セッションが切れました。");
@@ -250,11 +256,11 @@ public class SingleTierFilter extends HttpFilter {
 	}
 
 	/** Servlet 呼び出しトランザクション処理 */
-	@SuppressWarnings("unchecked")
 	protected void processTransaction(HttpServletRequest req, HttpServletResponse res, FilterChain chain) {
 
 		// リダイレクト時のフラッシュ属性をセッションからリクエスト属性に復元し、セッションから削除
 		HttpSession session = req.getSession();
+		@SuppressWarnings("unchecked")
 		Map<String, Object> flashMap = (Map<String, Object>) session.getAttribute(FLASH_ATTRIBUTE);
 		if (flashMap != null) {
 			flashMap.forEach(req::setAttribute);
@@ -320,7 +326,7 @@ public class SingleTierFilter extends HttpFilter {
 		// * HttpOnly: 指定なし。JavaScript から参照可能にするために指定しない。
 		res.addHeader("Set-Cookie", format("XSRF-TOKEN=%s; Secure;", session.getAttribute(_csrf)));
 		
-		// レスポンスヘッダー bfcache 無効化 (ブラウザ戻るボタンでの get ページ表示はキャッシュではなくサーバ再取得するようにする)
+		// レスポンスヘッダーで bfcache 無効化 (ブラウザ戻るボタンでの get ページ表示はキャッシュではなくサーバ再取得するようにする)
 		ServletUtil.preventCaching(res);
 		return false; // 正常
 	}
