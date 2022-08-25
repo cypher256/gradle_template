@@ -194,7 +194,7 @@ public class AutoControlFilter extends HttpFilter {
 		}
 	}
 
-	/** 状態チェック、フラッシュ属性・エラー制御 */
+	/** 状態チェック、フラッシュ属性転送、エラー制御 */
 	@SneakyThrows
 	protected void process(HttpServletRequest req, HttpServletResponse res, FilterChain chain) {
 		
@@ -267,13 +267,13 @@ public class AutoControlFilter extends HttpFilter {
 		}
 		
 		// AJAX 参照用 Cookie 書き込み
-		// * Secure: isSecure で https 判定。RemoteIpFilter でリバースプロキシの情報を引き継いだもの。
+		// * Secure: isSecure で https 判定。リバースプロキシの場合は RemoteIpFilter で連携。
 		// * SameSite: Strict (送信は同一サイトのみ)。ブラウザのデフォルトは Lax (別サイトから GET 可能、POST 不可)。
 		// * HttpOnly: 指定なし。JavaScript から参照可能にするために指定しない。
 		res.addHeader("Set-Cookie", format("XSRF-TOKEN=%s;%sSameSite=Strict;", 
 				session.getAttribute(_csrf), req.isSecure() ? " Secure;" : ""));
 		
-		// レスポンスヘッダーで bfcache 無効化 (ブラウザ戻るボタンでの get ページ表示はキャッシュではなくサーバ再取得するようにする)
+		// Cache-Control で bfcache 無効化 (ブラウザ戻るボタンでの get ページ表示はキャッシュではなくサーバ再取得するようにする)
 		ServletUtil.preventCaching(res);
 		return false; // 正常
 	}
