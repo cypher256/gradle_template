@@ -28,7 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 public class AutoTransactionFilter extends HttpFilter {
 	
 	//-------------------------------------------------------------------------
-	// Servlet から使用する public static 定数とメソッド
+	// Servlet から使用するメソッド
 	//-------------------------------------------------------------------------
 
 	/**
@@ -53,7 +53,7 @@ public class AutoTransactionFilter extends HttpFilter {
 	private SqlConfig daoConfig;
 	private HikariDataSource dataSource;
 
-	/** データベース初期設定 */
+	/** データベース接続設定と初期データロード */
 	@Override @SneakyThrows
 	public void init() {
 		dataSource = new HikariDataSource(new HikariConfig("/database.properties"));
