@@ -7,6 +7,28 @@
 	version="4.0">
 
 	<!--
+	Tomcat 公式フィルター: リバースプロキシのヘッダ属性を引き継いて isSecure などで正しく判定できるようにする
+	https://tomcat.apache.org/tomcat-9.0-doc/config/filter.html#HTTP_Header_Security_Filter
+	-->
+	<filter>
+		<filter-name>RemoteIpFilter</filter-name>
+		<filter-class>org.apache.catalina.filters.RemoteIpFilter</filter-class>
+		<init-param>
+			<param-name>remoteIpHeader</param-name>
+			<param-value>x-forwarded-for</param-value>
+		</init-param>
+		<init-param>
+			<param-name>protocolHeader</param-name>
+			<param-value>x-forwarded-proto</param-value>
+		</init-param>
+	</filter>
+	<filter-mapping>
+		<filter-name>RemoteIpFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+		<dispatcher>REQUEST</dispatcher>
+	</filter-mapping>
+   
+	<!--
 	Tomcat 公式フィルター: レスポンスセキュリティヘッダーのセット
 	https://tomcat.apache.org/tomcat-9.0-doc/config/filter.html#HTTP_Header_Security_Filter
 	-->
@@ -33,14 +55,26 @@
 	</filter-mapping>
 
 	<!--
-	単層コントローラーフィルターサンプル
+	自動制御フィルター
 	-->
 	<filter>
-		<filter-name>SingleTierFilter</filter-name>
-		<filter-class>jp.example.SingleTierFilter</filter-class>
+		<filter-name>AutoControlFilter</filter-name>
+		<filter-class>jp.example.filter.AutoControlFilter</filter-class>
 	</filter>
 	<filter-mapping>
-		<filter-name>SingleTierFilter</filter-name>
+		<filter-name>AutoControlFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+
+	<!--
+	自動トランザクションフィルター
+	-->
+	<filter>
+		<filter-name>AutoTransactionFilter</filter-name>
+		<filter-class>jp.example.filter.AutoTransactionFilter</filter-class>
+	</filter>
+	<filter-mapping>
+		<filter-name>AutoTransactionFilter</filter-name>
 		<url-pattern>/*</url-pattern>
 	</filter-mapping>
 

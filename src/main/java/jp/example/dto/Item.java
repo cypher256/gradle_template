@@ -1,6 +1,6 @@
-package jp.example;
+package jp.example.dto;
 
-import static jp.example.SingleTierFilter.*;
+import static jp.example.filter.AutoControlFilter.*;
 
 import javax.servlet.http.HttpServletRequest;
 

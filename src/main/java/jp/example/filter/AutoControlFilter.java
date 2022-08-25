@@ -1,10 +1,9 @@
-package jp.example;
+package jp.example.filter;
 
 import static java.lang.String.*;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.sql.DriverManager;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
@@ -23,35 +22,26 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import com.google.common.base.Stopwatch;
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
 
 import jodd.servlet.DispatcherUtil;
 import jodd.servlet.ServletUtil;
 import jodd.servlet.filter.ByteArrayResponseWrapper;
-import jp.co.future.uroborosql.SqlAgent;
-import jp.co.future.uroborosql.UroboroSQL;
-import jp.co.future.uroborosql.config.SqlConfig;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Servlet JSP 単層アーキテクチャーで構成されたフロントコントローラーフィルターサンプルです。
- * このフィルターは、有効行 200 行に満たない Servlet API の薄いラッパーとなっています。
- * <ul>
- * <li>単層アーキテクチャー: 多層に対して、シンプルで直感的、管理・保守が容易。クラウドなどでの分散が不要なプロジェクト向け。
- * <li>自動フラッシュ属性: リダイレクト時は、リクエスト属性をセッション経由でリダイレクト先のリクエスト属性に自動転送。
- * <li>自動 CSRF トークン: hidden、meta、Cookie 自動セット。form 内容の JavaScript 送信、Angular，Axios などでも対応不要。
- * <li>自動同期トークン: CSRF トークンを同期トークンとして使用するために画面遷移ごと (AJAX アクセス除く) に生成。
- * <li>自動トランザクション: DB コネクションの取得・解放の考慮不要。例外スローでロールバックし、例外にセットしたメッセージを画面に表示。
- * <li>エラー時の表示元 JSP へ自動フォワード: new IllegalStateException(画面メッセージ) スローで、表示元 JSP にフォワード。
- * <li>CORS やレスポンスセヘッダのセキュリティ設定は web.xml を参照してください。
- * </ul>
+ * 自動制御フィルターです。
+ * <pre>
+ * 自動フラッシュ属性: リダイレクト時は、リクエスト属性をセッション経由でリダイレクト先のリクエスト属性に自動転送。
+ * 自動 CSRF トークン: hidden、meta、Cookie 自動セット。form 内容の JavaScript 送信、Angular，Axios などでも対応不要。
+ * 自動同期トークン: CSRF トークンを同期トークンとして使用するために画面遷移ごと (AJAX アクセス除く) に生成。
+ * エラー時の表示元 JSP へ自動フォワード: new IllegalStateException(画面メッセージ) スローで、表示元 JSP にフォワード。
+ * </pre>
  * @author Pleiades All in One (License MIT: https://opensource.org/licenses/MIT)
  */
 @Slf4j
-public class SingleTierFilter extends HttpFilter {
+public class AutoControlFilter extends HttpFilter {
 	
 	//-------------------------------------------------------------------------
 	// Servlet から使用する public static 定数とメソッド
@@ -65,20 +55,6 @@ public class SingleTierFilter extends HttpFilter {
 	
 	/** セッション属性名: システムエラー時のリダイレクト先 URL (デフォルトは最後のリダイレクト先、変更する場合はサーブレットでセット) */
 	public static final String SYS_ERROR_REDIRECT_URL = "SYS_ERROR_REDIRECT_URL";
-
-	/**
-	 * uroboroSQL DAO インスタンスを取得します。
-	 * <pre>
-	 * 自動採番の主キーを持つテーブは、id などのエンティティに関するアノテーションは不要です。
-	 * スネークケース、キャメルケースは自動変換されます。ただし、バインドパラメータ名は変換されません。
-	 * <a href="https://future-architect.github.io/uroborosql-doc/why_uroborosql/"
-	 * >GitHub: uroboroSQL (ウロボロスキュール)</a>
-	 * </pre>
-	 * @return トランザクション境界内の DAO 兼トランザクションマネージャー
-	 */
-	public static SqlAgent dao() {
-		return daoThreadLocal.get();
-	}
 	
 	/**
 	 * エラーチェック用のメソッドです。
@@ -183,9 +159,6 @@ public class SingleTierFilter extends HttpFilter {
 	private static final String FLASH_ATTRIBUTE = "FLASH_ATTRIBUTE";
 	private static final String _csrf = "_csrf";
 	private static final ThreadLocal<RequestContext> requestContextThreadLocal = new ThreadLocal<>();
-	private static final ThreadLocal<SqlAgent> daoThreadLocal = new ThreadLocal<>();
-	private SqlConfig daoConfig;
-	private HikariDataSource dataSource;
 	
 	/** ThreadLocal に保存するリクエストコンテキストクラス */
 	@AllArgsConstructor
@@ -194,27 +167,15 @@ public class SingleTierFilter extends HttpFilter {
 		final HttpServletResponse res;
 	}
 
-	/** Web アプリ起動時のデータベース初期化と共通エンコーディング設定 */
+	/** 共通エンコーディング設定 */
 	@Override @SneakyThrows
 	public void init() {
-		dataSource = new HikariDataSource(new HikariConfig("/database.properties"));
-		daoConfig = UroboroSQL.builder(dataSource).build();
-		try (SqlAgent dao = daoConfig.agent()) {
-			dao.update("create_table").count(); // ファイル実行 /src/main/resources/sql/create_table.sql
-		}
 		ServletContext sc = getServletContext();
 		sc.setRequestCharacterEncoding(StandardCharsets.UTF_8.name()); // post getParameter エンコーディング
 		sc.setResponseCharacterEncoding(StandardCharsets.UTF_8.name()); // AJAX レスポンス
 	}
 	
-	/** Web アプリ終了時のデータベースリソース破棄 */
-	@Override @SneakyThrows
-	public void destroy() {
-		dataSource.close();
-		DriverManager.deregisterDriver(DriverManager.getDrivers().nextElement()); // Tomcat 警告抑止
-	}
-	
-	/** すべての呼び出しのフィルター処理 */
+	/** リクエストコンテキストのスレッドローカル設定 */
 	@Override @SneakyThrows
 	protected void doFilter(HttpServletRequest req, HttpServletResponse res, FilterChain chain) {
 		if (req.getRequestURI().matches(".+\\.[^\\.]{2,5}")) {
@@ -225,62 +186,44 @@ public class SingleTierFilter extends HttpFilter {
 		Stopwatch stopwatch = Stopwatch.createStarted();
 		try {
 			requestContextThreadLocal.set(new RequestContext(req, res));
-			if (canProcess(req, res)) {
-				processTransaction(req, res, chain);
-			}
+			process(req, res, chain);
 		} finally {
 			requestContextThreadLocal.remove();
 			log.debug("処理時間 {}ms [{}] {} {}", stopwatch.elapsed(TimeUnit.MILLISECONDS), req.getMethod(), 
 					DispatcherUtil.getFullUrl(req), Objects.toString(req.getAttribute(MESSAGE), ""));
 		}
 	}
-	
-	/**
-	 * リクエストやセッション状態を判定 (場合によっては認証など) し、リダイレクトなどを行い、処理が可能か返します。
-	 * @return 後続の処理が可能な場合は true
-	 */
+
+	/** 状態チェック、フラッシュ属性・エラー制御 */
 	@SneakyThrows
-	protected boolean canProcess(HttpServletRequest req, HttpServletResponse res) {
+	protected void process(HttpServletRequest req, HttpServletResponse res, FilterChain chain) {
+		
+		// リクエストやセッション状態をチェック
 		HttpSession session = req.getSession();
 		if (session.isNew() && !req.getRequestURI().equals(req.getContextPath() + "/")) {
 			req.setAttribute(MESSAGE, "セッションが切れました。");
 			sendAjaxOr(() -> redirect(req.getContextPath()));
-			return false;
+			return;
 		}
 		if (notMatchPostToken(req, res)) {
 			req.setAttribute(MESSAGE, "不正なデータが送信されました。");
 			sendAjaxOr(() -> redirect(session.getAttribute(SYS_ERROR_REDIRECT_URL)));
-			return false;
+			return;
 		}
-		return true;
-	}
-
-	/** Servlet 呼び出しトランザクション処理 */
-	protected void processTransaction(HttpServletRequest req, HttpServletResponse res, FilterChain chain) {
 
 		// リダイレクト時のフラッシュ属性をセッションからリクエスト属性に復元し、セッションから削除
-		HttpSession session = req.getSession();
 		@SuppressWarnings("unchecked")
 		Map<String, Object> flashMap = (Map<String, Object>) session.getAttribute(FLASH_ATTRIBUTE);
 		if (flashMap != null) {
 			flashMap.forEach(req::setAttribute);
 			session.removeAttribute(FLASH_ATTRIBUTE);
 		}
+
+		// 次のフィルターへ
+		try {
+			super.doFilter(req, res, chain);
 		
-		// DB トランザクションブロック
-		try (SqlAgent dao = daoConfig.agent()) {
-			try {
-				daoThreadLocal.set(dao);
-				super.doFilter(req, res, chain); // 各 Servlet 呼び出し
-				dao.commit();
-			} catch (Throwable e) {
-				dao.rollback();
-				throw e;
-			} finally {
-				daoThreadLocal.remove();
-			}
-		
-		// ルート例外の getMessage() をリクエスト属性 MESSAGE にセットして画面に表示
+		// ルート例外の getMessage() をリクエスト属性 MESSAGE にセットして画面に表示できるようにする
 		} catch (Throwable e) {
 			Throwable cause = ExceptionUtils.getRootCause(e);
 			req.setAttribute(MESSAGE, cause.getMessage());
@@ -298,10 +241,11 @@ public class SingleTierFilter extends HttpFilter {
 
 	/**
 	 * post 時のトークンをチェックします (並行リクエスト対応のため synchronized)。
-	 * リクエスト、ヘッダー、Cookie 名は標準的な名前を使用します。
 	 * @return トークンが一致しない場合は true
 	 */
 	synchronized protected boolean notMatchPostToken(HttpServletRequest req, HttpServletResponse res) throws IOException {
+		
+		// トークンチェック (リクエスト、ヘッダー、Cookie は標準的な名前を使用)
 		HttpSession session = req.getSession();
 		if ("POST".equals(req.getMethod())) {
 			String sesCsrf = (String) session.getAttribute(_csrf);
@@ -314,17 +258,20 @@ public class SingleTierFilter extends HttpFilter {
 				return true; // エラー
 			}
 		}
+		
+		// 画面遷移の場合はトークンを生成し直し
 		if (!isAjax() || session.getAttribute(_csrf) == null) {
-			// 画面遷移ごとにトークンを生成
 			// * 同期トークンとして機能する (ただし、意図的に bfcache 無効化により、戻るボタンからの送信は正常に機能する)
 			// * 二重送信やリロード多重送信も検出できるが UX 向上のため、JavaScript でボタン disabled および PRG パターンで防止推奨
 			session.setAttribute(_csrf, UUID.randomUUID().toString());
 		}
+		
 		// AJAX 参照用 Cookie 書き込み
-		// * Secure: 指定あり。localhost を除く https サーバのみに送信。指定に関係なくブラウザには返せるので isSecure 判定しない。
-		// * SameSite: 指定なし。モダンブラウザのデフォルトは Lax (別サイトから POST で送信不可、GET は送信可能)。
+		// * Secure: isSecure で https 判定。RemoteIpFilter でリバースプロキシの情報を引き継いだもの。
+		// * SameSite: Strict (送信は同一サイトのみ)。ブラウザのデフォルトは Lax (別サイトから GET 可能、POST 不可)。
 		// * HttpOnly: 指定なし。JavaScript から参照可能にするために指定しない。
-		res.addHeader("Set-Cookie", format("XSRF-TOKEN=%s; Secure;", session.getAttribute(_csrf)));
+		res.addHeader("Set-Cookie", format("XSRF-TOKEN=%s;%sSameSite=Strict;", 
+				session.getAttribute(_csrf), req.isSecure() ? " Secure;" : ""));
 		
 		// レスポンスヘッダーで bfcache 無効化 (ブラウザ戻るボタンでの get ページ表示はキャッシュではなくサーバ再取得するようにする)
 		ServletUtil.preventCaching(res);
