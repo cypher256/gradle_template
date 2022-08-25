@@ -62,7 +62,7 @@ public class AutoControlFilter extends HttpFilter {
 	 * 指定した条件が false の場合、引数のメッセージを持つ IllegalStateException をスローします。
 	 * 以下、このメソッド以外でも適用される、サーブレットで例外がスローされた場合の共通動作です。
 	 * 
-	 * 1. 例外の種類に関わらずロールバックされ、例外の getMessage() がリクエスト属性 MESSAGE にセットされます。
+	 * 1. AutoTransactionFilter によりロールバックされ、例外の getMessage() がリクエスト属性 MESSAGE にセットされます。
 	 * 2. IllegalStateException の場合、アプリエラーとしてセッション属性 APP_ERROR_FORWARD_PATH (通常は表示元) にフォワードされます。
 	 * 3. 上記以外の例外の場合は、システムエラーとしてセッション属性 SYS_ERROR_REDIRECT_URL にリダイレクト (自動フラッシュ) されます。
 	 * 4. セッションに APP_ERROR_FORWARD_PATH も SYS_ERROR_REDIRECT_URL も無い場合は、コンテキストルートにリダイレクト (自動フラッシュ)。

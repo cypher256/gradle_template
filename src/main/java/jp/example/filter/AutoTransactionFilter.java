@@ -20,7 +20,7 @@ import lombok.extern.slf4j.Slf4j;
  * 自動トランザクションフィルターです。
  * <pre>
  * データベースコネクションの取得・解放を行います。
- * 例外スローでロールバックし、自動制御フィルターにより、例外にセットしたメッセージがリクエスト属性 MESSAGE にセットされます。
+ * サーブレットで例外がスローされた場合はロールバックします。例外の扱いは {@link AutoControlFilter#valid} を参照してください。
  * </pre>
  * @author Pleiades All in One (License MIT: https://opensource.org/licenses/MIT)
  */
