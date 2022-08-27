@@ -1,6 +1,7 @@
 package jp.example.filter;
 
 import static java.lang.String.*;
+import static java.util.stream.Collectors.*;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -9,7 +10,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletContext;
@@ -22,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import com.google.common.base.Stopwatch;
+import com.pivovarit.function.ThrowingConsumer;
 
 import jodd.servlet.DispatcherUtil;
 import jodd.servlet.ServletUtil;
@@ -34,8 +35,8 @@ import lombok.extern.slf4j.Slf4j;
  * 自動制御フィルターです。
  * <pre>
  * 自動フラッシュ属性: リダイレクト時は、リクエスト属性をセッション経由でリダイレクト先のリクエスト属性に自動転送。
- * 自動 CSRF トークン: hidden、meta、Cookie 自動セット。form 内容の JavaScript 送信、Angular，Axios などでも対応不要。
- * 自動同期トークン: CSRF トークンを同期トークンとして使用するために画面遷移ごと (AJAX アクセス除く) に生成。
+ * 自動 CSRF トークン: .jsp と .html に hidden、meta、Cookie トークン自動埋め込み。form 送信、Angular，Axios などの対応不要。
+ * 自動同期トークン: CSRF トークンを同期トークンとして画面遷移ごと (AJAX アクセス除く) に生成。
  * エラー時の表示元 JSP へ自動フォワード: new IllegalStateException(画面メッセージ) スローで、表示元 JSP にフォワード。
  * </pre>
  * @author Pleiades All in One (License MIT: https://opensource.org/licenses/MIT)
@@ -112,18 +113,8 @@ public class AutoControlFilter extends HttpFilter {
 		RequestContext context = requestContextThreadLocal.get();
 		String path = ((String) jspPath).startsWith("/") ? (String) jspPath : "/WEB-INF/jsp/" + jspPath;
 		log.debug("フォワード {}", path);
-		ByteArrayResponseWrapper resWrapper = new ByteArrayResponseWrapper(context.res);
-		context.req.getRequestDispatcher(path).forward(context.req, resWrapper);
 		context.req.getSession().setAttribute(APP_ERROR_FORWARD_PATH, path);
-		
-		// CSRF トークンを自動埋め込み
-		String csrfToken = (String) context.req.getSession().getAttribute(_csrf);
-		String html = new String(resWrapper.toByteArray(), resWrapper.getCharacterEncoding())
-			.replaceFirst("(?i)(<head>)", format("""
-				$1\n<meta name="_csrf" content="%s">""", csrfToken))
-			.replaceAll("(?is)([ \t]*)(<form[^>]+post[^>]+>)", format("""
-				$1$2\n$1\t<input type="hidden" name="_csrf" value="%s">""", csrfToken));
-		context.res.getWriter().print(html);
+		embedToken(_res -> context.req.getRequestDispatcher(path).forward(context.req, _res));
 	}
 	
 	/**
@@ -134,22 +125,21 @@ public class AutoControlFilter extends HttpFilter {
 	 * 
 	 * 1. 指定した redirectUrl (null の場合はコンテキストルート) にリダイレクトします。
 	 * 2. リダイレクト先 URL をセッション属性 SYS_ERROR_REDIRECT_URL に保存します (システムエラー時のリダイレクト先として使用)。
-	 * 3. 現在のリクエスト属性をフラッシュ属性としてセッションに退避します (リダイレクト後にリクエスト属性に復元)。
+	 * 3. 現在のリクエスト属性をフラッシュ属性としてセッションに保存します (リダイレクト後にリクエスト属性に復元)。
 	 * </pre>
 	 * @param redirectUrl リダイレクト先 URL
 	 */
 	@SneakyThrows
 	public static void redirect(Object redirectUrl) {
 		RequestContext context = requestContextThreadLocal.get();
-		String url = Objects.toString(redirectUrl, context.req.getContextPath());
+		HttpServletRequest req = context.req;
+		String url = Objects.toString(redirectUrl, req.getContextPath());
 		log.debug("リダイレクト {}", url);
 		context.res.sendRedirect(url);
-		context.req.getSession().setAttribute(SYS_ERROR_REDIRECT_URL, url);
-		
-		// リクエスト属性をフラッシュ属性としてセッションに一時保存 (リダイレクト後に復元)
-		context.req.getSession().setAttribute(FLASH_ATTRIBUTE, 
-			Collections.list(context.req.getAttributeNames()).stream()
-				.collect(Collectors.toMap(name -> name, context.req::getAttribute)));
+		req.getSession().setAttribute(SYS_ERROR_REDIRECT_URL, url);
+		req.getSession().setAttribute(FLASH_ATTRIBUTE, Collections.list(req.getAttributeNames()).stream()
+				.filter(name -> !name.endsWith(".FILTERED")) // Apache Shiro 関連除外 (リダイレクト後の shiro タグ対応)
+				.collect(toMap(name -> name, req::getAttribute)));
 	}
 	
 	//-------------------------------------------------------------------------
@@ -178,8 +168,8 @@ public class AutoControlFilter extends HttpFilter {
 	/** リクエストコンテキストのスレッドローカル設定 */
 	@Override @SneakyThrows
 	protected void doFilter(HttpServletRequest req, HttpServletResponse res, FilterChain chain) {
-		if (req.getRequestURI().matches(".+\\.[^\\.]{2,5}")) {
-			// 拡張子がある URL 除外 (js css woff2 など)
+		String uri = req.getRequestURI();
+		if (!uri.endsWith(".html") && uri.matches(".+\\.[^\\.]{2,5}")) { // 拡張子がある URL 除外 (js css woff2 など)
 			super.doFilter(req, res, chain);
 			return;
 		}
@@ -198,13 +188,8 @@ public class AutoControlFilter extends HttpFilter {
 	@SneakyThrows
 	protected void process(HttpServletRequest req, HttpServletResponse res, FilterChain chain) {
 		
-		// リクエストやセッション状態をチェック
+		// POST トークンチェック
 		HttpSession session = req.getSession();
-		if (session.isNew() && !req.getRequestURI().equals(req.getContextPath() + "/")) {
-			req.setAttribute(MESSAGE, "セッションが切れました。");
-			sendAjaxOr(() -> redirect(req.getContextPath()));
-			return;
-		}
 		if (notMatchPostToken(req, res)) {
 			req.setAttribute(MESSAGE, "不正なデータが送信されました。");
 			sendAjaxOr(() -> redirect(session.getAttribute(SYS_ERROR_REDIRECT_URL)));
@@ -217,6 +202,10 @@ public class AutoControlFilter extends HttpFilter {
 		if (flashMap != null) {
 			flashMap.forEach(req::setAttribute);
 			session.removeAttribute(FLASH_ATTRIBUTE);
+		}
+		if (req.getRequestURI().endsWith(".html")) {
+			embedToken(_res -> super.doFilter(req, _res, chain));
+			return;
 		}
 
 		// 次のフィルターへ
@@ -276,6 +265,22 @@ public class AutoControlFilter extends HttpFilter {
 		// Cache-Control で bfcache 無効化 (ブラウザ戻るボタンでの get ページ表示はキャッシュではなくサーバ再取得するようにする)
 		ServletUtil.preventCaching(res);
 		return false; // 正常
+	}
+	
+	/** HTML へのトークン埋め込み */
+	@SneakyThrows
+	private static void embedToken(ThrowingConsumer<HttpServletResponse, Exception> responseConsumer) {
+		RequestContext context = requestContextThreadLocal.get();
+		ByteArrayResponseWrapper resWrapper = new ByteArrayResponseWrapper(context.res);
+		responseConsumer.accept(resWrapper);
+		String csrfToken = (String) context.req.getSession().getAttribute(_csrf);
+		String html = new String(resWrapper.toByteArray(), resWrapper.getCharacterEncoding())
+			.replaceFirst("(?i)(<head>)", format("""
+				$1\n<meta name="_csrf" content="%s">""", csrfToken))
+			.replaceAll("(?is)([ \t]*)(<form[^>]+post[^>]+>)", format("""
+				$1$2\n$1\t<input type="hidden" name="_csrf" value="%s">""", csrfToken));
+		context.res.setContentLength(html.getBytes(resWrapper.getCharacterEncoding()).length);
+		context.res.getWriter().print(html);
 	}
 
 	/**

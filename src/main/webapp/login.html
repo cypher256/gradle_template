@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css">
+<link rel="stylesheet" href="public/common.css">
+<title>タイトル</title>
+</head>
+<body>
+<blockquote id="_message">${empty shiroLoginFailure ? 'ログイン' : '入力された情報に誤りがあります。'}</blockquote>
+<form method="post">
+	<p><label>ユーザー名</label><input type="text" name="username" required autofocus 
+		value="${empty param.username ? 'demouser' : param.username}"></p>
+	<p><label>パスワード</label><input type="password" name="password" required 
+		value="demo1234@"></p>
+	<p><input type="submit" value="ログイン"></p>
+</form>
+</body>
+</html>

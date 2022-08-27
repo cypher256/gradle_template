@@ -14,7 +14,6 @@ import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
 import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * 自動トランザクションフィルターです。
@@ -24,7 +23,6 @@ import lombok.extern.slf4j.Slf4j;
  * </pre>
  * @author Pleiades All in One (License MIT: https://opensource.org/licenses/MIT)
  */
-@Slf4j
 public class AutoTransactionFilter extends HttpFilter {
 	
 	//-------------------------------------------------------------------------
@@ -80,7 +78,6 @@ public class AutoTransactionFilter extends HttpFilter {
 				dao.commit();
 			} catch (Throwable e) {
 				dao.rollback();
-				log.debug("ロールバックしました。");
 				throw e; // 例外処理は呼び出し元のフィルターに任せる
 			} finally {
 				daoThreadLocal.remove();

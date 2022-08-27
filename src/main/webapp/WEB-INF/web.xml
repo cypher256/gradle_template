@@ -66,6 +66,28 @@
 		<url-pattern>/*</url-pattern>
 	</filter-mapping>
 
+	<!-- 
+	Apache Shiro ログイン認証フィルター (設定は /WEB-INF/shiro.ini)
+	https://shiro.apache.org/webapp-tutorial.html
+	https://shiro.apache.org/web.html
+	-->
+	<filter>
+		<filter-name>ShiroFilter</filter-name>
+		<filter-class>org.apache.shiro.web.servlet.ShiroFilter</filter-class>
+	</filter>
+	<filter-mapping>
+		<filter-name>ShiroFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+		<dispatcher>REQUEST</dispatcher>
+		<dispatcher>FORWARD</dispatcher>
+		<dispatcher>INCLUDE</dispatcher>
+		<dispatcher>ERROR</dispatcher>
+		<dispatcher>ASYNC</dispatcher>
+	</filter-mapping>
+	<listener>
+		<listener-class>org.apache.shiro.web.env.EnvironmentLoaderListener</listener-class>
+	</listener>
+
 	<!--
 	自動トランザクションフィルター
 	-->
@@ -82,8 +104,9 @@
 	<jsp-config>
 		<jsp-property-group>
 			<url-pattern>*.jsp</url-pattern>
+			<url-pattern>*.html</url-pattern>
 			<page-encoding>UTF-8</page-encoding>
-			<include-prelude>/WEB-INF/jsp/header.jsp</include-prelude>
+			<include-prelude>/WEB-INF/jsp/taglib.jsp</include-prelude>
 			<trim-directive-whitespaces>true</trim-directive-whitespaces>
 		</jsp-property-group>
 	</jsp-config>

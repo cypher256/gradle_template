@@ -3,7 +3,7 @@
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css">
-<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="public/common.css">
 <title>タイトル</title>
 </head>
 <body>
@@ -12,6 +12,7 @@
 	<p>Servlet JSP CRUD サンプル</p>
 </header>
 <main>
+<aside><p><shiro:principal/><br><a href="logout">ログアウト</a></p></aside>
 <blockquote id="_message">${fn:escapeXml(MESSAGE)}</blockquote>
 <form id="_form" method="post" onsubmit="_submitButton.disabled = true"><%-- 二度押し防止 --%>
 	<input type="hidden" name="id" value="${item.id}"/>

@@ -1,3 +1,13 @@
+/* ------------------------------------------------------------------------------
+Servlet JSP CRUD サンプルビルド定義
+---------------------------------------------------------------------------------
+
+	環境			Java 17, Tomcat 9 (Servlet 4.0 javax.servlet)
+	DB アクセス	uroboroSQL - AutoTransactionFilter, database.properties
+	ログ管理		SLF4J - simplelogger.properties
+	認証制御		Apache Shiro - web.xml、shiro.ini
+	
+------------------------------------------------------------------------------ */
 plugins {
 	id 'war'
 }
@@ -25,9 +35,11 @@ dependencies {
 	//runtimeOnly 'org.glassfish.web:jakarta.servlet.jsp.jstl:3.0.+'
 
 	implementation 'com.google.guava:guava:31.+'
+	implementation 'com.pivovarit:throwing-function:1.5.+'
 	implementation 'com.zaxxer:HikariCP:5.0.+'
 	implementation 'commons-beanutils:commons-beanutils:1.9.+'
 	implementation 'org.apache.commons:commons-lang3:3.12.+'	
+	implementation 'org.apache.shiro:shiro-web:1.9.+'
 	implementation 'jp.co.future:uroborosql:0.25.+'
 	compileOnly 'org.projectlombok:lombok:1.18.+'
 	annotationProcessor 'org.projectlombok:lombok:1.18.+'

@@ -2,13 +2,19 @@
 /*
 -----------------------------------------------------------
 Simple.css ベース
-https://github.com/kevquirk/simple.css
+https://simplecss.org/demo
 -----------------------------------------------------------
 */
 
 /* ヘッダーを狭く */
 body > header {
 	padding-bottom: 0rem;
+}
+
+/* ログアウトボタン */
+aside {
+    text-align: end;
+    width: auto;
 }
 
 /* メッセージ */
