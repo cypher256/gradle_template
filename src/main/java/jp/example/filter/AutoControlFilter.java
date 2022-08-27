@@ -35,7 +35,7 @@ import lombok.extern.slf4j.Slf4j;
  * 自動制御フィルターです。
  * <pre>
  * 自動フラッシュ属性: リダイレクト時は、リクエスト属性をセッション経由でリダイレクト先のリクエスト属性に自動転送。
- * 自動 CSRF トークン: .jsp と .html に hidden、meta、Cookie トークン自動埋め込み。form 送信、Angular，Axios などの対応不要。
+ * 自動 CSRF トークン: .jsp と .html の hidden、meta、Cookie にトークン自動埋め込み。form 送信、Angular，axios などの対応不要。
  * 自動同期トークン: CSRF トークンを同期トークンとして画面遷移ごと (AJAX アクセス除く) に生成。
  * エラー時の表示元 JSP へ自動フォワード: new IllegalStateException(画面メッセージ) スローで、表示元 JSP にフォワード。
  * </pre>
@@ -90,10 +90,10 @@ public class AutoControlFilter extends HttpFilter {
 	 * </pre>
 	 * CSRF トークンの扱い
 	 * <pre>
-	 * form サブミット、form 内容の JavaScript 送信、Angular、Axios の場合は、自動的にリクエストに含まれるため、何もする必要はありません。
+	 * form サブミット、form 内容の JavaScript 送信、Angular、axios の場合は、自動的にリクエストに含まれるため、何もする必要はありません。
 	 * JavaScript で手動で設定する場合は、下記のいずれかで取得し、post リクエストヘッダー X-XSRF-TOKEN にセットする必要があります。
 	 * 
-	 *     // form の hidden から取得 (post form がある画面のみ)
+	 *     // form の hidden から取得 (method="post" の form がある画面のみ)
 	 *     document.forms[0]._csrf.value
 	 *     // meta タグから取得する場合 (すべての画面)
 	 *     document.querySelector("meta[name='_csrf']").content
@@ -241,7 +241,7 @@ public class AutoControlFilter extends HttpFilter {
 			String reqCsrf = StringUtils.firstNonEmpty(
 				req.getParameter(_csrf), 		// form hidden "_csrf" → フォームサブミットやフォームベースの AJAX
 				req.getHeader("X-CSRF-TOKEN"),	// meta "_csrf" → jQuery などで meta タグからの手動セットでよく使われる名前
-				req.getHeader("X-XSRF-TOKEN")	// Cookie "XSRF-TOKEN" → Angular、Axios などで自動的に使用される名前
+				req.getHeader("X-XSRF-TOKEN")	// Cookie "XSRF-TOKEN" → Angular、axios などで自動的に使用される名前
 			);
 			if (reqCsrf == null || !reqCsrf.equals(sesCsrf)) {
 				return true; // エラー
