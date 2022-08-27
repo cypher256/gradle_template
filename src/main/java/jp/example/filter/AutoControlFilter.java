@@ -169,7 +169,7 @@ public class AutoControlFilter extends HttpFilter {
 	@Override @SneakyThrows
 	protected void doFilter(HttpServletRequest req, HttpServletResponse res, FilterChain chain) {
 		String uri = req.getRequestURI();
-		if (!uri.endsWith(".html") && uri.matches(".+\\.[^\\.]{2,5}")) { // 拡張子がある URL 除外 (js css woff2 など)
+		if (!uri.endsWith(".html") && uri.contains(".")) { // css js など
 			super.doFilter(req, res, chain);
 			return;
 		}
@@ -203,14 +203,14 @@ public class AutoControlFilter extends HttpFilter {
 			flashMap.forEach(req::setAttribute);
 			session.removeAttribute(FLASH_ATTRIBUTE);
 		}
-		if (req.getRequestURI().endsWith(".html")) {
-			embedToken(_res -> super.doFilter(req, _res, chain));
-			return;
-		}
 
 		// 次のフィルターへ
 		try {
-			super.doFilter(req, res, chain);
+			if (req.getRequestURI().endsWith(".html")) { // web.xml 設定により html は JSP として処理される
+				embedToken(_res -> super.doFilter(req, _res, chain));
+			} else {
+				super.doFilter(req, res, chain);
+			}
 		
 		// ルート例外の getMessage() をリクエスト属性 MESSAGE にセットして画面に表示できるようにする
 		} catch (Throwable e) {

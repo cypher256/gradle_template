@@ -71,10 +71,14 @@ public class AutoTransactionFilter extends HttpFilter {
 	/** トランザクション開始、コミット、ロールバック */
 	@Override @SneakyThrows
 	protected void doFilter(HttpServletRequest req, HttpServletResponse res, FilterChain chain) {
+		if (req.getRequestURI().contains(".")) { // css  js など
+			super.doFilter(req, res, chain);
+			return;
+		}
 		try (SqlAgent dao = daoConfig.agent()) {
 			try {
 				daoThreadLocal.set(dao);
-				super.doFilter(req, res, chain); // 各 Servlet 呼び出し
+				super.doFilter(req, res, chain);
 				dao.commit();
 			} catch (Throwable e) {
 				dao.rollback();
