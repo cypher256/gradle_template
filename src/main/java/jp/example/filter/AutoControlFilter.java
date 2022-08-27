@@ -267,7 +267,7 @@ public class AutoControlFilter extends HttpFilter {
 		return false; // 正常
 	}
 	
-	/** HTML へのトークン埋め込み */
+	/** HTML へのトークン埋め込み (login.html など .html も対象) */
 	@SneakyThrows
 	private static void embedToken(ThrowingConsumer<HttpServletResponse, Exception> responseConsumer) {
 		RequestContext context = requestContextThreadLocal.get();
