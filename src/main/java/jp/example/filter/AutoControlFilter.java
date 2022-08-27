@@ -39,7 +39,7 @@ import lombok.extern.slf4j.Slf4j;
  * 自動同期トークン: CSRF トークンを同期トークンとして画面遷移ごと (AJAX アクセス除く) に生成。
  * エラー時の表示元 JSP へ自動フォワード: new IllegalStateException(画面メッセージ) スローで、表示元 JSP にフォワード。
  * </pre>
- * @author Pleiades All in One (License MIT: https://opensource.org/licenses/MIT)
+ * @author New Gradle Project Wizard
  */
 @Slf4j
 public class AutoControlFilter extends HttpFilter {
@@ -206,10 +206,10 @@ public class AutoControlFilter extends HttpFilter {
 
 		// 次のフィルターへ
 		try {
-			if (req.getRequestURI().endsWith(".html")) { // web.xml 設定により html は JSP として処理される
-				embedToken(_res -> super.doFilter(req, _res, chain));
+			if (req.getRequestURI().endsWith(".html")) {
+				embedToken(_res -> super.doFilter(req, _res, chain)); // html (JSP 構文使用可能)
 			} else {
-				super.doFilter(req, res, chain);
+				super.doFilter(req, res, chain); // Servlet
 			}
 		
 		// ルート例外の getMessage() をリクエスト属性 MESSAGE にセットして画面に表示できるようにする

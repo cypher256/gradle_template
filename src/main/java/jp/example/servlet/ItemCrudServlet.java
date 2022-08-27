@@ -17,7 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * Servlet JSP CRUD サンプルクラスです。
- * @author Pleiades All in One (License MIT: https://opensource.org/licenses/MIT)
+ * @author New Gradle Project Wizard
  */
 @WebServlet("")
 @Slf4j
@@ -38,7 +38,7 @@ public class ItemCrudServlet extends HttpServlet {
 				/*END*/
 		""";
 	
-	/** CRUD の R: Read (SELECT) 検索して一覧画面を表示 */
+	/** CRUD の R: Read 検索一覧表示 */
 	@Override @SneakyThrows
 	protected void doGet(HttpServletRequest req, HttpServletResponse res) {
 		String sql = "SELECT * " + SEARCH_FROM_SQL;
@@ -49,7 +49,7 @@ public class ItemCrudServlet extends HttpServlet {
 		forward("list.jsp");
 	}
 
-	/** CRUD の C: Create (INSERT) 登録 Servlet */
+	/** CRUD の C: Create 登録 Servlet */
 	@WebServlet("/create")
 	public static class CreateServlet extends HttpServlet {
 		
@@ -68,7 +68,7 @@ public class ItemCrudServlet extends HttpServlet {
 		}
 	}
 
-	/** CRUD の U: Update (UPDATE) 変更 Servlet */
+	/** CRUD の U: Update 変更 Servlet */
 	@WebServlet("/update")
 	public static class UpdateServlet extends HttpServlet {
 		
@@ -89,7 +89,7 @@ public class ItemCrudServlet extends HttpServlet {
 		}
 	}
 
-	/** CRUD の D: Delete (DELETE) 削除 Servlet */
+	/** CRUD の D: Delete 削除 Servlet */
 	@WebServlet("/delete")
 	public static class DeleteServlet extends HttpServlet {
 		

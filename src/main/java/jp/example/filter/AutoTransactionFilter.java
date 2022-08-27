@@ -21,7 +21,7 @@ import lombok.SneakyThrows;
  * データベースコネクションの取得・解放を行います。
  * サーブレットで例外がスローされた場合はロールバックします。例外の扱いは {@link AutoControlFilter#valid} を参照してください。
  * </pre>
- * @author Pleiades All in One (License MIT: https://opensource.org/licenses/MIT)
+ * @author New Gradle Project Wizard
  */
 public class AutoTransactionFilter extends HttpFilter {
 	
@@ -71,14 +71,14 @@ public class AutoTransactionFilter extends HttpFilter {
 	/** トランザクション開始、コミット、ロールバック */
 	@Override @SneakyThrows
 	protected void doFilter(HttpServletRequest req, HttpServletResponse res, FilterChain chain) {
-		if (req.getRequestURI().contains(".")) { // css  js など
-			super.doFilter(req, res, chain);
+		if (req.getRequestURI().contains(".")) {
+			super.doFilter(req, res, chain); // html css js など
 			return;
 		}
 		try (SqlAgent dao = daoConfig.agent()) {
 			try {
 				daoThreadLocal.set(dao);
-				super.doFilter(req, res, chain);
+				super.doFilter(req, res, chain); // Servlet
 				dao.commit();
 			} catch (Throwable e) {
 				dao.rollback();

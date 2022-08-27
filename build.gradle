@@ -1,11 +1,19 @@
 /* ------------------------------------------------------------------------------
-Servlet JSP CRUD サンプルビルド定義
+Servlet JSP CRUD プロジェクトサンプルビルド定義
 ---------------------------------------------------------------------------------
+
+構成要素
 
 	環境			Java 17, Tomcat 9 (Servlet 4.0 javax.servlet)
 	DB アクセス	uroboroSQL - AutoTransactionFilter, database.properties
 	ログ管理		SLF4J - simplelogger.properties
 	認証制御		Apache Shiro - web.xml、shiro.ini
+
+Eclipse から実行
+	
+	プロジェクト右クリック > 実行 > サーバーで実行 > Tomcat9_Java17
+		> このプロジェクトを実行するときは常にこのサーバーを使用 ON
+		> 完了
 	
 ------------------------------------------------------------------------------ */
 plugins {
