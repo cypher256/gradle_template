@@ -18,8 +18,7 @@ import lombok.SneakyThrows;
 /**
  * 自動トランザクションフィルターです。
  * <pre>
- * データベースコネクションの取得・解放を行います。
- * サーブレットで例外がスローされた場合はロールバックします。例外の扱いは {@link AutoControlFilter#valid} を参照してください。
+ * データベースの初期データロード、トランザクションの開始・終了を制御します。
  * </pre>
  * @author New Gradle Project Wizard
  */
@@ -71,18 +70,22 @@ public class AutoTransactionFilter extends HttpFilter {
 	/** トランザクション開始、コミット、ロールバック */
 	@Override @SneakyThrows
 	protected void doFilter(HttpServletRequest req, HttpServletResponse res, FilterChain chain) {
+		
+		// html css js などを除外
 		if (req.getRequestURI().contains(".")) {
-			super.doFilter(req, res, chain); // html css js など
+			super.doFilter(req, res, chain);
 			return;
 		}
+		
+		// トランザクション境界ブロック
 		try (SqlAgent dao = daoConfig.agent()) {
 			try {
 				daoThreadLocal.set(dao);
-				super.doFilter(req, res, chain); // Servlet
+				super.doFilter(req, res, chain); // Servlet 呼び出し
 				dao.commit();
 			} catch (Throwable e) {
 				dao.rollback();
-				throw e; // 例外処理は呼び出し元のフィルターに任せる
+				throw e; // ロールバック以外の例外処理は呼び出し元のフィルターに任せる
 			} finally {
 				daoThreadLocal.remove();
 			}

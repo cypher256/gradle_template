@@ -1,6 +1,6 @@
 package jp.example.servlet;
 
-import static jp.example.filter.AutoControlFilter.*;
+import static jp.example.filter.AutoFlashFilter.*;
 import static jp.example.filter.AutoTransactionFilter.*;
 
 import java.util.List;

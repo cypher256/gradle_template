@@ -25,7 +25,6 @@
 	<filter-mapping>
 		<filter-name>RemoteIpFilter</filter-name>
 		<url-pattern>/*</url-pattern>
-		<dispatcher>REQUEST</dispatcher>
 	</filter-mapping>
    
 	<!--
@@ -55,15 +54,17 @@
 	</filter-mapping>
 
 	<!--
-	自動制御フィルター
+	自動 CSRF フィルター
 	-->
 	<filter>
-		<filter-name>AutoControlFilter</filter-name>
-		<filter-class>jp.example.filter.AutoControlFilter</filter-class>
+		<filter-name>AutoCsrfFilter</filter-name>
+		<filter-class>jp.example.filter.AutoCsrfFilter</filter-class>
 	</filter>
 	<filter-mapping>
-		<filter-name>AutoControlFilter</filter-name>
+		<filter-name>AutoCsrfFilter</filter-name>
 		<url-pattern>/*</url-pattern>
+		<dispatcher>REQUEST</dispatcher>
+		<dispatcher>FORWARD</dispatcher>
 	</filter-mapping>
 
 	<!-- 
@@ -87,6 +88,18 @@
 	<listener>
 		<listener-class>org.apache.shiro.web.env.EnvironmentLoaderListener</listener-class>
 	</listener>
+
+	<!--
+	自動フラッシュ属性フィルター
+	-->
+	<filter>
+		<filter-name>AutoFlashFilter</filter-name>
+		<filter-class>jp.example.filter.AutoFlashFilter</filter-class>
+	</filter>
+	<filter-mapping>
+		<filter-name>AutoFlashFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
 
 	<!--
 	自動トランザクションフィルター

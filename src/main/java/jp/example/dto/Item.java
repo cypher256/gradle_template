@@ -1,6 +1,6 @@
 package jp.example.dto;
 
-import static jp.example.filter.AutoControlFilter.*;
+import static jp.example.filter.AutoFlashFilter.*;
 
 import javax.servlet.http.HttpServletRequest;
 

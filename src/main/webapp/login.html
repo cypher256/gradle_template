@@ -7,7 +7,7 @@
 <title>タイトル</title>
 </head>
 <body>
-<blockquote id="_message">${empty shiroLoginFailure ? 'ログイン' : '入力された情報に誤りがあります。'}</blockquote>
+<blockquote id="_message">${empty shiroLoginFailure ? 'ログイン' : 'ログイン情報に誤りがあります。'}</blockquote>
 <form method="post">
 	<p><label>ユーザー名</label><input type="text" name="username" required autofocus 
 		value="${empty param.username ? 'demouser' : param.username}"></p>
