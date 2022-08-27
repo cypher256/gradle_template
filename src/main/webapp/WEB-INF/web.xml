@@ -54,7 +54,7 @@
 	</filter-mapping>
 
 	<!--
-	自動 CSRF フィルター
+	自動 CSRF フィルター (ログイン時もチェックするため認証フィルターより先)
 	-->
 	<filter>
 		<filter-name>AutoCsrfFilter</filter-name>
