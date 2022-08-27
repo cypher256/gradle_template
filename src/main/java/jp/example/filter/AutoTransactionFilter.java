@@ -57,7 +57,7 @@ public class AutoTransactionFilter extends HttpFilter {
 		dataSource = new HikariDataSource(new HikariConfig("/database.properties"));
 		daoConfig = UroboroSQL.builder(dataSource).build();
 		try (SqlAgent dao = daoConfig.agent()) {
-			dao.update("create_table").count(); // ファイル実行 /src/main/resources/sql/create_table.sql
+			dao.update("create_table").count(); // ファイル実行 src/main/resources/sql/create_table.sql
 		}
 	}
 	

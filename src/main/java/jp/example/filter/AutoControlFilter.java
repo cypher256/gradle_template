@@ -138,7 +138,7 @@ public class AutoControlFilter extends HttpFilter {
 		context.res.sendRedirect(url);
 		req.getSession().setAttribute(SYS_ERROR_REDIRECT_URL, url);
 		req.getSession().setAttribute(FLASH_ATTRIBUTE, Collections.list(req.getAttributeNames()).stream()
-				.filter(name -> !name.endsWith(".FILTERED")) // Apache Shiro 関連除外 (リダイレクト後の shiro タグ対応)
+				.filter(name -> !name.endsWith(".FILTERED")) // Apache Shiro 関連除外 (リダイレクト後の shiro タグ不良対応)
 				.collect(toMap(name -> name, req::getAttribute)));
 	}
 	
