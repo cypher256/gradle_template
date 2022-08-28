@@ -52,11 +52,10 @@ public class ItemRestServlet extends HttpServlet {
 	
 	/**
 	 * 登録、変更画面のリアルタイム入力チェック API です。<br>
-	 * validate でスローされた例外は、AutoFlashFilter でキャッチされ例外メッセージを、文字列として返却します。<br>
 	 * (更新系ではないため post はふさわしくないがサンプルのため。post のためトークンもチェックされる。) 
 	 */
 	@Override @SneakyThrows
 	protected void doPost(HttpServletRequest req, HttpServletResponse res) {
-		new Item(req).validate();
+		new Item(req).validate(); // validate での例外スローは Ajax の場合、エラーメッセージ文字列が返却される
 	}
 }
