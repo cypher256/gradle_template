@@ -157,10 +157,10 @@ public class AutoFlashFilter extends HttpFilter {
 		}
 		
 		// リダイレクト元: redirect が呼ばれたときのリクエスト属性のセッション保存メソッド (このフィルターより前に保存されたものは除外)
-		List<String> execludeFlashNames = Collections.list(req.getAttributeNames()).stream().toList();
+		List<String> systemAttributeNames = Collections.list(req.getAttributeNames()).stream().toList();
 		Runnable onRedirectSaveFlash = () -> {
 			req.getSession().setAttribute(FLASH_ATTRIBUTE, Collections.list(req.getAttributeNames()).stream()
-					.filter(name -> !execludeFlashNames.contains(name))
+					.filter(name -> !systemAttributeNames.contains(name))
 					.collect(toMap(name -> name, req::getAttribute)));
 		};
 		
