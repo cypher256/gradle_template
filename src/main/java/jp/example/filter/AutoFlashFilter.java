@@ -2,6 +2,7 @@ package jp.example.filter;
 
 import static java.util.stream.Collectors.*;
 
+import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
@@ -19,6 +20,7 @@ import javax.servlet.http.HttpSession;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Stopwatch;
 
 import jodd.servlet.DispatcherUtil;
@@ -79,6 +81,7 @@ public class AutoFlashFilter extends HttpFilter {
 	 * 1. 先頭がスラッシュの場合はそのまま、スラッシュでない場合は "/WEB-INF/jsp/" + jspPath をフォワード先パスとしてフォワードします。
 	 * 2. フォワード先パスをセッション属性 APP_ERROR_FORWARD_PATH に保存します (入力エラーなどのアプリエラー時のフォワード先として使用)。
 	 * 3. AutoCsrfFilter を使用している場合は、meta と form input hidden に name="_csrf" として CSRF トークンが埋め込まれます。
+	 * 4. 後続処理を飛ばすために、正常なレスポンスコミット済みを示す定数 SUCCESS_RESPONSE_COMMITTED をスローします。
 	 * </pre>
 	 * @param jspPath JSP パス
 	 */
@@ -89,6 +92,7 @@ public class AutoFlashFilter extends HttpFilter {
 		log.debug("フォワード {}", path);
 		context.req.getSession().setAttribute(APP_ERROR_FORWARD_PATH, path);
 		context.req.getRequestDispatcher(path).forward(context.req, context.res);
+		throw SUCCESS_RESPONSE_COMMITTED;
 	}
 	
 	/**
@@ -100,6 +104,7 @@ public class AutoFlashFilter extends HttpFilter {
 	 * 1. 指定した redirectUrl (null の場合はコンテキストルート) にリダイレクトします。
 	 * 2. リダイレクト先 URL をセッション属性 SYS_ERROR_REDIRECT_URL に保存します (システムエラー時のリダイレクト先として使用)。
 	 * 3. 現在のリクエスト属性をフラッシュ属性としてセッションに保存します (リダイレクト後にリクエスト属性に復元)。
+	 * 4. 後続処理を飛ばすために、正常なレスポンスコミット済みを示す定数 SUCCESS_RESPONSE_COMMITTED をスローします。
 	 * </pre>
 	 * @param redirectUrl リダイレクト先 URL
 	 */
@@ -111,12 +116,36 @@ public class AutoFlashFilter extends HttpFilter {
 		context.res.sendRedirect(url);
 		context.req.getSession().setAttribute(SYS_ERROR_REDIRECT_URL, url);
 		context.onRedirectSaveFlash.run();
+		throw SUCCESS_RESPONSE_COMMITTED;
+	}
+	
+	/**
+	 * REST API の戻り値をクライアントに返却します。
+	 * <pre>
+	 * 1. 引数の型が CharSequence の場合は文字列、それ以外の場合は json 文字列に変換し、レスポンスに書き込みます。
+	 * 2. 後続処理を飛ばすために、正常なレスポンスコミット済みを示す定数 SUCCESS_RESPONSE_COMMITTED をスローします。
+	 * </pre>
+	 * @param resObject 返却オブジェクト
+	 */
+	@SneakyThrows
+	public static void returns(Object resObject) {
+		HttpServletResponse res = requestContextThreadLocal.get().res;
+		PrintWriter writer = res.getWriter();
+		if (!(resObject instanceof CharSequence)) {
+			res.setContentType("application/json");
+			resObject = jsonMapper.writeValueAsString(resObject);
+		}
+		writer.print(resObject);
+		log.debug("戻り値 {}", resObject);
+		throw SUCCESS_RESPONSE_COMMITTED;
 	}
 	
 	//-------------------------------------------------------------------------
 	// Servlet フィルター処理
 	//-------------------------------------------------------------------------
 	
+	protected static final RuntimeException SUCCESS_RESPONSE_COMMITTED = new RuntimeException();
+	protected static final ObjectMapper jsonMapper = new ObjectMapper();
 	protected static final ThreadLocal<RequestContext> requestContextThreadLocal = new ThreadLocal<>();
 	
 	/** ThreadLocal に保存するリクエストコンテキストレコード */
@@ -170,18 +199,25 @@ public class AutoFlashFilter extends HttpFilter {
 			
 		// ルート例外の getMessage() をリクエスト属性 MESSAGE にセットして jsp や html から参照できるようにする
 		} catch (Throwable e) {
+			if (e == SUCCESS_RESPONSE_COMMITTED) {
+				return;
+			}
 			Throwable cause = ExceptionUtils.getRootCause(e);
+			req.setAttribute(MESSAGE, cause.getMessage());
 			if (isAjax(req)) {
-				res.getWriter().print(cause.getMessage());
+				res.getWriter().print(req.getAttribute(MESSAGE));
 			} else {
-				req.setAttribute(MESSAGE, cause.getMessage());
+				
+				// アプリエラー (入力エラーなどの業務エラー)
 				String forwardPath = (String) session.getAttribute(APP_ERROR_FORWARD_PATH);
 				if (cause instanceof IllegalStateException && forwardPath != null) {
-					// アプリエラー (入力エラーなどの業務エラー)
-					forward(forwardPath);
+					req.getRequestDispatcher(forwardPath).forward(req, res);
+					
+				// システムエラー (DB エラーなど)
 				} else {
-					// システムエラー (DB エラーなど)
-					redirect(session.getAttribute(SYS_ERROR_REDIRECT_URL));
+					Object redirectUrl = session.getAttribute(SYS_ERROR_REDIRECT_URL);
+					res.sendRedirect(Objects.toString(redirectUrl, req.getContextPath()));
+					onRedirectSaveFlash.run();
 					log.warn(cause.getMessage(), cause);
 				}
 			}

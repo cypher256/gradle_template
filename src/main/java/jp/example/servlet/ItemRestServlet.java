@@ -1,13 +1,12 @@
 package jp.example.servlet;
 
+import static jp.example.filter.AutoFlashFilter.*;
 import static jp.example.filter.AutoTransactionFilter.*;
 
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jp.example.dto.Item;
 import lombok.Data;
@@ -19,9 +18,6 @@ import lombok.SneakyThrows;
  */
 @WebServlet("/api")
 public class ItemRestServlet extends HttpServlet {
-	
-	/** Java オブジェクトを JSON 文字列に変換するための ObjectMapper */
-	private final ObjectMapper json = new ObjectMapper();
 	
 	/** 
 	 * 検索画面でのリアルタイム検索結果件数取得 API です。<br>
@@ -44,10 +40,10 @@ public class ItemRestServlet extends HttpServlet {
 		
 		@Data
 		class SearchResult {
-			Item condition = new Item(req); // クライアントで件数以外は使用しないが json サンプルのため
+			Item condition = new Item(req); // クライアントで件数以外は使用しないが json 返却サンプルのため
 			int count = dao().queryWith(sql).paramBean(condition).one(int.class);
 		}
-		res.getWriter().print(json.writeValueAsString(new SearchResult()));
+		returns(new SearchResult());
 	}
 	
 	/**
@@ -56,6 +52,6 @@ public class ItemRestServlet extends HttpServlet {
 	 */
 	@Override @SneakyThrows
 	protected void doPost(HttpServletRequest req, HttpServletResponse res) {
-		new Item(req).validate(); // validate での例外スローは Ajax の場合、エラーメッセージ文字列が返却される
+		new Item(req).validate(); // validate での例外スローは Ajax リクエストの場合、エラーメッセージ文字列が返却される
 	}
 }
