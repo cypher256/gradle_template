@@ -39,9 +39,9 @@
 </body>
 <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 <script>
-<%-- 入力中のリアルタイム AJAX チェック (form が post のため _csrf が含まれる) --%>
+<%-- 入力中のリアルタイム API チェック結果を文字列で取得 (form が post のため _csrf が含まれる) --%>
 const validate = async() => {
-	_message.textContent = (await axios.post('ajax', new URLSearchParams(new FormData(_form)))).data;
+	_message.textContent = (await axios.post('api', new URLSearchParams(new FormData(_form)))).data;
 };
 </script>
 </html>

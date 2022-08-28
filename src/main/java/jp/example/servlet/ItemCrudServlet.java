@@ -16,32 +16,31 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Servlet JSP CRUD サンプルクラスです。
+ * Servlet JSP CRUD Servlet サンプルクラスです。
  * @author New Gradle Project Wizard (c) https://opensource.org/licenses/mit-license.php
  */
 @WebServlet("")
 @Slf4j
 public class ItemCrudServlet extends HttpServlet {
-
-	/** 
-	 * 検索 SQL From 以降 (2WaySQL OGNL)
-	 * https://future-architect.github.io/uroborosql-doc/background/#条件分岐-if-elif-else-end
-	 */
-	private static final String SEARCH_FROM_SQL = """
-			FROM item
-			WHERE 1 = 1
-				/*IF SF.isNotBlank(name)*/ 
-					AND name LIKE /*SF.contains(name)*/'Pro' escape /*#ESC_CHAR*/'$' 
-				/*END*/
-				/*IF SF.isNotBlank(releaseDate)*/ 
-					AND release_date = /*releaseDate*/'2022-09-11'
-				/*END*/
-		""";
 	
 	/** CRUD の R: Read 検索一覧表示 */
 	@Override @SneakyThrows
 	protected void doGet(HttpServletRequest req, HttpServletResponse res) {
-		String sql = "SELECT * " + SEARCH_FROM_SQL;
+		
+		 // 検索 SQL From 以降 (2WaySQL OGNL)
+		 // https://future-architect.github.io/uroborosql-doc/background/#条件分岐-if-elif-else-end
+		String sql = """
+				SELECT * 
+				FROM item
+				WHERE 1 = 1
+					/*IF SF.isNotBlank(name)*/ 
+						AND name LIKE /*SF.contains(name)*/'Pro' escape /*#ESC_CHAR*/'$' 
+					/*END*/
+					/*IF SF.isNotBlank(releaseDate)*/ 
+						AND release_date = /*releaseDate*/'2022-09-11'
+					/*END*/
+			""";
+		
 		List<Item> list = dao().queryWith(sql).paramBean(new Item(req)).collect(Item.class);
 		log.debug("SELECT 結果: {} 件 - {}", list.size(), list.stream().findFirst().orElse(null));
 		req.setAttribute("itemList", list);
@@ -99,25 +98,6 @@ public class ItemCrudServlet extends HttpServlet {
 			dao().delete(new Item(req));
 			req.setAttribute(MESSAGE, "削除しました。");
 			redirect(req.getSession().getAttribute("searchUrl"));
-		}
-	}
-
-	/** AJAX Servlet (レスポンスは text) */
-	@WebServlet("/ajax")
-	public static class ItemAjaxServlet extends HttpServlet {
-		
-		/** 検索画面でのリアルタイム検索結果件数の取得 */
-		@Override @SneakyThrows
-		protected void doGet(HttpServletRequest req, HttpServletResponse res) {
-			String sql = "SELECT COUNT(*) " + SEARCH_FROM_SQL;
-			int count = dao().queryWith(sql).paramBean(new Item(req)).one(int.class);
-			res.getWriter().printf("結果予想件数: %d 件", count);
-		}
-		
-		/** 登録、変更画面のリアルタイム入力チェック */
-		@Override @SneakyThrows
-		protected void doPost(HttpServletRequest req, HttpServletResponse res) {
-			new Item(req).validate(); // AJAX リクエストの場合、例外スローで例外 getMessage() がレスポンスに書き込まれる
 		}
 	}
 }
