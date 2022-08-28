@@ -2,7 +2,6 @@ package jp.example.filter;
 
 import static java.util.stream.Collectors.*;
 
-import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
@@ -130,12 +129,11 @@ public class AutoFlashFilter extends HttpFilter {
 	@SneakyThrows
 	public static void returns(Object resObject) {
 		HttpServletResponse res = requestContextThreadLocal.get().res;
-		PrintWriter writer = res.getWriter();
 		if (!(resObject instanceof CharSequence)) {
 			res.setContentType("application/json");
 			resObject = jsonMapper.writeValueAsString(resObject);
 		}
-		writer.print(resObject);
+		res.getWriter().print(resObject);
 		log.debug("戻り値 {}", resObject);
 		throw SUCCESS_RESPONSE_COMMITTED;
 	}
