@@ -78,13 +78,16 @@ public class AutoCsrfFilter extends HttpFilter {
 		}
 		
 		// トークン埋め込み (REQUEST, FORWARD) : html 直接アクセス、Servlet からの jsp フォワード
+		// ここで想定する文字列パターンに一致しない場合は、JSP に ${_csrf} を指定する必要がある
 		if (isHtml) {
 			ByteArrayResponseWrapper resWrapper = new ByteArrayResponseWrapper(res);
 			super.doFilter(req, resWrapper, chain);
 			String csrfToken = (String) req.getSession().getAttribute(_csrf);
 			String html = new String(resWrapper.toByteArray(), resWrapper.getCharacterEncoding())
+				// meta タグ追加
 				.replaceFirst("(?i)(<head>)", format("""
 					$1\n<meta name="_csrf" content="%s">""", csrfToken))
+				// form post 内に hidden 追加
 				.replaceAll("(?is)([ \t]*)(<form[^>]+post[^>]+>)", format("""
 					$1$2\n$1\t<input type="hidden" name="_csrf" value="%s">""", csrfToken));
 			res.setContentLength(html.getBytes(resWrapper.getCharacterEncoding()).length);
@@ -120,7 +123,7 @@ public class AutoCsrfFilter extends HttpFilter {
 		}
 		
 		// AJAX 参照用 Cookie 書き込み
-		// * Secure: isSecure で https 判定。リバースプロキシの場合は RemoteIpFilter で連携。
+		// * Secure: isSecure で判定。localhost では設定しても無視される。Apache などと連携するために RemoteIpFilter 設定。
 		// * SameSite: Strict (送信は同一サイトのみ)。ブラウザのデフォルトは Lax (別サイトから GET 可能、POST 不可)。
 		// * HttpOnly: 指定なし。JavaScript から参照可能にするために指定しない。
 		res.addHeader("Set-Cookie", format("XSRF-TOKEN=%s;%sSameSite=Strict;", 
