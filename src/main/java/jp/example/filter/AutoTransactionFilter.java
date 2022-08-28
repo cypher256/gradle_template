@@ -20,7 +20,7 @@ import lombok.SneakyThrows;
  * <pre>
  * データベースの初期データロード、トランザクションの開始・終了を制御します。
  * </pre>
- * @author New Gradle Project Wizard
+ * @author New Gradle Project Wizard (c) https://opensource.org/licenses/mit-license.php
  */
 public class AutoTransactionFilter extends HttpFilter {
 	
@@ -46,9 +46,9 @@ public class AutoTransactionFilter extends HttpFilter {
 	// Servlet フィルター処理
 	//-------------------------------------------------------------------------
 	
-	private static final ThreadLocal<SqlAgent> daoThreadLocal = new ThreadLocal<>();
-	private SqlConfig daoConfig;
-	private HikariDataSource dataSource;
+	protected static final ThreadLocal<SqlAgent> daoThreadLocal = new ThreadLocal<>();
+	protected SqlConfig daoConfig;
+	protected HikariDataSource dataSource;
 
 	/** データベース接続設定と初期データロード */
 	@Override @SneakyThrows

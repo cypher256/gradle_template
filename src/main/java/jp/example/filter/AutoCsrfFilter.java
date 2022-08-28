@@ -1,12 +1,12 @@
 package jp.example.filter;
 
 import static java.lang.String.*;
-import static javax.servlet.DispatcherType.*;
 
 import java.io.IOException;
 import java.util.Map;
 import java.util.UUID;
 
+import javax.servlet.DispatcherType;
 import javax.servlet.FilterChain;
 import javax.servlet.http.HttpFilter;
 import javax.servlet.http.HttpServletRequest;
@@ -23,8 +23,8 @@ import lombok.SneakyThrows;
  * 自動 CSRF フィルターです。
  * <pre>
  * web.xml の dispatcher 要素に REQUEST, FORWARD を指定する必要があります。
- * タグなどの指定無しで jsp だけでなく html にも hidden、meta トークンを自動埋め込み。Cookie にもセットされます。
- * 画面遷移ごと (AJAX アクセス除く) に生成されるため、同期トークンとして使用できます。
+ * タグなどの指定無しで、jsp だけでなく html にも hidden、meta にトークンを自動埋め込み。Cookie にもセットされます。
+ * 画面遷移ごと (AJAX アクセス除く) にトークンが新しく生成されるため、同期トークンとして使用できます。
  * </pre>
  * クライアントでのトークン手動操作
  * <pre>
@@ -44,26 +44,26 @@ import lombok.SneakyThrows;
  *     form タグ
  *     action="/upload?_csrf=${_csrf}" method="post" enctype="multipart/form-data"
  * </pre>
- * @author New Gradle Project Wizard
+ * @author New Gradle Project Wizard (c) https://opensource.org/licenses/mit-license.php
  */
 public class AutoCsrfFilter extends HttpFilter {
 
 	/** CSRF トークンのセッション、Cookie、リクエストパラメーターの name */
-	private static final String _csrf = "_csrf";
+	protected static final String _csrf = "_csrf";
 
 	@Override @SneakyThrows
 	protected void doFilter(HttpServletRequest req, HttpServletResponse res, FilterChain chain) {
 		
-		// css js などを除外
+		// css js などを除外 (html や jsp は除外しない)
 		String uri = req.getRequestURI();
-		boolean isHtml = uri.matches(".+\\.(jsp.?|html)");
+		boolean isHtml = uri.matches(".+\\.(jsp.?|html)"); // .jsp は FORWARD 時
 		if (!isHtml && uri.contains(".")) {
 			super.doFilter(req, res, chain);
 			return;
 		}
 		
 		// POST サブミット時のトークンチェック (REQUEST) : Servlet を介さない html へのサブミット時も対象
-		if (req.getDispatcherType() == REQUEST && notMatchPostToken(req, res)) {
+		if (req.getDispatcherType() == DispatcherType.REQUEST && notMatchPostToken(req, res)) {
 			if (isAjax(req)) {
 				res.sendError(HttpServletResponse.SC_FORBIDDEN);
 			} else {
@@ -126,7 +126,13 @@ public class AutoCsrfFilter extends HttpFilter {
 		res.addHeader("Set-Cookie", format("XSRF-TOKEN=%s;%sSameSite=Strict;", 
 				session.getAttribute(_csrf), req.isSecure() ? " Secure;" : ""));
 		
-		// Cache-Control で bfcache 無効化 (ブラウザ戻るボタンでの get ページ表示はキャッシュではなくサーバ再取得するようにする)
+		// Cache-Control で bfcache 無効化
+		// * ブラウザ戻るボタンでできるだけエラーにならないようにする
+		// * ブラウザ戻るボタンでの get ページ表示は、bfcache ではなくサーバから再取得される (トークンを一致させる)
+		// * 登録 → ブラウザ戻るボタン → 登録: 不正ではなく連続登録できる
+		// * 更新 → ブラウザ戻るボタン → 更新: 不正ではなく再修正できる
+		// * 二重送信やリロードによる POST 多重送信はトークンエラーとなる
+		// * 戻るボタン後のサブミットをエラーにしたい場合は、下記の bfcache を無効化しないようにする
 		ServletUtil.preventCaching(res);
 		return false; // 正常
 	}

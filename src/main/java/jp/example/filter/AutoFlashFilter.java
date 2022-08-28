@@ -4,6 +4,7 @@ import static java.util.stream.Collectors.*;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -39,7 +40,7 @@ import lombok.extern.slf4j.Slf4j;
  * 4. 上記以外の例外の場合は、システムエラーとしてセッション属性 SYS_ERROR_REDIRECT_URL にリダイレクト (自動フラッシュ) します。
  * 5. セッションに APP_ERROR_FORWARD_PATH も SYS_ERROR_REDIRECT_URL も無い場合は、コンテキストルートにリダイレクト (自動フラッシュ)。
  * <prel>
- * @author New Gradle Project Wizard
+ * @author New Gradle Project Wizard (c) https://opensource.org/licenses/mit-license.php
  */
 @Slf4j
 public class AutoFlashFilter extends HttpFilter {
@@ -106,28 +107,25 @@ public class AutoFlashFilter extends HttpFilter {
 	@SneakyThrows
 	public static void redirect(Object redirectUrl) {
 		RequestContext context = requestContextThreadLocal.get();
-		HttpServletRequest req = context.req;
-		String url = Objects.toString(redirectUrl, req.getContextPath());
+		String url = Objects.toString(redirectUrl, context.req.getContextPath());
 		log.debug("リダイレクト {}", url);
 		context.res.sendRedirect(url);
-		req.getSession().setAttribute(SYS_ERROR_REDIRECT_URL, url);
-		req.getSession().setAttribute(FLASH_ATTRIBUTE, Collections.list(req.getAttributeNames()).stream()
-				.filter(name -> !name.endsWith(".FILTERED")) // Apache Shiro 関連除外 (リダイレクト後の shiro タグ不良対応)
-				.collect(toMap(name -> name, req::getAttribute)));
+		context.req.getSession().setAttribute(SYS_ERROR_REDIRECT_URL, url);
+		context.onRedirectSaveFlash.run();
 	}
 	
 	//-------------------------------------------------------------------------
 	// Servlet フィルター処理
 	//-------------------------------------------------------------------------
 	
-	private static final String FLASH_ATTRIBUTE = "FLASH_ATTRIBUTE";
-	private static final ThreadLocal<RequestContext> requestContextThreadLocal = new ThreadLocal<>();
+	protected static final ThreadLocal<RequestContext> requestContextThreadLocal = new ThreadLocal<>();
 	
 	/** ThreadLocal に保存するリクエストコンテキストクラス */
 	@AllArgsConstructor
-	private static class RequestContext {
+	protected static class RequestContext {
 		final HttpServletRequest req;
 		final HttpServletResponse res;
+		final Runnable onRedirectSaveFlash;
 	}
 
 	/** 共通エンコーディング設定 */
@@ -141,14 +139,16 @@ public class AutoFlashFilter extends HttpFilter {
 	@Override @SneakyThrows
 	protected void doFilter(HttpServletRequest req, HttpServletResponse res, FilterChain chain) {
 		
-		// html css js などを除外
-		if (req.getRequestURI().contains(".")) {
+		// css js などを除外 (html は web.xml で jsp 扱いのため除外しない)
+		String uri = req.getRequestURI();
+		if (uri.contains(".") && !uri.endsWith(".html")) {
 			super.doFilter(req, res, chain); 
 			return;
 		}
 		
-		// リダイレクト時のフラッシュ属性をセッションからリクエスト属性に復元し、セッションから削除
+		// リダイレクト先: フラッシュ属性をセッションからリクエスト属性に復元しセッションから削除
 		HttpSession session = req.getSession();
+		final String FLASH_ATTRIBUTE = "FLASH_ATTRIBUTE";
 		@SuppressWarnings("unchecked")
 		Map<String, Object> flashMap = (Map<String, Object>) session.getAttribute(FLASH_ATTRIBUTE);
 		if (flashMap != null) {
@@ -156,24 +156,36 @@ public class AutoFlashFilter extends HttpFilter {
 			session.removeAttribute(FLASH_ATTRIBUTE);
 		}
 		
-		// リクエストのスレッドローカル設定と Servlet 呼び出し
+		// リダイレクト元: redirect が呼ばれたときのリクエスト属性のセッション保存メソッド (このフィルターより前に保存されたものは除外)
+		List<String> execludeFlashNames = Collections.list(req.getAttributeNames()).stream().toList();
+		Runnable onRedirectSaveFlash = () -> {
+			req.getSession().setAttribute(FLASH_ATTRIBUTE, Collections.list(req.getAttributeNames()).stream()
+					.filter(name -> !execludeFlashNames.contains(name))
+					.collect(toMap(name -> name, req::getAttribute)));
+		};
+		
+		// リクエストのスレッドローカル設定と次のフィルター呼び出し
 		Stopwatch stopwatch = Stopwatch.createStarted();
 		try {
-			requestContextThreadLocal.set(new RequestContext(req, res));
+			requestContextThreadLocal.set(new RequestContext(req, res, onRedirectSaveFlash));
 			super.doFilter(req, res, chain);
 			
-		// ルート例外の getMessage() をリクエスト属性 MESSAGE にセットして JSP から参照できるようにする
+		// ルート例外の getMessage() をリクエスト属性 MESSAGE にセットして jsp や html から参照できるようにする
 		} catch (Throwable e) {
 			Throwable cause = ExceptionUtils.getRootCause(e);
-			req.setAttribute(MESSAGE, cause.getMessage());
-			String forwardPath = (String) session.getAttribute(APP_ERROR_FORWARD_PATH);
-			if (cause instanceof IllegalStateException && forwardPath != null) {
-				// アプリエラー (入力エラーなどの業務エラー)
-				sendAjaxOr(() -> forward(forwardPath));
+			if (isAjax(req)) {
+				res.getWriter().print(cause.getMessage());
 			} else {
-				// システムエラー (DB エラーなど)
-				sendAjaxOr(() -> redirect(session.getAttribute(SYS_ERROR_REDIRECT_URL)));
-				log.warn(cause.getMessage(), cause);
+				req.setAttribute(MESSAGE, cause.getMessage());
+				String forwardPath = (String) session.getAttribute(APP_ERROR_FORWARD_PATH);
+				if (cause instanceof IllegalStateException && forwardPath != null) {
+					// アプリエラー (入力エラーなどの業務エラー)
+					forward(forwardPath);
+				} else {
+					// システムエラー (DB エラーなど)
+					redirect(session.getAttribute(SYS_ERROR_REDIRECT_URL));
+					log.warn(cause.getMessage(), cause);
+				}
 			}
 			
 		} finally {
@@ -184,24 +196,9 @@ public class AutoFlashFilter extends HttpFilter {
 	}
 
 	/**
-	 * AJAX リクエストの場合は MESSAGE を返却、そうでない場合は nonAjaxAction 実行します。
-	 * @param nonAjaxAction AJAX でない場合の処理
-	 */
-	@SneakyThrows
-	protected void sendAjaxOr(Runnable nonAjaxAction) {
-		if (isAjax()) {
-			RequestContext context = requestContextThreadLocal.get();
-			context.res.getWriter().print(context.req.getAttribute(MESSAGE));
-		} else {
-			nonAjaxAction.run();
-		}
-	}
-
-	/**
 	 * @return AJAX リクエストの場合は true
 	 */
-	protected boolean isAjax() {
-		HttpServletRequest req = requestContextThreadLocal.get().req;
+	protected boolean isAjax(HttpServletRequest req) {
 		return "XMLHttpRequest".equals(req.getHeader("X-Requested-With")) ||
 				StringUtils.contains(req.getHeader("Accept"), "/json");
 	}

@@ -54,7 +54,7 @@
 	</filter-mapping>
 
 	<!--
-	自動 CSRF フィルター (ログイン時もチェックするため認証フィルターより先)
+	自動 CSRF フィルター (ログイン時もチェックするため ShiroFilter より先)
 	-->
 	<filter>
 		<filter-name>AutoCsrfFilter</filter-name>
@@ -63,8 +63,8 @@
 	<filter-mapping>
 		<filter-name>AutoCsrfFilter</filter-name>
 		<url-pattern>/*</url-pattern>
-		<dispatcher>REQUEST</dispatcher>
-		<dispatcher>FORWARD</dispatcher>
+		<dispatcher>REQUEST</dispatcher><!-- html リクエスト時のトークン埋め込み -->
+		<dispatcher>FORWARD</dispatcher><!--  jsp フォワード時のトークン埋め込み -->
 	</filter-mapping>
 
 	<!-- 
@@ -90,7 +90,7 @@
 	</listener>
 
 	<!--
-	自動フラッシュ属性フィルター
+	自動フラッシュ属性フィルター (Shiro 固有リクエスト属性を除外するため、ShiroFilter より後)
 	-->
 	<filter>
 		<filter-name>AutoFlashFilter</filter-name>

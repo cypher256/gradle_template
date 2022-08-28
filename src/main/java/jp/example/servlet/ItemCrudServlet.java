@@ -17,7 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * Servlet JSP CRUD サンプルクラスです。
- * @author New Gradle Project Wizard
+ * @author New Gradle Project Wizard (c) https://opensource.org/licenses/mit-license.php
  */
 @WebServlet("")
 @Slf4j
