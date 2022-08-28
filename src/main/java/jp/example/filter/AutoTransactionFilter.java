@@ -31,7 +31,7 @@ public class AutoTransactionFilter extends HttpFilter {
 	/**
 	 * uroboroSQL DAO インスタンスを取得します。
 	 * <pre>
-	 * 自動採番の主キーを持つテーブは、id などのエンティティに関するアノテーションは不要です。
+	 * 自動採番の主キーを持つテーブルは、id などのエンティティに関するアノテーションは不要です。
 	 * スネークケース、キャメルケースは自動変換されます。ただし、バインドパラメータ名は変換されません。
 	 * <a href="https://future-architect.github.io/uroborosql-doc/why_uroborosql/"
 	 * >GitHub: uroboroSQL (ウロボロスキュール)</a>
