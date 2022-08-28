@@ -27,7 +27,7 @@ public class ItemCrudServlet extends HttpServlet {
 	@Override @SneakyThrows
 	protected void doGet(HttpServletRequest req, HttpServletResponse res) {
 		
-		 // 検索 SQL From 以降 (2WaySQL OGNL)
+		 // 検索 SQL (2WaySQL OGNL)
 		 // https://future-architect.github.io/uroborosql-doc/background/#条件分岐-if-elif-else-end
 		String sql = """
 				SELECT * 

@@ -25,7 +25,7 @@ import lombok.SneakyThrows;
 public class AutoTransactionFilter extends HttpFilter {
 	
 	//-------------------------------------------------------------------------
-	// Servlet から使用するメソッド
+	// アプリから使用する public static メソッド
 	//-------------------------------------------------------------------------
 
 	/**

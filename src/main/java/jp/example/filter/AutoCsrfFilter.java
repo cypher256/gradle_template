@@ -62,7 +62,7 @@ public class AutoCsrfFilter extends HttpFilter {
 			return;
 		}
 		
-		// POST サブミット時のトークンチェック (REQUEST) : Servlet を介さない html へのサブミット時も対象
+		// [REQUEST] POST サブミット時のトークンチェック (Servlet を介さない html へのサブミット時も対象)
 		if (req.getDispatcherType() == DispatcherType.REQUEST && notMatchPostToken(req, res)) {
 			if (isAjax(req)) {
 				res.sendError(HttpServletResponse.SC_FORBIDDEN);
@@ -77,7 +77,7 @@ public class AutoCsrfFilter extends HttpFilter {
 			return;
 		}
 		
-		// トークン埋め込み (REQUEST, FORWARD) : html 直接アクセス、Servlet からの jsp フォワード
+		// [REQUEST, FORWARD] トークン埋め込み (html 直接アクセス、Servlet からの jsp フォワード)
 		// ここで想定する文字列パターンに一致しない場合は、JSP に ${_csrf} を指定する必要がある
 		if (isHtml) {
 			ByteArrayResponseWrapper resWrapper = new ByteArrayResponseWrapper(res);

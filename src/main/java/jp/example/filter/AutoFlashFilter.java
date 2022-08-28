@@ -22,7 +22,6 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import com.google.common.base.Stopwatch;
 
 import jodd.servlet.DispatcherUtil;
-import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
@@ -46,7 +45,7 @@ import lombok.extern.slf4j.Slf4j;
 public class AutoFlashFilter extends HttpFilter {
 	
 	//-------------------------------------------------------------------------
-	// Servlet から使用する public static 定数とメソッド
+	// Servlet から使用する public static メソッド
 	//-------------------------------------------------------------------------
 
 	/** リクエスト属性名: 画面に表示するメッセージ (サーブレットから自分でセット、エラー時は例外メッセージがセットされる) */
@@ -120,13 +119,12 @@ public class AutoFlashFilter extends HttpFilter {
 	
 	protected static final ThreadLocal<RequestContext> requestContextThreadLocal = new ThreadLocal<>();
 	
-	/** ThreadLocal に保存するリクエストコンテキストクラス */
-	@AllArgsConstructor
-	protected static class RequestContext {
-		final HttpServletRequest req;
-		final HttpServletResponse res;
-		final Runnable onRedirectSaveFlash;
-	}
+	/** ThreadLocal に保存するリクエストコンテキストレコード */
+	protected record RequestContext (
+		HttpServletRequest req,
+		HttpServletResponse res,
+		Runnable onRedirectSaveFlash
+	) {};
 
 	/** 共通エンコーディング設定 */
 	@Override @SneakyThrows
