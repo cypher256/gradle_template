@@ -4,7 +4,7 @@ Servlet JSP CRUD プロジェクトサンプルビルド定義
 
 構成要素
 
-	実行環境		Java 17, Tomcat 9 (Servlet 4.0 javax.servlet)
+	実行環境		Java 17, Tomcat 9 (Servlet 4.0 javax.servlet)、Lombok
 	DB 接続		HikariCP		src/main/resources/database.properties
 	DB アクセス	uroboroSQL		src/main/java/jp/example/filter/AutoTransactionFilter.java
 	ログ管理		SLF4J			src/main/resources/simplelogger.properties
