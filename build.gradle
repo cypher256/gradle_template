@@ -33,14 +33,15 @@ dependencies {
 	compileOnly 'jakarta.servlet:jakarta.servlet-api:4.0.+'
 	runtimeOnly 'jakarta.servlet.jsp.jstl:jakarta.servlet.jsp.jstl-api:1.2.+'
 	runtimeOnly 'org.apache.taglibs:taglibs-standard-impl:1.2.+'
+	implementation 'org.apache.shiro:shiro-web:1.9.+'
 	implementation 'org.jodd:jodd-servlet:6.0.+'
 	
-	// Tomcat 10.0 (jakarta)
+	// Tomcat 10.0 (jakarta) - Apache Shiro, Jodd Servlet 未リリース
 	//compileOnly 'jakarta.servlet:jakarta.servlet-api:5.0.+'
 	//runtimeOnly 'jakarta.servlet.jsp.jstl:jakarta.servlet.jsp.jstl-api:2.0.+'
 	//runtimeOnly 'org.glassfish.web:jakarta.servlet.jsp.jstl:2.0.+'
 	
-	// Tomcat 10.1 (jakarta)
+	// Tomcat 10.1 (jakarta) - Apache Shiro, Jodd Servlet 未リリース
 	//compileOnly 'jakarta.servlet:jakarta.servlet-api:6.0.+'
 	//runtimeOnly 'jakarta.servlet.jsp.jstl:jakarta.servlet.jsp.jstl-api:3.0.+'
 	//runtimeOnly 'org.glassfish.web:jakarta.servlet.jsp.jstl:3.0.+'
@@ -49,8 +50,7 @@ dependencies {
 	implementation 'com.google.guava:guava:31.+'
 	implementation 'com.zaxxer:HikariCP:5.0.+'
 	implementation 'commons-beanutils:commons-beanutils:1.9.+'
-	implementation 'org.apache.commons:commons-lang3:3.12.+'	
-	implementation 'org.apache.shiro:shiro-web:1.9.+'
+	implementation 'org.apache.commons:commons-lang3:3.12.+'
 	implementation 'jp.co.future:uroborosql:0.25.+'
 	compileOnly 'org.projectlombok:lombok:1.18.+'
 	annotationProcessor 'org.projectlombok:lombok:1.18.+'
