@@ -21,7 +21,7 @@ public class ItemRestServlet extends HttpServlet {
 	
 	/** 
 	 * 検索画面でのリアルタイム検索結果件数取得 API です。<br>
-	 * クライアントへ json で結果件数情報を返します。
+	 * 戻り値: json 結果件数情報
 	 */
 	@Override @SneakyThrows
 	protected void doGet(HttpServletRequest req, HttpServletResponse res) {
@@ -48,6 +48,7 @@ public class ItemRestServlet extends HttpServlet {
 	/**
 	 * 登録、変更画面のリアルタイム入力チェック API です。<br>
 	 * (更新系ではないため post はふさわしくないがサンプルのため。post のためトークンもチェックされる。) 
+	 * 戻り値: text エラーメッセージ文字列 (エラーが無い場合は戻り値なし)
 	 */
 	@Override @SneakyThrows
 	protected void doPost(HttpServletRequest req, HttpServletResponse res) {
