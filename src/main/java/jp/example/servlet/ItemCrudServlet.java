@@ -62,7 +62,7 @@ public class ItemCrudServlet extends HttpServlet {
 		protected void doPost(HttpServletRequest req, HttpServletResponse res) {
 			dao().insert(new Item(req).validate()); // 例外がスローされるとリクエスト属性 MESSAGE にセットされる
 			req.setAttribute(MESSAGE, "登録しました。");
-			redirect(req.getSession().getAttribute("searchUrl"));
+			redirect($("searchUrl"));
 		}
 	}
 
@@ -83,7 +83,7 @@ public class ItemCrudServlet extends HttpServlet {
 		protected void doPost(HttpServletRequest req, HttpServletResponse res) {
 			dao().update(new Item(req).validate()); // 例外がスローされるとリクエスト属性 MESSAGE にセットされる
 			req.setAttribute(MESSAGE, "更新しました。");
-			redirect(req.getSession().getAttribute("searchUrl"));
+			redirect($("searchUrl"));
 		}
 	}
 
@@ -96,7 +96,7 @@ public class ItemCrudServlet extends HttpServlet {
 		protected void doGet(HttpServletRequest req, HttpServletResponse res) {
 			dao().delete(new Item(req));
 			req.setAttribute(MESSAGE, "削除しました。");
-			redirect(req.getSession().getAttribute("searchUrl"));
+			redirect($("searchUrl"));
 		}
 	}
 }

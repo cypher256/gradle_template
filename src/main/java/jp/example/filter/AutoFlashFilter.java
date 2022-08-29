@@ -16,6 +16,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
@@ -23,6 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Stopwatch;
 
 import jodd.servlet.DispatcherUtil;
+import jodd.servlet.ServletUtil;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
@@ -59,6 +61,28 @@ public class AutoFlashFilter extends HttpFilter {
 	public static final String SYS_ERROR_REDIRECT_URL = "SYS_ERROR_REDIRECT_URL";
 	
 	/**
+	 * JSP EL の ${name} のようにリクエスト、セッション、アプリケーションスコープから、最初に見つかった属性値を取得します。
+	 * @param <T> 戻り値の型
+	 * @param name 属性名
+	 * @return 属性値。見つからない場合は null。
+	 */
+	@SuppressWarnings("unchecked")
+	public static <T> T $(String name) {
+		return (T) ServletUtil.attribute(requestContextThreadLocal.get().req, name);
+	}
+	
+	/**
+	 * JSP EL の ${name} のようにリクエスト、セッション、アプリケーションスコープから、最初に見つかった属性値を取得します。
+	 * @param <T> 戻り値と defaultValue の型
+	 * @param name 属性名
+	 * @param defaultValue 値が見つからなかった場合のデフォルト値
+	 * @return 属性値。見つからない場合は defaultValue。
+	 */
+	public static <T> T $(String name, T defaultValue) {
+		return ObjectUtils.defaultIfNull($(name), defaultValue);
+	}
+
+	/**
 	 * エラーチェック用のメソッドです。<br>
 	 * 指定した条件が false の場合、引数のメッセージを持つ IllegalStateException をスローします。
 	 * @param isValid 入力チェックなどが正しい場合に true となる条件
@@ -85,9 +109,9 @@ public class AutoFlashFilter extends HttpFilter {
 	 * @param jspPath JSP パス
 	 */
 	@SneakyThrows
-	public static void forward(Object jspPath) {
+	public static void forward(String jspPath) {
 		RequestContext context = requestContextThreadLocal.get();
-		String path = ((String) jspPath).startsWith("/") ? (String) jspPath : "/WEB-INF/jsp/" + jspPath;
+		String path = jspPath.startsWith("/") ? (String) jspPath : "/WEB-INF/jsp/" + jspPath;
 		log.debug("フォワード {}", path);
 		context.req.getSession().setAttribute(APP_ERROR_FORWARD_PATH, path);
 		context.req.getRequestDispatcher(path).forward(context.req, context.res);
@@ -98,7 +122,8 @@ public class AutoFlashFilter extends HttpFilter {
 	 * リダイレクトします。
 	 * <pre>
 	 * 標準の res.sendRedirect(url) の代わりに使用します。
-	 * 別のアプリや外部サイトへのリダイレクトは上記の標準のメソッドを使用してください。このメソッドは、以下の処理を行います。
+	 * フラッシュ属性として引き継ぎたくない場合や、外部サイトへのリダイレクトは、標準の sendRedirect を使用してください。
+	 * このメソッドは、以下の処理を行います。
 	 * 
 	 * 1. 指定した redirectUrl (null の場合はコンテキストルート) にリダイレクトします。
 	 * 2. リダイレクト先 URL をセッション属性 SYS_ERROR_REDIRECT_URL に保存します (システムエラー時のリダイレクト先として使用)。
@@ -108,7 +133,7 @@ public class AutoFlashFilter extends HttpFilter {
 	 * @param redirectUrl リダイレクト先 URL
 	 */
 	@SneakyThrows
-	public static void redirect(Object redirectUrl) {
+	public static void redirect(String redirectUrl) {
 		RequestContext context = requestContextThreadLocal.get();
 		String url = Objects.toString(redirectUrl, context.req.getContextPath());
 		log.debug("リダイレクト {}", url);
@@ -174,8 +199,7 @@ public class AutoFlashFilter extends HttpFilter {
 		// リダイレクト先: フラッシュ属性をセッションからリクエスト属性に復元しセッションから削除
 		HttpSession session = req.getSession();
 		final String FLASH_ATTRIBUTE = "FLASH_ATTRIBUTE";
-		@SuppressWarnings("unchecked")
-		Map<String, Object> flashMap = (Map<String, Object>) session.getAttribute(FLASH_ATTRIBUTE);
+		@SuppressWarnings("unchecked") var flashMap = (Map<String, Object>) session.getAttribute(FLASH_ATTRIBUTE);
 		if (flashMap != null) {
 			flashMap.forEach(req::setAttribute);
 			session.removeAttribute(FLASH_ATTRIBUTE);
@@ -203,27 +227,26 @@ public class AutoFlashFilter extends HttpFilter {
 			Throwable cause = ExceptionUtils.getRootCause(e);
 			req.setAttribute(MESSAGE, cause.getMessage());
 			if (isAjax(req)) {
-				res.getWriter().print(req.getAttribute(MESSAGE));
+				res.getWriter().print((String) $(MESSAGE));
 			} else {
 				
 				// アプリエラー (入力エラーなどの業務エラー)
-				String forwardPath = (String) session.getAttribute(APP_ERROR_FORWARD_PATH);
+				String forwardPath = $(APP_ERROR_FORWARD_PATH);
 				if (cause instanceof IllegalStateException && forwardPath != null) {
 					req.getRequestDispatcher(forwardPath).forward(req, res);
 					
 				// システムエラー (DB エラーなど)
 				} else {
-					Object redirectUrl = session.getAttribute(SYS_ERROR_REDIRECT_URL);
-					res.sendRedirect(Objects.toString(redirectUrl, req.getContextPath()));
+					res.sendRedirect($(SYS_ERROR_REDIRECT_URL, req.getContextPath()));
 					onRedirectSaveFlash.run();
 					log.warn(cause.getMessage(), cause);
 				}
 			}
 			
 		} finally {
-			requestContextThreadLocal.remove();
 			log.debug("処理時間 {}ms [{}] {} {}", stopwatch.elapsed(TimeUnit.MILLISECONDS), req.getMethod(), 
-					DispatcherUtil.getFullUrl(req), Objects.toString(req.getAttribute(MESSAGE), ""));
+					DispatcherUtil.getFullUrl(req), $(MESSAGE, ""));
+			requestContextThreadLocal.remove();
 		}
 	}
 
