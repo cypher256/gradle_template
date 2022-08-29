@@ -27,8 +27,7 @@ public class ItemRestServlet extends HttpServlet {
 	protected void doGet(HttpServletRequest req, HttpServletResponse res) {
 		
 		String sql = """
-				SELECT COUNT(*) 
-				FROM item
+				SELECT COUNT(*) FROM item
 				WHERE 1 = 1
 					/*IF SF.isNotBlank(name)*/ 
 						AND name LIKE /*SF.contains(name)*/'Pro' escape /*#ESC_CHAR*/'$' 
@@ -40,7 +39,7 @@ public class ItemRestServlet extends HttpServlet {
 		
 		@Data
 		class SearchResult {
-			Item condition = new Item(req); // クライアントで件数以外は使用しないが json 返却サンプルのため
+			Item condition = new Item(req); // クライアントで件数以外は使用しないが json 返却例としてセット
 			int count = dao().queryWith(sql).paramBean(condition).one(int.class);
 		}
 		returns(new SearchResult());
@@ -52,6 +51,6 @@ public class ItemRestServlet extends HttpServlet {
 	 */
 	@Override @SneakyThrows
 	protected void doPost(HttpServletRequest req, HttpServletResponse res) {
-		new Item(req).validate(); // validate での例外スローは Ajax リクエストの場合、エラーメッセージ文字列が返却される
+		new Item(req).validate(); // 例外スローは Ajax リクエストの場合、エラーメッセージ文字列が返却される
 	}
 }
