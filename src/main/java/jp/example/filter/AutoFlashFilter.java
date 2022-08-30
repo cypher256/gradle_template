@@ -55,7 +55,7 @@ public class AutoFlashFilter extends HttpFilter {
 	/** リクエスト属性名: 画面に表示するメッセージ (サーブレットから自分でセット、エラー時は例外メッセージがセットされる) */
 	public static final String MESSAGE = "MESSAGE";
 	
-	/** リクエスト属性名: フラッシュスコープとして扱う Map<String, Object> */
+	/** リクエスト属性名: リダイレクト時にフラッシュスコープとして扱う Map<String, Object> */
 	public static final String FLASH = "FLASH";
 
 	/** セッション属性名: アプリエラー時のフォワード先パス (デフォルトは表示元、変更する場合はサーブレットでセット) */
