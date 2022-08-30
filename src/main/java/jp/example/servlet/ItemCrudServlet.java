@@ -21,10 +21,10 @@ import lombok.extern.slf4j.Slf4j;
  * 以下のメソッドをフィルタークラスから static インポートして使用できます。
  * 
  * 	$(name)			リクエスト、セッション、アプリケーションスコープから、最初に見つかった属性値を取得 (自動キャスト)
- * 	forward(jsp)	フォワードのショートカットメソッド (入力エラー時の戻り先として保存、自動 CSRF 埋め込み)
+ * 	forward(jsp)	フォワードのショートカットメソッド (入力エラー時の戻り先として保存、CSRF 兼同期トークン自動埋め込み)
  * 	redirect(url)	リダイレクトのショートカットメソッド (自動フラッシュ)
  * 	returns(obj)	REST API などの戻り値として Java オブジェクトを JSON 文字列などに変換してクライアントに返却
- *  dao()			トランザクション境界内の DAO 兼トランザクションマネージャー (例外スローでロールバック)
+ *  dao()			トランザクション境界内の DAO 兼トランザクションマネージャー (例外スローでロールバック、正常時はコミット)
  * </pre>
  * @author New Gradle Project Wizard (c) https://opensource.org/licenses/mit-license.php
  */

@@ -47,7 +47,7 @@ public class ItemRestServlet extends HttpServlet {
 	
 	/**
 	 * 登録、変更画面のリアルタイム入力チェック API です。<br>
-	 * (更新系ではないため post はふさわしくないがサンプルのため。post のためトークンもチェックされる。) 
+	 * (更新系ではないが post。post のためトークンもチェックされる。) 
 	 * 戻り値: text エラーメッセージ文字列 (エラーが無い場合は戻り値なし)
 	 */
 	@Override @SneakyThrows
