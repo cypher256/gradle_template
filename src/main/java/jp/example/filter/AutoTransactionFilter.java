@@ -1,6 +1,7 @@
 package jp.example.filter;
 
 import java.sql.DriverManager;
+import java.util.List;
 
 import javax.servlet.FilterChain;
 import javax.servlet.http.HttpFilter;
@@ -46,6 +47,7 @@ public class AutoTransactionFilter extends HttpFilter {
 	// Servlet フィルター処理
 	//-------------------------------------------------------------------------
 	
+	public static final String COMMIT_EXCEPTIONS = "AutoTransactionFilter_COMMIT_EXCEPTIONS";
 	protected static final ThreadLocal<SqlAgent> daoThreadLocal = new ThreadLocal<>();
 	protected SqlConfig daoConfig;
 	protected HikariDataSource dataSource;
@@ -83,9 +85,17 @@ public class AutoTransactionFilter extends HttpFilter {
 				daoThreadLocal.set(dao);
 				super.doFilter(req, res, chain); // Servlet 呼び出し
 				dao.commit();
+				
 			} catch (Throwable e) {
-				dao.rollback();
+				@SuppressWarnings("unchecked")
+				List<Class<?>> exs = (List<Class<?>>) getServletContext().getAttribute(COMMIT_EXCEPTIONS);
+				if (exs != null && exs.contains(e.getClass())) {
+					dao.commit();
+				} else {
+					dao.rollback();
+				}
 				throw e; // ロールバック以外の例外処理は呼び出し元のフィルターに任せる
+				
 			} finally {
 				daoThreadLocal.remove();
 			}

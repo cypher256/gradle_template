@@ -1,10 +1,10 @@
 package jp.example.filter;
 
-import static java.util.stream.Collectors.*;
+import static com.google.common.collect.Lists.*;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
-import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -13,6 +13,7 @@ import javax.servlet.FilterChain;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpFilter;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
@@ -29,9 +30,9 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * 自動フラッシュ属性とエラーを制御するフィルターです。
+ * 自動フラッシュスコープとエラーを制御するフィルターです。
  * <pre>
- * リダイレクト時に、リクエスト属性をセッション経由でリダイレクト先のリクエスト属性に自動転送します。
+ * リダイレクト時に、リクエストスコープ値をセッション経由でリダイレクト先のリクエストスコープに自動転送します。
  * アプリエラー時に自動フォワード、システムエラー時に自動リダイレクトします。
  * </pre>
  * 以下に、サーブレットで例外がスローされた場合の動作を示します。
@@ -54,6 +55,9 @@ public class AutoFlashFilter extends HttpFilter {
 	/** リクエスト属性名: 画面に表示するメッセージ (サーブレットから自分でセット、エラー時は例外メッセージがセットされる) */
 	public static final String MESSAGE = "MESSAGE";
 	
+	/** リクエスト属性名: フラッシュスコープとして扱う Map<String, Object> */
+	public static final String FLASH = "FLASH";
+
 	/** セッション属性名: アプリエラー時のフォワード先パス (デフォルトは表示元、変更する場合はサーブレットでセット) */
 	public static final String APP_ERROR_FORWARD_PATH = "APP_ERROR_FORWARD_PATH";
 	
@@ -62,7 +66,7 @@ public class AutoFlashFilter extends HttpFilter {
 	
 	/**
 	 * JSP EL の ${name} のようにリクエスト、セッション、アプリケーションスコープから、最初に見つかった属性値を取得します。
-	 * @param <T> 戻り値の型
+	 * @param <T> 戻り値の型 (代入先に型指定があればキャスト不要)
 	 * @param name 属性名
 	 * @return 属性値。見つからない場合は null。
 	 */
@@ -73,7 +77,7 @@ public class AutoFlashFilter extends HttpFilter {
 	
 	/**
 	 * JSP EL の ${name} のようにリクエスト、セッション、アプリケーションスコープから、最初に見つかった属性値を取得します。
-	 * @param <T> 戻り値と defaultValue の型
+	 * @param <T> 戻り値の型 (代入先に型指定があればキャスト不要)
 	 * @param name 属性名
 	 * @param defaultValue 値が見つからなかった場合のデフォルト値
 	 * @return 属性値。見つからない場合は defaultValue。
@@ -122,13 +126,15 @@ public class AutoFlashFilter extends HttpFilter {
 	 * リダイレクトします。
 	 * <pre>
 	 * 標準の res.sendRedirect(url) の代わりに使用します。
-	 * フラッシュ属性として引き継ぎたくない場合や、外部サイトへのリダイレクトは、標準の sendRedirect を使用してください。
-	 * このメソッドは、以下の処理を行います。
+	 * 外部サイトへのリダイレクトは、標準の sendRedirect を使用してください。このメソッドは、以下の処理を行います。
 	 * 
 	 * 1. 指定した redirectUrl (null の場合はコンテキストルート) にリダイレクトします。
 	 * 2. リダイレクト先 URL をセッション属性 SYS_ERROR_REDIRECT_URL に保存します (システムエラー時のリダイレクト先として使用)。
 	 * 3. 現在のリクエスト属性をフラッシュ属性としてセッションに保存します (リダイレクト後にリクエスト属性に復元)。
 	 * 4. 後続処理を飛ばすために、正常なレスポンスコミット済みを示す定数 SUCCESS_RESPONSE_COMMITTED をスローします。
+	 * 
+	 * フラッシュスコープの属性値は、このメソッド呼び出し前に下記で取得して、変更することができます。
+	 * 	  Map<String, Object> flash = $(FLASH);
 	 * </pre>
 	 * @param redirectUrl リダイレクト先 URL
 	 */
@@ -138,8 +144,9 @@ public class AutoFlashFilter extends HttpFilter {
 		String url = Objects.toString(redirectUrl, context.req.getContextPath());
 		log.debug("リダイレクト {}", url);
 		context.res.sendRedirect(url);
-		context.req.getSession().setAttribute(SYS_ERROR_REDIRECT_URL, url);
-		context.onRedirectSaveFlash.run();
+		HttpSession session = context.req.getSession();
+		session.setAttribute(SYS_ERROR_REDIRECT_URL, url);
+		session.setAttribute(FLASH, context.req.getAttribute(FLASH));
 		throw SUCCESS_RESPONSE_COMMITTED;
 	}
 	
@@ -167,15 +174,15 @@ public class AutoFlashFilter extends HttpFilter {
 	// Servlet フィルター処理
 	//-------------------------------------------------------------------------
 	
-	protected static final RuntimeException SUCCESS_RESPONSE_COMMITTED = new RuntimeException();
+	protected static class SuccessResponseCommitedException extends RuntimeException {};
+	protected static final RuntimeException SUCCESS_RESPONSE_COMMITTED = new SuccessResponseCommitedException();
 	protected static final ObjectMapper jsonMapper = new ObjectMapper();
 	protected static final ThreadLocal<RequestContext> requestContextThreadLocal = new ThreadLocal<>();
 	
 	/** ThreadLocal に保存するリクエストコンテキストレコード */
 	protected record RequestContext (
 		HttpServletRequest req,
-		HttpServletResponse res,
-		Runnable onRedirectSaveFlash
+		HttpServletResponse res
 	) {};
 
 	/** 共通エンコーディング設定 */
@@ -184,6 +191,7 @@ public class AutoFlashFilter extends HttpFilter {
 		ServletContext sc = getServletContext();
 		sc.setRequestCharacterEncoding(StandardCharsets.UTF_8.name()); // post getParameter エンコーディング
 		sc.setResponseCharacterEncoding(StandardCharsets.UTF_8.name()); // AJAX レスポンス
+		sc.setAttribute("AutoTransactionFilter_COMMIT_EXCEPTIONS", newArrayList(SuccessResponseCommitedException.class));
 	}
 	
 	@Override @SneakyThrows
@@ -196,28 +204,27 @@ public class AutoFlashFilter extends HttpFilter {
 			return;
 		}
 		
-		// リダイレクト先: フラッシュ属性をセッションからリクエスト属性に復元しセッションから削除
-		HttpSession session = req.getSession();
-		final String FLASH_ATTRIBUTE = "FLASH_ATTRIBUTE";
-		@SuppressWarnings("unchecked") var flashMap = (Map<String, Object>) session.getAttribute(FLASH_ATTRIBUTE);
-		if (flashMap != null) {
-			flashMap.forEach(req::setAttribute);
-			session.removeAttribute(FLASH_ATTRIBUTE);
-		}
-		
-		// リダイレクト元: redirect が呼ばれたときのリクエスト属性のセッション保存メソッド (このフィルターより前に保存されたものは除外)
-		List<String> systemAttributeNames = Collections.list(req.getAttributeNames()).stream().toList();
-		Runnable onRedirectSaveFlash = () -> {
-			req.getSession().setAttribute(FLASH_ATTRIBUTE, Collections.list(req.getAttributeNames()).stream()
-					.filter(name -> !systemAttributeNames.contains(name))
-					.collect(toMap(name -> name, req::getAttribute)));
-		};
-		
 		// リクエストのスレッドローカル設定と次のフィルター呼び出し
 		Stopwatch stopwatch = Stopwatch.createStarted();
+		HttpSession session = req.getSession();
 		try {
-			requestContextThreadLocal.set(new RequestContext(req, res, onRedirectSaveFlash));
-			super.doFilter(req, res, chain);
+			requestContextThreadLocal.set(new RequestContext(req, res));
+			
+			// フラッシュをセッションから復元
+			Map<String, Object> sessionFlash = $(FLASH, Collections.emptyMap());
+			sessionFlash.forEach(req::setAttribute);
+			session.removeAttribute(FLASH);
+			
+			// リクエスト属性追加時に、一時フラッシュに追加するリクエストラッパー作成 (redirect でセッションに移動)
+			Map<String, Object> tempFlash = new HashMap<>();
+			req.setAttribute(FLASH, tempFlash);
+			HttpServletRequest reqFlashWrapper = new HttpServletRequestWrapper(req) {
+				public void setAttribute(String name, Object o) {
+					super.setAttribute(name, o);
+					tempFlash.put(name, o);
+				};
+			};
+			super.doFilter(reqFlashWrapper, res, chain);
 			
 		// ルート例外の getMessage() をリクエスト属性 MESSAGE にセットして jsp や html から参照できるようにする
 		} catch (Throwable e) {
@@ -238,7 +245,7 @@ public class AutoFlashFilter extends HttpFilter {
 				// システムエラー (DB エラーなど)
 				} else {
 					res.sendRedirect($(SYS_ERROR_REDIRECT_URL, req.getContextPath()));
-					onRedirectSaveFlash.run();
+					session.setAttribute(FLASH, Map.of(MESSAGE, $(MESSAGE)));
 					log.warn(cause.getMessage(), cause);
 				}
 			}
