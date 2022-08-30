@@ -133,7 +133,7 @@ public class AutoFlashFilter extends HttpFilter {
 	 * 3. 現在のリクエスト属性をフラッシュ属性としてセッションに保存します (リダイレクト後にリクエスト属性に復元)。
 	 * 4. 後続処理を飛ばすために、正常なレスポンスコミット済みを示す定数 SUCCESS_RESPONSE_COMMITTED をスローします。
 	 * 
-	 * フラッシュスコープの属性値は、このメソッド呼び出し前に下記で取得して、変更することができます。
+	 * リダイレクト先に引き継ぐフラッシュスコープの内容は、このメソッド呼び出し前に下記で取得して、変更することができます。
 	 * 	  Map<String, Object> flash = $(FLASH);
 	 * </pre>
 	 * @param redirectUrl リダイレクト先 URL
