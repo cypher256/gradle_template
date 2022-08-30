@@ -156,7 +156,7 @@ public class AutoFlashFilter extends HttpFilter {
 	 * 1. 引数の型が CharSequence の場合は文字列、それ以外の場合は json 文字列に変換し、レスポンスに書き込みます。
 	 * 2. 後続処理を飛ばすために、正常なレスポンスコミット済みを示す定数 SUCCESS_RESPONSE_COMMITTED をスローします。
 	 * </pre>
-	 * @param resObject 返却オブジェクト
+	 * @param resObject 返却する Java オブジェクト
 	 */
 	@SneakyThrows
 	public static void returns(Object resObject) {
