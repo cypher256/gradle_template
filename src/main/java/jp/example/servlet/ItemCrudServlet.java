@@ -24,7 +24,7 @@ import lombok.extern.slf4j.Slf4j;
  * 	forward(jsp)	フォワードのショートカットメソッド (入力エラー時の戻り先として保存、CSRF 兼同期トークン自動埋め込み)
  * 	redirect(url)	リダイレクトのショートカットメソッド (自動フラッシュスコープ)
  * 	returns(obj)	REST API などの戻り値として Java オブジェクトを JSON 文字列などに変換してクライアントに返却
- *  dao()			トランザクション境界内の DAO 兼トランザクションマネージャー (例外スローでロールバック、正常時はコミット)
+ *  dao()			汎用 DAO トランザクションマネージャー取得 (例外スローでロールバック、正常時はコミット)
  * </pre>
  * @author New Gradle Project Wizard (c) https://opensource.org/licenses/mit-license.php
  */
@@ -45,7 +45,7 @@ public class ItemCrudServlet extends HttpServlet {
 						AND name LIKE /*SF.contains(name)*/'Pro' escape /*#ESC_CHAR*/'$' 
 					/*END*/
 					/*IF SF.isNotBlank(releaseDate)*/ 
-						AND release_date = /*releaseDate*/'2023-09-11'
+						AND release_date = /*releaseDate*/'2022-09-11'
 					/*END*/
 			""";
 		
