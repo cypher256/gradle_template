@@ -19,7 +19,7 @@ import lombok.SneakyThrows;
 /**
  * 自動トランザクションフィルターです。
  * <pre>
- * データベースの初期データロード、トランザクションの開始・終了を制御します。
+ * データベースの初期データロード、トランザクションを制御します。
  * </pre>
  * @author New Gradle Project Wizard (c) https://opensource.org/licenses/mit-license.php
  */
