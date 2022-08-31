@@ -66,7 +66,7 @@ public class AutoFlashFilter extends HttpFilter {
 	
 	/**
 	 * JSP EL の ${name} のようにリクエスト、セッション、アプリケーションスコープから、最初に見つかった属性値を取得します。
-	 * @param <T> 戻り値の型 (代入先に型指定があればキャスト不要)
+	 * @param <T> 戻り値の型 (代入先があればキャスト不要)
 	 * @param name 属性名
 	 * @return 属性値。見つからない場合は null。
 	 */
@@ -77,7 +77,7 @@ public class AutoFlashFilter extends HttpFilter {
 	
 	/**
 	 * JSP EL の ${name} のようにリクエスト、セッション、アプリケーションスコープから、最初に見つかった属性値を取得します。
-	 * @param <T> 戻り値の型 (代入先に型指定があればキャスト不要)
+	 * @param <T> 戻り値の型 (代入先があればキャスト不要)
 	 * @param name 属性名
 	 * @param defaultValue 値が見つからなかった場合のデフォルト値
 	 * @return 属性値。見つからない場合は defaultValue。
@@ -191,7 +191,7 @@ public class AutoFlashFilter extends HttpFilter {
 		ServletContext sc = getServletContext();
 		sc.setRequestCharacterEncoding(StandardCharsets.UTF_8.name()); // post getParameter エンコーディング
 		sc.setResponseCharacterEncoding(StandardCharsets.UTF_8.name()); // AJAX レスポンス
-		sc.setAttribute("AutoTransactionFilter_COMMIT_EXCEPTIONS", newArrayList(SuccessResponseCommitedException.class));
+		sc.setAttribute("NO_ROLLBACK_EXCEPTION_CLASS_LIST", newArrayList(SuccessResponseCommitedException.class));
 	}
 	
 	@Override @SneakyThrows

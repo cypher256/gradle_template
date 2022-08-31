@@ -30,14 +30,14 @@ public class AutoTransactionFilter extends HttpFilter {
 	//-------------------------------------------------------------------------
 
 	/**
-	 * uroboroSQL DAO インスタンスを取得します。
+	 * DAO トランザクションマネージャーを取得します。
 	 * <pre>
 	 * 自動採番の主キーを持つテーブルは、id などのエンティティに関するアノテーションは不要です。
 	 * スネークケース、キャメルケースは自動変換されます。ただし、バインドパラメータ名は変換されません。
 	 * <a href="https://future-architect.github.io/uroborosql-doc/why_uroborosql/"
 	 * >GitHub: uroboroSQL (ウロボロスキュール)</a>
 	 * </pre>
-	 * @return トランザクション境界内の DAO 兼トランザクションマネージャー
+	 * @return SqlAgent
 	 */
 	public static SqlAgent dao() {
 		return daoThreadLocal.get();
@@ -47,7 +47,6 @@ public class AutoTransactionFilter extends HttpFilter {
 	// Servlet フィルター処理
 	//-------------------------------------------------------------------------
 	
-	public static final String COMMIT_EXCEPTIONS = "AutoTransactionFilter_COMMIT_EXCEPTIONS";
 	protected static final ThreadLocal<SqlAgent> daoThreadLocal = new ThreadLocal<>();
 	protected SqlConfig daoConfig;
 	protected HikariDataSource dataSource;
@@ -79,7 +78,7 @@ public class AutoTransactionFilter extends HttpFilter {
 			return;
 		}
 		
-		// トランザクション境界ブロック
+		// トランザクションブロック
 		try (SqlAgent dao = daoConfig.agent()) {
 			try {
 				daoThreadLocal.set(dao);
@@ -87,14 +86,13 @@ public class AutoTransactionFilter extends HttpFilter {
 				dao.commit();
 				
 			} catch (Throwable e) {
-				@SuppressWarnings("unchecked")
-				List<Class<?>> exs = (List<Class<?>>) getServletContext().getAttribute(COMMIT_EXCEPTIONS);
-				if (exs != null && exs.contains(e.getClass())) {
+				List<?> eClassList = (List<?>) getServletContext().getAttribute("NO_ROLLBACK_EXCEPTION_CLASS_LIST");
+				if (eClassList != null && eClassList.contains(e.getClass())) {
 					dao.commit();
 				} else {
 					dao.rollback();
 				}
-				throw e; // ロールバック以外の例外処理は呼び出し元のフィルターに任せる
+				throw e;
 				
 			} finally {
 				daoThreadLocal.remove();

@@ -21,7 +21,7 @@ public class ItemRestServlet extends HttpServlet {
 	
 	/** 
 	 * 検索画面でのリアルタイム検索結果件数取得 API です。<br>
-	 * 戻り値: json 結果件数情報
+	 * 戻り値: json 結果件数情報 (例外発生時は text エラーメッセージ文字列)
 	 */
 	@Override @SneakyThrows
 	protected void doGet(HttpServletRequest req, HttpServletResponse res) {
