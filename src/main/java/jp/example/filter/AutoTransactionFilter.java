@@ -1,5 +1,8 @@
 package jp.example.filter;
 
+import static com.pivovarit.function.ThrowingConsumer.*;
+import static java.util.Collections.*;
+
 import java.sql.DriverManager;
 import java.util.List;
 
@@ -30,7 +33,7 @@ public class AutoTransactionFilter extends HttpFilter {
 	//-------------------------------------------------------------------------
 
 	/**
-	 * DAO トランザクションマネージャーを取得します。
+	 * 汎用 DAO トランザクションマネージャーを取得します。
 	 * <pre>
 	 * 自動採番の主キーを持つテーブルは、id などのエンティティに関するアノテーションは不要です。
 	 * スネークケース、キャメルケースは自動変換されます。ただし、バインドパラメータ名は変換されません。
@@ -65,7 +68,7 @@ public class AutoTransactionFilter extends HttpFilter {
 	@Override @SneakyThrows
 	public void destroy() {
 		dataSource.close();
-		DriverManager.deregisterDriver(DriverManager.getDrivers().nextElement()); // Tomcat 警告抑止
+		list(DriverManager.getDrivers()).forEach(sneaky(DriverManager::deregisterDriver)); // Tomcat 警告抑止
 	}
 	
 	/** トランザクション開始、コミット、ロールバック */
@@ -78,7 +81,7 @@ public class AutoTransactionFilter extends HttpFilter {
 			return;
 		}
 		
-		// トランザクションブロック
+		// トランザクション制御ブロック
 		try (SqlAgent dao = daoConfig.agent()) {
 			try {
 				daoThreadLocal.set(dao);
@@ -88,7 +91,7 @@ public class AutoTransactionFilter extends HttpFilter {
 			} catch (Throwable e) {
 				List<?> eClassList = (List<?>) getServletContext().getAttribute("NO_ROLLBACK_EXCEPTION_CLASS_LIST");
 				if (eClassList != null && eClassList.contains(e.getClass())) {
-					dao.commit();
+					dao.commit(); // Spring の noRollbackFor と同様の機能
 				} else {
 					dao.rollback();
 				}

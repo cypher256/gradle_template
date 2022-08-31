@@ -24,12 +24,12 @@ import lombok.SneakyThrows;
  * <pre>
  * web.xml の dispatcher 要素に REQUEST, FORWARD を指定する必要があります。
  * タグなどの指定無しで、jsp だけでなく html にも hidden、meta に CSTF 兼同期トークンを自動埋め込み。Cookie にもセットされます。
- * 画面遷移ごと (AJAX アクセス除く) にトークンが新しく生成されるため、同期トークンとして使用できます。
+ * 画面遷移ごと (AJAX アクセス除く) にトークンが新しく生成されるため、同期トークンとしても機能します。
  * </pre>
  * クライアントでのトークン手動操作
  * <pre>
  * form サブミット、form 内容の JavaScript 送信、Angular、axios の場合は、自動的にリクエストに含まれるため、何もする必要はありません。
- * JavaScript で手動で設定する場合は、下記のいずれかで取得し、post リクエストヘッダー X-XSRF-TOKEN にセットする必要があります。
+ * JavaScript で手動で設定する場合は、下記のいずれかで取得し、post リクエストヘッダーの X-XSRF-TOKEN にセットする必要があります。
  * 
  *     // form の hidden から取得 (method="post" の form がある画面のみ)
  *     document.forms[0]._csrf.value
@@ -68,7 +68,7 @@ public class AutoCsrfFilter extends HttpFilter {
 				res.sendError(HttpServletResponse.SC_FORBIDDEN);
 			} else {
 				// トップへリダイレクト (AutoFlashFilter で使えるフラッシュ属性 MESSAGE をセットしておく)
-				req.getSession().setAttribute("FLASH_ATTRIBUTE", Map.of("MESSAGE", "セッションが切れました。"));
+				req.getSession().setAttribute("FLASH", Map.of("MESSAGE", "セッションが切れました。"));
 				res.sendRedirect(req.getContextPath());
 				// 同期トークンチェックとしても機能する (ただし、意図的に bfcache 無効化により、戻るボタンからの送信は正常に機能する) ため、
 				// 二重送信やリロード多重送信も検出できるが、事後検出ではユーザビリティが悪いため、事前に
