@@ -33,7 +33,7 @@ public class ItemRestServlet extends HttpServlet {
 						AND name LIKE /*SF.contains(name)*/'Pro' escape /*#ESC_CHAR*/'$' 
 					/*END*/
 					/*IF SF.isNotBlank(releaseDate)*/ 
-						AND release_date = /*releaseDate*/'2022-09-11'
+						AND release_date = /*releaseDate*/'2023-09-11'
 					/*END*/
 			""";
 		
