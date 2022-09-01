@@ -56,7 +56,7 @@ public class AutoCsrfFilter extends HttpFilter {
 		
 		// css js などを除外 (html や jsp は除外しない)
 		String uri = req.getRequestURI();
-		boolean isHtml = uri.matches(".+\\.(jsp.?|html)"); // .jsp は FORWARD 時
+		boolean isHtml = uri.matches(".+\\.(jsp|html)"); // .jsp は FORWARD 時
 		if (!isHtml && uri.contains(".")) {
 			super.doFilter(req, res, chain);
 			return;

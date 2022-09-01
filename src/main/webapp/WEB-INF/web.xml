@@ -69,6 +69,7 @@
 
 	<!-- 
 	Apache Shiro ログイン認証フィルター (設定は /WEB-INF/shiro.ini)
+	login.html と設定ファイルのみで認証機構を実現
 	https://shiro.apache.org/webapp-tutorial.html
 	https://shiro.apache.org/web.html
 	-->
@@ -125,7 +126,7 @@
 			<url-pattern>*.jsp</url-pattern>
 			<url-pattern>*.html</url-pattern><!-- login.html も JSP 構文を使用可能にする -->
 			<page-encoding>UTF-8</page-encoding>
-			<include-prelude>/WEB-INF/jsp/taglib.jsp</include-prelude>
+			<include-prelude>/WEB-INF/jsp/taglib.jspf</include-prelude>
 			<trim-directive-whitespaces>true</trim-directive-whitespaces>
 		</jsp-property-group>
 	</jsp-config>

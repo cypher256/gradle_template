@@ -91,7 +91,7 @@ public class AutoTransactionFilter extends HttpFilter {
 			} catch (Throwable e) {
 				List<?> eClassList = (List<?>) getServletContext().getAttribute("NO_ROLLBACK_EXCEPTION_CLASS_LIST");
 				if (eClassList != null && eClassList.contains(e.getClass())) {
-					dao.commit(); // Spring の noRollbackFor と同様の機能
+					dao.commit(); // 例外でもコミットする例外クラス (Spring の noRollbackFor と同様の機能)
 				} else {
 					dao.rollback();
 				}

@@ -16,7 +16,7 @@
 <blockquote id="_message">${fn:escapeXml(MESSAGE)}</blockquote>
 <form id="_form" method="get">
 	<p><label>製品名</label>
-		<input type="text" name="name" value="${fn:escapeXml(param.name)}"
+		<input type="search" name="name" value="${fn:escapeXml(param.name)}"
 			onkeyup="count()" autofocus onfocus="this.setSelectionRange(99,99)"></p>
 	<p><label>発売日</label>
 		<input type="date" name="releaseDate" value="${fn:escapeXml(param.releaseDate)}"
