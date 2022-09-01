@@ -251,8 +251,8 @@ public class AutoFlashFilter extends HttpFilter {
 			}
 			
 		} finally {
-			log.debug("処理時間 {}ms [{}] {} {}", stopwatch.elapsed(TimeUnit.MILLISECONDS), req.getMethod(), 
-					DispatcherUtil.getFullUrl(req), $(MESSAGE, ""));
+			long time = stopwatch.elapsed(TimeUnit.MILLISECONDS);
+			log.debug("処理時間 {}ms [{}] {} {}", time, req.getMethod(), DispatcherUtil.getFullUrl(req), $(MESSAGE, ""));
 			requestContextThreadLocal.remove();
 		}
 	}
