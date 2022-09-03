@@ -22,9 +22,10 @@ import lombok.SneakyThrows;
 /**
  * 自動 CSRF フィルターです。
  * <pre>
- * web.xml の dispatcher 要素に REQUEST, FORWARD を指定する必要があります。
- * タグなどの指定無しで、jsp だけでなく html にも hidden、meta に CSTF 兼同期トークンを自動埋め込み。Cookie にもセットされます。
+ * UUID.randomUUID() を使用した一般的な CSRF 実装です。
+ * このフィルターでは特別なタグ指定なしで自動的に jsp と html に meta や hidden を埋め込み、Cookie にもセットします。
  * 画面遷移ごと (AJAX アクセス除く) にトークンが新しく生成されるため、同期トークンとしても機能します。
+ * web.xml の dispatcher 要素に REQUEST, FORWARD を指定する必要があります。
  * </pre>
  * クライアントでのトークン手動操作
  * <pre>

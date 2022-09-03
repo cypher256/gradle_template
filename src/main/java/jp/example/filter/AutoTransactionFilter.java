@@ -22,7 +22,8 @@ import lombok.SneakyThrows;
 /**
  * 自動トランザクションフィルターです。
  * <pre>
- * データベースの初期データロード、トランザクションを制御します。
+ * データベーストランザクションの一般的なテンプレート実装です。
+ * このフィルターでは uroboroSQL を使用して、データベースの初期データロード、トランザクションを制御します。
  * </pre>
  * @author New Gradle Project Wizard (c) https://opensource.org/licenses/mit-license.php
  */
