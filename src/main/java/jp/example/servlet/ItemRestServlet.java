@@ -14,13 +14,16 @@ import lombok.SneakyThrows;
 
 /**
  * Servlet REST Servlet サンプルクラスです。
+ * <pre>
+ * キーイベントによる AJAX リアルタイム通信のサンプルです。
+ * </pre>
  * @author New Gradle Project Wizard (c) https://opensource.org/licenses/mit-license.php
  */
 @WebServlet("/api")
 public class ItemRestServlet extends HttpServlet {
 	
 	/** 
-	 * 検索画面でのリアルタイム検索結果件数取得 API です。<br>
+	 * 検索画面の検索文字列 onkeyup 時の検索結果件数取得 API です。<br>
 	 * 戻り値: json 結果件数情報 (例外発生時は text エラーメッセージ文字列)
 	 */
 	@Override @SneakyThrows
@@ -46,7 +49,7 @@ public class ItemRestServlet extends HttpServlet {
 	}
 	
 	/**
-	 * 登録、変更画面のリアルタイム入力チェック API です。<br>
+	 * 登録、変更画面の onkeyup、onchange 時の入力チェック API です。<br>
 	 * (更新系ではないが post。post のためトークンもチェックされる。) 
 	 * 戻り値: text エラーメッセージ文字列 (エラーが無い場合は戻り値なし)
 	 */

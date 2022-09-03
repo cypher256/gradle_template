@@ -16,15 +16,25 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Servlet JSP CRUD Servlet サンプルクラスです。
+ * Servlet JSP CRUD Servlet クラスです。
  * <pre>
- * 以下のメソッドをフィルタークラスから static インポートして使用できます。
+ * よくある検索一覧、登録、修正、削除画面のサンプル。
+ * IllegalStateException をスローすると、アプリエラーとしてリクエスト属性 MESSAGE にセットされ、表示中のページにフォワードされます。
+ * 以下のフィルタークラスの static メソッドを static インポートして使用できます。
+ * forward、redirect、returns は条件分岐で呼び分ける場合でも、Servlet 内の処理はそこで終了するため、return 不要です。
  * 
- * 	$(name)			JSP EL のようにリクエスト、セッション、アプリケーションスコープから、最初に見つかった属性値を取得 (キャスト不要)
- * 	forward(jsp)	フォワードのショートカットメソッド (入力エラー時の戻り先として保存、CSRF 兼同期トークン自動埋め込み)
- * 	redirect(url)	リダイレクトのショートカットメソッド (自動フラッシュスコープ)
- * 	returns(obj)	REST API などの戻り値として Java オブジェクトを JSON 文字列などに変換してクライアントに返却
- *  dao()			汎用 DAO トランザクションマネージャー取得 (例外スローでロールバック、正常時はコミット)
+ * AutoFlashFilter
+ *  
+ *   $(name)        JSP EL のようにリクエスト、セッション、アプリケーションスコープから、最初に見つかった属性値を取得 (キャスト不要)
+ *   forward(jsp)   フォワードのショートカットメソッド (入力エラー時の戻り先として保存、CSRF 兼同期トークン自動埋め込み)
+ *   redirect(url)  リダイレクトのショートカットメソッド (自動フラッシュスコープ)
+ *   returns(obj)   REST API などの戻り値として Java オブジェクトを JSON 文字列などに変換してクライアントに返却
+ *   valid(〜)      条件とエラーメッセージを指定して、アプリエラー IllegalStateException をスローするためのショートカットメソッド
+ * 
+ * AutoTransactionFilter
+ *  
+ *   dao()          汎用 DAO トランザクションマネージャー取得 (正常時は自動コミット、ロールバックしたい場合は例外スロー)
+ *   
  * </pre>
  * @author New Gradle Project Wizard (c) https://opensource.org/licenses/mit-license.php
  */

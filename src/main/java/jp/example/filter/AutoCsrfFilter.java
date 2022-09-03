@@ -29,8 +29,10 @@ import lombok.SneakyThrows;
  * </pre>
  * クライアントでのトークン手動操作
  * <pre>
- * form サブミット、form 内容の JavaScript 送信、Angular、axios の場合は、自動的にリクエストに含まれるため、何もする必要はありません。
- * JavaScript で手動で設定する場合は、下記のいずれかで取得し、post リクエストヘッダーの X-XSRF-TOKEN にセットする必要があります。
+ * 通常は Servlet や JSP で何もする必要はありません。
+ * form サブミット、form 内容の JavaScript 送信、Angular、axios の場合は、自動的にリクエストに含まれます。
+ * 自動 CSRF 送信をサポートしないプレーンな JavaScript などで手動設定する場合は、下記のいずれかで取得し、
+ * post リクエストヘッダーの X-XSRF-TOKEN にセットする必要があります。
  * 
  *     // form の hidden から取得 (method="post" の form がある画面のみ)
  *     document.forms[0]._csrf.value
@@ -39,8 +41,8 @@ import lombok.SneakyThrows;
  *     // Cookie から取得する場合 (すべての画面)
  *     document.cookie.split('; ').find(e => e.startsWith('XSRF-TOKEN')).split('=')[1]
  * 
- * アップロード用の multipart post form の場合は、hidden が getParameter で取得できないため、action 属性にクエリー文字列として
- * 指定する必要があります。リクエストパラメーター名は _csrf とし、値は ${_csrf} で取得できまます。
+ * また、アップロード用の multipart post form の場合は、hidden が getParameter で取得できないため、action 属性に
+ * クエリー文字列として指定する必要があります。リクエストパラメーター名は _csrf とし、値は ${_csrf} で取得できまます。
  * 
  *     form タグ
  *     action="/upload?_csrf=${_csrf}" method="post" enctype="multipart/form-data"

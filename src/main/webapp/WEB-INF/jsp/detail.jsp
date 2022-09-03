@@ -16,15 +16,21 @@
 <blockquote id="_message">${fn:escapeXml(MESSAGE)}</blockquote>
 <form id="_form" method="post" onsubmit="_submitButton.disabled = true"><%-- 二度押し防止 --%>
 	<input type="hidden" name="id" value="${item.id}"/>
-	<p><label>製品名 <mark>必須</mark></label>
+	<p>
+		<label>製品名 <mark>必須</mark></label>
 		<input type="text" name="name" value="${fn:escapeXml(item.name)}"
-			onkeyup="validate()" required autofocus onfocus="this.setSelectionRange(99,99)" size="40"></p>
-	<p><label>発売日</label>
+			onkeyup="validate()" required autofocus onfocus="this.setSelectionRange(99,99)" size="40">
+	</p>
+	<p>
+		<label>発売日</label>
 		<input type="date" name="releaseDate" value="${fn:escapeXml(item.releaseDate)}"
-			onchange="validate()"></p>
-	<p><label>顔認証</label>
+			onchange="validate()">
+	</p>
+	<p>
+		<label>顔認証</label>
 		<input type="checkbox" name="faceAuth" ${item.faceAuth ? 'checked' : ''}
-			onchange="validate()"></p>
+			onchange="validate()">
+	</p>
 	<button type="button" onclick="location.href='${searchUrl == null ? '.' : searchUrl}'">戻る</button>
 	<input id="_submitButton" type="submit" value=
 		${empty item || item.id == 0

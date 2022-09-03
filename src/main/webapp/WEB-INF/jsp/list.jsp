@@ -15,12 +15,16 @@
 <aside><p><shiro:principal/><br><a href="logout">ログアウト</a></p></aside>
 <blockquote id="_message">${fn:escapeXml(MESSAGE)}</blockquote>
 <form id="_form" method="get">
-	<p><label>製品名</label>
+	<p>
+		<label>製品名</label>
 		<input type="search" name="name" value="${fn:escapeXml(param.name)}"
-			onkeyup="count()" autofocus onfocus="this.setSelectionRange(99,99)"></p>
-	<p><label>発売日</label>
+			onkeyup="count()" autofocus onfocus="this.setSelectionRange(99,99)">
+	</p>
+	<p>
+		<label>発売日</label>
 		<input type="date" name="releaseDate" value="${fn:escapeXml(param.releaseDate)}"
-			onchange="count()"></p>
+			onchange="count()">
+	</p>
 	<button formaction=".">検索</button>
 	<button formaction="create">新規登録</button>
 </form>
