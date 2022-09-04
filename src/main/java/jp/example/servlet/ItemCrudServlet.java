@@ -83,7 +83,7 @@ public class ItemCrudServlet {
 		/** 登録画面の登録ボタン → 一覧画面へリダイレクト (PRG パターン: リロードによる二重登録抑止) */
 		@Override @SneakyThrows
 		protected void doPost(HttpServletRequest req, HttpServletResponse res) {
-			dao().insert(new Item(req).validate()); // 例外がスローされるとリクエスト属性 MESSAGE にセットされる
+			dao().insert(new Item(req).validate()); // 例外がスローされると AutoFlashFilter でリクエスト属性 MESSAGE セット
 			req.setAttribute(MESSAGE, "登録しました。");
 			redirect($("listUrl"));
 		}
@@ -104,7 +104,7 @@ public class ItemCrudServlet {
 		/** 変更画面の更新ボタン → 一覧画面へリダイレクト (PRG パターン: リロードによる二回更新抑止) */
 		@Override @SneakyThrows
 		protected void doPost(HttpServletRequest req, HttpServletResponse res) {
-			dao().update(new Item(req).validate()); // 例外がスローされるとリクエスト属性 MESSAGE にセットされる
+			dao().update(new Item(req).validate()); // 例外がスローされると AutoFlashFilter でリクエスト属性 MESSAGE セット
 			req.setAttribute(MESSAGE, "更新しました。");
 			redirect($("listUrl"));
 		}

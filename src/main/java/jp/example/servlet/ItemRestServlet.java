@@ -55,6 +55,6 @@ public class ItemRestServlet extends HttpServlet {
 	 */
 	@Override @SneakyThrows
 	protected void doPost(HttpServletRequest req, HttpServletResponse res) {
-		new Item(req).validate(); // 例外スローは Ajax リクエストの場合、エラーメッセージ文字列が返却される
+		new Item(req).validate(); // 入力エラー時は例外がスローされ AutoFlashFilter でエラーメッセージ文字列が返却される
 	}
 }

@@ -2,6 +2,19 @@
 Servlet JSP CRUD プロジェクトサンプルビルド定義
 ---------------------------------------------------------------------------------
 
+プロジェクト概要
+
+	Servlet JSP を使用したログイン、DB アクセス、REST API のサンプルです。
+	サンプル CRUD Servlet			src/main/java/jp/example/servlet/ItemCrudServlet.java
+	サンプル REST API Servlet		src/main/java/jp/example/servlet/ItemRestServlet.java
+
+Eclipse からの実行方法
+	
+	プロジェクト右クリック > 実行 > サーバーで実行 
+		> サーバー > ツリーの localhost 開く > Tomcat9_Java17
+		> このプロジェクトを実行するときは常にこのサーバーを使用 ON
+		> 完了
+
 構成要素
 
 	実行環境		Java 17, Tomcat 9 (Servlet 4.0 javax.servlet)、Lombok
@@ -10,13 +23,6 @@ Servlet JSP CRUD プロジェクトサンプルビルド定義
 	ログ管理		SLF4J			src/main/resources/simplelogger.properties
 	認証制御		Apache Shiro	src/main/webapp/WEB-INF/shiro.ini
 	セキュリティ	CSRF, CORS,,,	src/main/webapp/WEB-INF/web.xml
-
-Eclipse から初回実行
-	
-	プロジェクト右クリック > 実行 > サーバーで実行 
-		> サーバー > ツリーの localhost 開く > Tomcat9_Java17
-		> このプロジェクトを実行するときは常にこのサーバーを使用 ON
-		> 完了
 	
 ------------------------------------------------------------------------------ */
 plugins {
