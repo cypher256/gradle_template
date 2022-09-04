@@ -108,9 +108,9 @@ public class AutoFlashFilter extends HttpFilter {
 	 * 
 	 * 1. /WEB-INF/jsp をルートとし、先頭がスラッシュの場合は絶対パス、そうでない場合はサーブレットパスの相対パスにフォワード。
 	 * 
-	 *   サーブレットパス   引数の jspPath     使用される JSP
-	 *   /item/list      /item/list.jsp    /WEB-INF/jsp/item/list.jsp
+	 *   サーブレットパス   引数の jspPath     RequestDispatcher#forward に渡すパス
 	 *   /item/list      list.jsp          /WEB-INF/jsp/item/list.jsp
+	 *   /item/list      /item/list.jsp    /WEB-INF/jsp/item/list.jsp
 	 *   /item/list      /index.jsp        /WEB-INF/jsp/index.jsp
 	 *   /item/list      ../index.jsp      /WEB-INF/jsp/index.jsp
 	 *   /item/list      ../other/a.jsp    /WEB-INF/jsp/other/a.jsp
