@@ -7,6 +7,7 @@ Servlet JSP CRUD プロジェクトサンプルビルド定義
 	Servlet JSP を使用したログイン、DB アクセス、REST API のサンプルです。
 	サンプル CRUD Servlet			src/main/java/jp/example/servlet/ItemCrudServlet.java
 	サンプル REST API Servlet		src/main/java/jp/example/servlet/ItemRestServlet.java
+	データベース初期データ			src/main/resources/sql/create_table.sql
 
 Eclipse からの実行方法
 	
