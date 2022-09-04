@@ -19,7 +19,7 @@ import lombok.SneakyThrows;
  * </pre>
  * @author New Gradle Project Wizard (c) https://opensource.org/licenses/mit-license.php
  */
-@WebServlet("/api")
+@WebServlet("/item/api")
 public class ItemRestServlet extends HttpServlet {
 	
 	/** 

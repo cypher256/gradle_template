@@ -16,9 +16,9 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Servlet JSP CRUD Servlet クラスです。
+ * Servlet JSP CRUD Servlet 定義クラスです。
  * <pre>
- * よくある検索一覧、登録、修正、削除画面のサンプル。
+ * 検索一覧、登録、修正、削除画面のシンプルな入力パターンサンプル。
  * IllegalStateException をスローすると、アプリエラーとしてリクエスト属性 MESSAGE にセットされ、表示中のページにフォワードされます。
  * 以下のフィルタークラスの static メソッドを static インポートして使用できます。
  * forward、redirect、returns は条件分岐で呼び分ける場合でも、Servlet 内の処理はそこで終了するため、return 不要です。
@@ -27,7 +27,7 @@ import lombok.extern.slf4j.Slf4j;
  *  
  *   $(name)        JSP EL のようにリクエスト、セッション、アプリケーションスコープから、最初に見つかった属性値を取得 (キャスト不要)
  *   forward(jsp)   フォワードのショートカットメソッド (入力エラー時の戻り先として保存、CSRF 兼同期トークン自動埋め込み)
- *   redirect(url)  リダイレクトのショートカットメソッド (自動フラッシュスコープ対応)
+ *   redirect(url)  リダイレクトのショートカットメソッド (自動フラッシュにより、リダイレクト先でリクエスト属性がそのまま使用可能)
  *   returns(obj)   REST API などの戻り値として Java オブジェクトを JSON 文字列などに変換してクライアントに返却
  *   valid(〜)      条件とエラーメッセージを指定して、アプリエラー IllegalStateException をスローするためのショートカットメソッド
  * 
@@ -38,36 +38,40 @@ import lombok.extern.slf4j.Slf4j;
  * </pre>
  * @author New Gradle Project Wizard (c) https://opensource.org/licenses/mit-license.php
  */
-@WebServlet("")
 @Slf4j
-public class ItemCrudServlet extends HttpServlet {
-	
-	/** CRUD の R: Read 検索一覧表示 */
-	@Override @SneakyThrows
-	protected void doGet(HttpServletRequest req, HttpServletResponse res) {
-		
-		 // 検索 SQL (2WaySQL OGNL)
-		 // https://future-architect.github.io/uroborosql-doc/background/#条件分岐-if-elif-else-end
-		String sql = """
-				SELECT * FROM item
-				WHERE 1 = 1
-					/*IF SF.isNotBlank(name)*/ 
-						AND name LIKE /*SF.contains(name)*/'Pro' escape /*#ESC_CHAR*/'$' 
-					/*END*/
-					/*IF SF.isNotBlank(releaseDate)*/ 
-						AND release_date = /*releaseDate*/'2022-09-11'
-					/*END*/
-			""";
-		
-		List<Item> list = dao().queryWith(sql).paramBean(new Item(req)).collect(Item.class);
-		log.debug("SELECT 結果: {} 件 - {}", list.size(), list.stream().findFirst().orElse(null));
-		req.setAttribute("itemList", list);
-		req.getSession().setAttribute("searchUrl", DispatcherUtil.getFullUrl(req));
-		forward("list.jsp");
-	}
+public class ItemCrudServlet {
 
+	/** CRUD の R: Read 検索 Servlet */
+	@WebServlet("/item/list")
+	public static class ListServlet extends HttpServlet {
+		
+		/** 検索一覧画面の表示 */
+		@Override @SneakyThrows
+		protected void doGet(HttpServletRequest req, HttpServletResponse res) {
+			
+			 // 検索 SQL (2WaySQL OGNL)
+			 // https://future-architect.github.io/uroborosql-doc/background/#条件分岐-if-elif-else-end
+			String sql = """
+					SELECT * FROM item
+					WHERE 1 = 1
+						/*IF SF.isNotBlank(name)*/ 
+							AND name LIKE /*SF.contains(name)*/'Pro' escape /*#ESC_CHAR*/'$' 
+						/*END*/
+						/*IF SF.isNotBlank(releaseDate)*/ 
+							AND release_date = /*releaseDate*/'2022-09-11'
+						/*END*/
+				""";
+			
+			List<Item> list = dao().queryWith(sql).paramBean(new Item(req)).collect(Item.class);
+			log.debug("SELECT 結果: {} 件 - {}", list.size(), list.stream().findFirst().orElse(null));
+			req.setAttribute("itemList", list);
+			req.getSession().setAttribute("listUrl", DispatcherUtil.getFullUrl(req));
+			forward("list.jsp");
+		}
+	}
+	
 	/** CRUD の C: Create 登録 Servlet */
-	@WebServlet("/create")
+	@WebServlet("/item/create")
 	public static class CreateServlet extends HttpServlet {
 		
 		/** 一覧画面の新規登録ボタン → 登録画面の表示 */
@@ -81,12 +85,12 @@ public class ItemCrudServlet extends HttpServlet {
 		protected void doPost(HttpServletRequest req, HttpServletResponse res) {
 			dao().insert(new Item(req).validate()); // 例外がスローされるとリクエスト属性 MESSAGE にセットされる
 			req.setAttribute(MESSAGE, "登録しました。");
-			redirect($("searchUrl"));
+			redirect($("listUrl"));
 		}
 	}
 
 	/** CRUD の U: Update 変更 Servlet */
-	@WebServlet("/update")
+	@WebServlet("/item/update")
 	public static class UpdateServlet extends HttpServlet {
 		
 		/** 一覧画面の変更ボタン → 変更画面の表示 */
@@ -102,12 +106,12 @@ public class ItemCrudServlet extends HttpServlet {
 		protected void doPost(HttpServletRequest req, HttpServletResponse res) {
 			dao().update(new Item(req).validate()); // 例外がスローされるとリクエスト属性 MESSAGE にセットされる
 			req.setAttribute(MESSAGE, "更新しました。");
-			redirect($("searchUrl"));
+			redirect($("listUrl"));
 		}
 	}
 
 	/** CRUD の D: Delete 削除 Servlet */
-	@WebServlet("/delete")
+	@WebServlet("/item/delete")
 	public static class DeleteServlet extends HttpServlet {
 		
 		/** 一覧画面の削除ボタン → 一覧画面へリダイレクト (リロードによる二回削除抑止) */
@@ -115,7 +119,7 @@ public class ItemCrudServlet extends HttpServlet {
 		protected void doGet(HttpServletRequest req, HttpServletResponse res) {
 			dao().delete(new Item(req));
 			req.setAttribute(MESSAGE, "削除しました。");
-			redirect($("searchUrl"));
+			redirect($("listUrl"));
 		}
 	}
 }

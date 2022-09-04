@@ -3,16 +3,16 @@
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css">
-<link rel="stylesheet" href="public/common.css">
+<link rel="stylesheet" href="${ctx}/static/common.css">
 <title>タイトル</title>
 </head>
 <body>
-<header onclick="location.href='.'">
+<header onclick="location.href='${ctx}'">
 	<h1>一覧画面</h1>
 	<p>Servlet JSP CRUD サンプル</p>
 </header>
 <main>
-<aside><p><shiro:principal/><br><a href="logout">ログアウト</a></p></aside>
+<aside><p><shiro:principal/><br><a href="${ctx}/logout">ログアウト</a></p></aside>
 <blockquote id="_message">${fn:escapeXml(MESSAGE)}</blockquote>
 <form id="_form" method="get">
 	<p>
@@ -25,7 +25,7 @@
 		<input type="date" name="releaseDate" value="${fn:escapeXml(param.releaseDate)}"
 			onchange="count()">
 	</p>
-	<button formaction=".">検索</button>
+	<button formaction="list">検索</button>
 	<button formaction="create">新規登録</button>
 </form>
 <p style="margin:0 0.3rem -1rem; text-align:right;">検索結果 ${itemList.size()} 件</p>

@@ -3,16 +3,16 @@
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css">
-<link rel="stylesheet" href="public/common.css">
+<link rel="stylesheet" href="${ctx}/static/common.css">
 <title>タイトル</title>
 </head>
 <body>
-<header onclick="location.href='.'">
+<header onclick="location.href='${ctx}'">
 	<h1>${empty item || item.id == 0 ? '登録' : '変更'}画面</h1>
 	<p>Servlet JSP CRUD サンプル</p>
 </header>
 <main>
-<aside><p><shiro:principal/><br><a href="logout">ログアウト</a></p></aside>
+<aside><p><shiro:principal/><br><a href="${ctx}/logout">ログアウト</a></p></aside>
 <blockquote id="_message">${fn:escapeXml(MESSAGE)}</blockquote>
 <form id="_form" method="post" onsubmit="_submitButton.disabled = true"><%-- 二度押し防止 --%>
 	<input type="hidden" name="id" value="${item.id}"/>
@@ -31,7 +31,7 @@
 		<input type="checkbox" name="faceAuth" ${item.faceAuth ? 'checked' : ''}
 			onchange="validate()">
 	</p>
-	<button type="button" onclick="location.href='${searchUrl == null ? '.' : searchUrl}'">戻る</button>
+	<button type="button" onclick="location.href='${listUrl == null ? '.' : listUrl}'">戻る</button>
 	<input id="_submitButton" type="submit" value=
 		${empty item || item.id == 0
 			? '"登録" formaction="create"' 

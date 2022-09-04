@@ -32,7 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * 自動フラッシュスコープとエラーを制御するフィルターです。
  * <pre>
- * リダイレクト時に使用される一般的なセッションフラッシュスコープ実装。このフィルターでは自動制御されます。
+ * リダイレクト時に使用される一般的なフラッシュスコープ実装。このフィルターでは自動制御されます。
  * デフォルトでは開発者が Servlet で設定した、すべてのリクエスト属性がリダイレクト先でも、そのまま使用できます。
  * その他の機能として、アプリエラー時に入力画面に自動フォワード、システムエラー時に自動リダイレクトします。
  * </pre>
@@ -106,20 +106,30 @@ public class AutoFlashFilter extends HttpFilter {
 	 * 標準の req.getRequestDispatcher(path).forward(req, res) の代わりに使用します。
 	 * JSP 以外へのフォワードは上記の標準のメソッドを使用してください。このメソッドは、以下の処理を行います。
 	 * 
-	 * 1. 先頭がスラッシュの場合はそのまま、スラッシュでない場合は "/WEB-INF/jsp/" + jspPath をフォワード先パスとしてフォワードします。
-	 * 2. フォワード先パスをセッション属性 APP_ERROR_FORWARD_PATH に保存します (入力エラーなどのアプリエラー時のフォワード先として使用)。
-	 * 3. AutoCsrfFilter を使用している場合は、meta と form input hidden に name="_csrf" として CSRF トークンが埋め込まれます。
-	 * 4. 後続処理を飛ばすために、正常にレスポンスがコミットされたことを示す定数 SUCCESS_RESPONSE_COMMITTED をスローします。
+	 * 1. /WEB-INF/jsp をルートとし、先頭がスラッシュの場合は絶対パス、そうでない場合はサーブレットパスの相対パスにフォワード。
+	 * 
+	 *   サーブレットパス   引数の jspPath     使用される JSP
+	 *   /item/list      /item/list.jsp    /WEB-INF/jsp/item/list.jsp
+	 *   /item/list      list.jsp          /WEB-INF/jsp/item/list.jsp
+	 *   /item/list      /index.jsp        /WEB-INF/jsp/index.jsp
+	 *   /item/list      ../index.jsp      /WEB-INF/jsp/index.jsp
+	 *   /item/list      ../other/a.jsp    /WEB-INF/jsp/other/a.jsp
+	 * 
+	 * 2. フォワード先パスをセッション属性 APP_ERROR_FORWARD_PATH に保存 (入力エラーなどのアプリエラー時のフォワード先として使用)。
+	 * 3. AutoCsrfFilter を使用している場合は、meta と form input hidden に name="_csrf" として CSRF トークンが埋め込み。
+	 * 4. 後続処理を飛ばすために、正常にレスポンスがコミットされたことを示す定数 SUCCESS_RESPONSE_COMMITTED をスロー。
 	 * </pre>
 	 * @param jspPath JSP パス
 	 */
 	@SneakyThrows
 	public static void forward(String jspPath) {
 		RequestContext context = requestContextThreadLocal.get();
-		String path = jspPath.startsWith("/") ? (String) jspPath : "/WEB-INF/jsp/" + jspPath;
+		HttpServletRequest req = context.req;
+		if (!jspPath.startsWith("/")) jspPath = req.getServletPath().replaceFirst("[^/]*$", "") + "/" + jspPath;
+		String path = "/WEB-INF/jsp" + jspPath;
 		log.debug("フォワード {}", path);
-		context.req.getSession().setAttribute(APP_ERROR_FORWARD_PATH, path);
-		context.req.getRequestDispatcher(path).forward(context.req, context.res);
+		req.getSession().setAttribute(APP_ERROR_FORWARD_PATH, path);
+		req.getRequestDispatcher(path).forward(context.req, context.res);
 		throw SUCCESS_RESPONSE_COMMITTED;
 	}
 	
