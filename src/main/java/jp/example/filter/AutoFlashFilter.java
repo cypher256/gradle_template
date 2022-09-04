@@ -222,14 +222,13 @@ public class AutoFlashFilter extends HttpFilter {
 		
 		// リクエストのスレッドローカル設定と次のフィルター呼び出し
 		Stopwatch stopwatch = Stopwatch.createStarted();
-		HttpSession session = req.getSession();
 		try {
 			requestContextThreadLocal.set(new RequestContext(req, res));
 			
 			// フラッシュをセッションから復元
 			Map<String, Object> sessionFlash = $(FLASH, Collections.emptyMap());
 			sessionFlash.forEach(req::setAttribute);
-			session.removeAttribute(FLASH);
+			req.getSession().removeAttribute(FLASH);
 			
 			// リクエスト属性追加時に、一時フラッシュに追加するリクエストラッパー作成 (redirect でセッションに移動)
 			Map<String, Object> tempFlash = new HashMap<>();
@@ -261,7 +260,7 @@ public class AutoFlashFilter extends HttpFilter {
 				// システムエラー (DB エラーなど)
 				} else {
 					res.sendRedirect($(SYS_ERROR_REDIRECT_URL, req.getContextPath()));
-					session.setAttribute(FLASH, Map.of(MESSAGE, $(MESSAGE)));
+					req.getSession().setAttribute(FLASH, Map.of(MESSAGE, $(MESSAGE)));
 					log.warn(cause.getMessage(), cause);
 				}
 			}
