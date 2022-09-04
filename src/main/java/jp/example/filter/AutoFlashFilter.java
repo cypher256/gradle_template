@@ -106,14 +106,19 @@ public class AutoFlashFilter extends HttpFilter {
 	 * 標準の req.getRequestDispatcher(path).forward(req, res) の代わりに使用します。
 	 * JSP 以外へのフォワードは上記の標準のメソッドを使用してください。このメソッドは、以下の処理を行います。
 	 * 
-	 * 1. /WEB-INF/jsp をルートとし、先頭がスラッシュの場合は絶対パス、そうでない場合はサーブレットパスの相対パスにフォワード。
+	 * 1. /WEB-INF/jsp をルートとし、先頭がスラッシュの場合は絶対パス、そうでない場合はサーブレットパスの相対パスにフォワードします。
+	 *    サーブレットパスが影響しない絶対パス指定と比較して、相対パスは短い記述が可能ですが、分かりにくくなる可能性があります。
 	 * 
-	 *   サーブレットパス   引数の jspPath     RequestDispatcher#forward に渡すパス
-	 *   /item/list      list.jsp          /WEB-INF/jsp/item/list.jsp
-	 *   /item/list      /item/list.jsp    /WEB-INF/jsp/item/list.jsp
-	 *   /item/list      /index.jsp        /WEB-INF/jsp/index.jsp
-	 *   /item/list      ../index.jsp      /WEB-INF/jsp/index.jsp
-	 *   /item/list      ../other/a.jsp    /WEB-INF/jsp/other/a.jsp
+	 *    サーブレットパス   引数の jspPath     RequestDispatcher#forward に渡されるパス
+	 *    "/item/abc"     /item/list.jsp    /WEB-INF/jsp/item/list.jsp
+	 *    "/item"         /item/list.jsp    /WEB-INF/jsp/item/list.jsp
+	 *    "/item/abc"     /index.jsp        /WEB-INF/jsp/index.jsp
+	 *    "/item/abc"     list.jsp          /WEB-INF/jsp/item/list.jsp
+	 *    "/item"         list.jsp          /WEB-INF/jsp/list.jsp
+	 *    "/"             list.jsp          /WEB-INF/jsp/list.jsp
+	 *    ""              list.jsp          /WEB-INF/jsp/list.jsp
+	 *    "/item/abc"     ../index.jsp      /WEB-INF/jsp/index.jsp
+	 *    "/item/abc"     ../other/a.jsp    /WEB-INF/jsp/other/a.jsp
 	 * 
 	 * 2. フォワード先パスをセッション属性 APP_ERROR_FORWARD_PATH に保存 (入力エラーなどのアプリエラー時のフォワード先として使用)。
 	 * 3. AutoCsrfFilter を使用している場合は、meta と form input hidden に name="_csrf" として CSRF トークンが埋め込み。
