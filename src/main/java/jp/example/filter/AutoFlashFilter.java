@@ -43,7 +43,7 @@ import lombok.extern.slf4j.Slf4j;
  * 3. IllegalStateException の場合、アプリエラーとしてセッション属性 APP_ERROR_FORWARD_PATH (通常は表示元) にフォワードします。
  * 4. 上記以外の例外の場合は、システムエラーとしてセッション属性 SYS_ERROR_REDIRECT_URL にリダイレクト (自動フラッシュ) します。
  * 5. セッションに APP_ERROR_FORWARD_PATH も SYS_ERROR_REDIRECT_URL も無い場合は、コンテキストルートにリダイレクト (自動フラッシュ)。
- * <prel>
+ * </pre>
  * @author New Gradle Project Wizard (c) https://opensource.org/licenses/mit-license.php
  */
 @Slf4j

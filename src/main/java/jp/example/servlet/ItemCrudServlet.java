@@ -54,10 +54,10 @@ public class ItemCrudServlet {
 			String sql = """
 					SELECT * FROM item
 					WHERE 1 = 1
-						/*IF SF.isNotBlank(name)*/ 
-							AND name LIKE /*SF.contains(name)*/'Pro' escape /*#ESC_CHAR*/'$' 
+						/*IF SF.isNotBlank(name)*/
+							AND name LIKE /*SF.contains(name)*/'Pro' escape /*#ESC_CHAR*/'$'
 						/*END*/
-						/*IF SF.isNotBlank(releaseDate)*/ 
+						/*IF SF.isNotBlank(releaseDate)*/
 							AND release_date = /*releaseDate*/'2022-09-11'
 						/*END*/
 				""";
