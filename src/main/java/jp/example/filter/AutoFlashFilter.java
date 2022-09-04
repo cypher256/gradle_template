@@ -125,9 +125,9 @@ public class AutoFlashFilter extends HttpFilter {
 	public static void forward(String jspPath) {
 		RequestContext context = requestContextThreadLocal.get();
 		HttpServletRequest req = context.req;
-		if (!jspPath.startsWith("/")) jspPath = req.getServletPath().replaceFirst("[^/]*$", "") + "/" + jspPath;
-		String path = "/WEB-INF/jsp" + jspPath;
-		log.debug("フォワード {}", path);
+		String path = jspPath.startsWith("/") ? jspPath : req.getServletPath().replaceFirst("[^/]*$", "") + jspPath;
+		path = ("/WEB-INF/jsp/" + path).replace("//", "/");
+		log.debug("フォワード {} (servletPath[{}] 引数[{}])", path, req.getServletPath(), jspPath);
 		req.getSession().setAttribute(APP_ERROR_FORWARD_PATH, path);
 		req.getRequestDispatcher(path).forward(context.req, context.res);
 		throw SUCCESS_RESPONSE_COMMITTED;
@@ -153,7 +153,7 @@ public class AutoFlashFilter extends HttpFilter {
 	public static void redirect(String redirectUrl) {
 		RequestContext context = requestContextThreadLocal.get();
 		String url = Objects.toString(redirectUrl, context.req.getContextPath());
-		log.debug("リダイレクト {}", url);
+		log.debug("リダイレクト {} (引数[{}])", url, redirectUrl);
 		context.res.sendRedirect(url);
 		HttpSession session = context.req.getSession();
 		session.setAttribute(SYS_ERROR_REDIRECT_URL, url);
