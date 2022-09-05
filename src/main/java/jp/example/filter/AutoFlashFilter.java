@@ -102,10 +102,10 @@ public class AutoFlashFilter extends HttpFilter {
 	 * 標準の req.getRequestDispatcher(path).forward(req, res) の代わりに使用します。
 	 * JSP 以外へのフォワードは上記の標準のメソッドを使用してください。このメソッドは、以下の処理を行います。
 	 * 
-	 * 1. /WEB-INF/jsp をルートとし、先頭がスラッシュの場合は絶対パス、そうでない場合はサーブレットパスの相対パスにフォワードします。
-	 *    サーブレットパスが影響しない絶対パス指定と比較して、相対パスは短い記述が可能ですが、分かりにくくなる可能性があります。
+	 * 1. 引数が絶対パス (先頭がスラッシュ) の場合は /WEB-INF/jsp + 引数、
+	 *    引数が相対パス (先頭がスラッシュ以外) の場合は /WEB-INF/jsp + getServletPath + 引数 にフォワードします。
 	 * 
-	 *    サーブレットパス   引数の jspPath     RequestDispatcher#forward に渡されるパス
+	 *    getServletPath  引数の jspPath     RequestDispatcher#forward に渡されるパス
 	 *    "/item/abc"     /item/list.jsp    /WEB-INF/jsp/item/list.jsp
 	 *    "/item"         /item/list.jsp    /WEB-INF/jsp/item/list.jsp
 	 *    "/item/abc"     /index.jsp        /WEB-INF/jsp/index.jsp
@@ -116,8 +116,8 @@ public class AutoFlashFilter extends HttpFilter {
 	 *    "/item/abc"     ../index.jsp      /WEB-INF/jsp/index.jsp
 	 *    "/item/abc"     ../other/a.jsp    /WEB-INF/jsp/other/a.jsp
 	 * 
-	 * 2. フォワード先パスをセッション属性 APP_ERROR_FORWARD_PATH に保存 (入力エラーなどのアプリエラー時のフォワード先として使用)。
-	 * 3. AutoCsrfFilter を使用している場合は、meta と form input hidden に name="_csrf" として CSRF トークンが埋め込み。
+	 * 2. AutoCsrfFilter を使用している場合は、meta と form input hidden に name="_csrf" として CSRF トークンが埋め込み。
+	 * 3. フォワード先パスをセッション属性 APP_ERROR_FORWARD_PATH に保存 (入力エラーなどのアプリエラー時のフォワード先として使用)。
 	 * 4. 後続処理を飛ばすために、正常にレスポンスがコミットされたことを示す定数 SUCCESS_RESPONSE_COMMITTED をスロー。
 	 * </pre>
 	 * @param jspPath JSP パス
@@ -129,8 +129,8 @@ public class AutoFlashFilter extends HttpFilter {
 		String path = jspPath.startsWith("/") ? jspPath : req.getServletPath().replaceFirst("[^/]*$", "") + jspPath;
 		path = ("/WEB-INF/jsp/" + path).replace("//", "/");
 		log.debug("フォワード {} (servletPath[{}] 引数[{}])", path, req.getServletPath(), jspPath);
-		req.getSession().setAttribute(APP_ERROR_FORWARD_PATH, path);
 		req.getRequestDispatcher(path).forward(context.req, context.res);
+		req.getSession().setAttribute(APP_ERROR_FORWARD_PATH, path);
 		throw SUCCESS_RESPONSE_COMMITTED;
 	}
 	
