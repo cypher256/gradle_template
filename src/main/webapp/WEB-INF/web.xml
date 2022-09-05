@@ -6,6 +6,11 @@
 						http://www.oracle.com/webfolder/technetwork/jsc/xml/ns/javaee/web-app_4_0.xsd"
 	version="4.0">
 
+	<!-- エンコーディング: post リクエスト getParameter -->
+	<request-character-encoding>UTF-8</request-character-encoding>
+	<!-- エンコーディング: AJAX レスポンス -->
+	<response-character-encoding>UTF-8</response-character-encoding>
+	
 	<!--
 	Tomcat 公式フィルター: リバースプロキシのヘッダ属性を引き継いて isSecure などで正しく判定できるようにする
 	https://tomcat.apache.org/tomcat-9.0-doc/config/filter.html#HTTP_Header_Security_Filter
@@ -108,6 +113,13 @@
 	<filter>
 		<filter-name>AutoTransactionFilter</filter-name>
 		<filter-class>jp.example.filter.AutoTransactionFilter</filter-class>
+		<init-param>
+			<!-- 例外でもコミットする例外クラスの [,;\s]+ 区切りリスト (Spring の noRollbackFor と同様の機能) -->
+			<param-name>noRollbackExceptionList</param-name>
+			<param-value>
+				jp.example.filter.AutoFlashFilter$SuccessResponseCommitedException
+			</param-value>
+		</init-param>
 	</filter>
 	<filter-mapping>
 		<filter-name>AutoTransactionFilter</filter-name>

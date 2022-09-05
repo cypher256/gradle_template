@@ -18,6 +18,7 @@ import org.apache.commons.lang3.StringUtils;
 import jodd.servlet.ServletUtil;
 import jodd.servlet.filter.ByteArrayResponseWrapper;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 自動 CSRF フィルターです。
@@ -49,6 +50,7 @@ import lombok.SneakyThrows;
  * </pre>
  * @author New Gradle Project Wizard (c) https://opensource.org/licenses/mit-license.php
  */
+@Slf4j
 public class AutoCsrfFilter extends HttpFilter {
 
 	/** CSRF トークンのセッション、Cookie、リクエストパラメーターの name */
@@ -116,6 +118,7 @@ public class AutoCsrfFilter extends HttpFilter {
 				req.getHeader("X-XSRF-TOKEN")	// Cookie "XSRF-TOKEN" → Angular、axios などで自動的に使用される名前
 			);
 			if (reqCsrf == null || !reqCsrf.equals(sesCsrf)) {
+				log.debug("CSRF 不一致 (session:{} request:{})", sesCsrf, reqCsrf);
 				return true; // エラー
 			}
 		}

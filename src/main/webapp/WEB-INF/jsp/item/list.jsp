@@ -12,7 +12,7 @@
 	<p>Servlet JSP CRUD サンプル</p>
 </header>
 <main>
-	<aside><p><shiro:principal/><br><a href="${ctx}/logout">ログアウト</a></p></aside>
+	<aside><p>${request.remoteUser}<br><a href="${ctx}/logout">ログアウト</a></p></aside>
 	<blockquote id="_message">${fn:escapeXml(MESSAGE)}</blockquote>
 	<form id="_form" method="get">
 		<p>

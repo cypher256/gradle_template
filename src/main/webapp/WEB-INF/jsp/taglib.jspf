@@ -6,4 +6,5 @@
 <%@ taglib prefix="shiro" uri="http://shiro.apache.org/tags"%>
 
 <%--アプリ共通ページ属性 --%>
-<c:set var="ctx" value="${pageContext.request.contextPath}"/>
+<c:set var="request" value="${pageContext.request}"/>
+<c:set var="ctx" value="${request.contextPath}"/>

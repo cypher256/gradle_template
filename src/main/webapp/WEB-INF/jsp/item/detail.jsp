@@ -12,7 +12,7 @@
 	<p>Servlet JSP CRUD サンプル</p>
 </header>
 <main>
-	<aside><p><shiro:principal/><br><a href="${ctx}/logout">ログアウト</a></p></aside>
+	<aside><p>${request.remoteUser}<br><a href="${ctx}/logout">ログアウト</a></p></aside>
 	<blockquote id="_message">${fn:escapeXml(MESSAGE)}</blockquote>
 	<form id="_form" method="post" onsubmit="_submitButton.disabled = true"><%-- 二度押し防止 --%>
 		<input type="hidden" name="id" value="${item.id}"/>

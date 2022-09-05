@@ -1,8 +1,5 @@
 package jp.example.filter;
 
-import static com.google.common.collect.Lists.*;
-
-import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -10,7 +7,6 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import javax.servlet.FilterChain;
-import javax.servlet.ServletContext;
 import javax.servlet.http.HttpFilter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
@@ -200,15 +196,6 @@ public class AutoFlashFilter extends HttpFilter {
 		HttpServletRequest req,
 		HttpServletResponse res
 	) {};
-
-	/** 共通エンコーディング設定 */
-	@Override @SneakyThrows
-	public void init() {
-		ServletContext sc = getServletContext();
-		sc.setRequestCharacterEncoding(StandardCharsets.UTF_8.name()); // post getParameter エンコーディング
-		sc.setResponseCharacterEncoding(StandardCharsets.UTF_8.name()); // AJAX レスポンス
-		sc.setAttribute("NO_ROLLBACK_EXCEPTION_CLASS_LIST", newArrayList(SuccessResponseCommitedException.class));
-	}
 	
 	@Override @SneakyThrows
 	protected void doFilter(HttpServletRequest req, HttpServletResponse res, FilterChain chain) {

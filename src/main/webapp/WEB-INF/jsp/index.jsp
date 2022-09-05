@@ -12,7 +12,7 @@
 	<p>Servlet JSP CRUD サンプル</p>
 </header>
 <main class="_center">
-	<aside><p><shiro:principal/><br><a href="${ctx}/logout">ログアウト</a></p></aside>
+	<aside><p>${request.remoteUser}<br><a href="${ctx}/logout">ログアウト</a></p></aside>
 	<blockquote id="_message">${fn:escapeXml(MESSAGE)}</blockquote>
 	<button onclick="location.href = '${ctx}/item/list'">アイテム一覧</a>
 </main>
