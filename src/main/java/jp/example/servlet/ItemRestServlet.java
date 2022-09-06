@@ -13,7 +13,7 @@ import lombok.Data;
 import lombok.SneakyThrows;
 
 /**
- * Servlet REST Servlet サンプルクラスです。
+ * REST API Servlet サンプルクラスです。
  * <pre>
  * キーイベントによる AJAX リアルタイム通信のサンプルです。
  * </pre>

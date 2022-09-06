@@ -63,9 +63,9 @@ public class ItemCrudServlet {
 				""";
 			
 			List<Item> list = dao().queryWith(sql).paramBean(new Item(req)).collect(Item.class);
-			log.debug("SELECT 結果: {} 件 - {}", list.size(), list.stream().findFirst().orElse(null));
+			log.debug("SELECT 結果: {} 件", list.size());
 			req.setAttribute("itemList", list);
-			req.getSession().setAttribute("listUrl", DispatcherUtil.getFullUrl(req));
+			req.getSession().setAttribute("listQueryUrl", DispatcherUtil.getFullUrl(req));
 			forward("list.jsp");
 		}
 	}
@@ -85,7 +85,7 @@ public class ItemCrudServlet {
 		protected void doPost(HttpServletRequest req, HttpServletResponse res) {
 			dao().insert(new Item(req).validate()); // 例外がスローされると AutoFlashFilter でリクエスト属性 MESSAGE セット
 			req.setAttribute(MESSAGE, "登録しました。");
-			redirect($("listUrl"));
+			redirect($("listQueryUrl"));
 		}
 	}
 
@@ -106,7 +106,7 @@ public class ItemCrudServlet {
 		protected void doPost(HttpServletRequest req, HttpServletResponse res) {
 			dao().update(new Item(req).validate()); // 例外がスローされると AutoFlashFilter でリクエスト属性 MESSAGE セット
 			req.setAttribute(MESSAGE, "更新しました。");
-			redirect($("listUrl"));
+			redirect($("listQueryUrl"));
 		}
 	}
 
@@ -119,7 +119,7 @@ public class ItemCrudServlet {
 		protected void doGet(HttpServletRequest req, HttpServletResponse res) {
 			dao().delete(new Item(req));
 			req.setAttribute(MESSAGE, "削除しました。");
-			redirect($("listUrl"));
+			redirect($("listQueryUrl"));
 		}
 	}
 }
