@@ -26,7 +26,7 @@ public class Item {
 	
 	@SneakyThrows
 	public Item(HttpServletRequest req) {
-		BeanUtils.copyProperties(this, req.getParameterMap());
+		BeanUtils.populate(this, req.getParameterMap());
 		req.setAttribute("item", this); // エラー時の JSP 再表示用
 	}
 	

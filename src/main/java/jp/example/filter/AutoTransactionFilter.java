@@ -1,11 +1,12 @@
 package jp.example.filter;
 
-import static java.util.Collections.*;
+import static java.util.Arrays.*;
+import static java.util.stream.Collectors.*;
+import static org.jooq.lambda.Sneaky.*;
 
 import java.sql.DriverManager;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import javax.servlet.FilterChain;
 import javax.servlet.http.HttpFilter;
@@ -14,8 +15,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.pivovarit.function.ThrowingConsumer;
-import com.pivovarit.function.ThrowingFunction;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
@@ -72,9 +71,8 @@ public class AutoTransactionFilter extends HttpFilter {
 			try (SqlAgent dao = daoConfig.agent()) {
 				dao.update("create_table").count(); // ファイル実行 src/main/resources/sql/create_table.sql
 			}
-			String value = StringUtils.defaultString(getFilterConfig().getInitParameter("noRollbackExceptionList"));
-			noRollbackExceptionList = Arrays.stream(value.trim().split("[,;\\s]+"))
-					.map(ThrowingFunction.sneaky(Class::forName)).collect(Collectors.toList());
+			String param = StringUtils.trimToEmpty(getFilterConfig().getInitParameter("noRollbackExceptionList"));
+			noRollbackExceptionList = stream(param.split("[,;\\s]+")).map(function(Class::forName)).collect(toList());
 		} catch (Exception e) {
 			log.error("AutoTransactionFilter 初期化エラー", e);
 			throw e;
@@ -85,7 +83,7 @@ public class AutoTransactionFilter extends HttpFilter {
 	@Override @SneakyThrows
 	public void destroy() {
 		dataSource.close();
-		list(DriverManager.getDrivers()).forEach(ThrowingConsumer.sneaky(DriverManager::deregisterDriver));
+		Collections.list(DriverManager.getDrivers()).forEach(consumer(DriverManager::deregisterDriver));
 	}
 	
 	/** トランザクション開始、コミット、ロールバック */
@@ -106,7 +104,7 @@ public class AutoTransactionFilter extends HttpFilter {
 				dao.commit();
 				
 			} catch (Throwable e) {
-				if (noRollbackExceptionList.stream().anyMatch(c -> e.getClass().isAssignableFrom(c))) {
+				if (noRollbackExceptionList.stream().anyMatch(def -> def.isAssignableFrom(e.getClass()))) {
 					dao.commit(); // ↑例外でもコミットする例外クラス (Spring の noRollbackFor と同様の機能)
 				} else {
 					dao.rollback();

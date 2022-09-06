@@ -58,10 +58,10 @@ dependencies {
 
 	implementation 'com.fasterxml.jackson.core:jackson-databind:2.13.+'
 	implementation 'com.google.guava:guava:31.+'
-	implementation 'com.pivovarit:throwing-function:1.5.+'
 	implementation 'com.zaxxer:HikariCP:5.0.+'
 	implementation 'commons-beanutils:commons-beanutils:1.9.+'
 	implementation 'org.apache.commons:commons-lang3:3.12.+'
+	implementation 'org.jooq:jool:0.9.+'
 	implementation 'jp.co.future:uroborosql:0.25.+'
 	compileOnly 'org.projectlombok:lombok:1.18.+'
 	annotationProcessor 'org.projectlombok:lombok:1.18.+'
