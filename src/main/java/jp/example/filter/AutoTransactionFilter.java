@@ -76,7 +76,7 @@ public class AutoTransactionFilter extends HttpFilter {
 			noRollbackExceptionList = Arrays.stream(value.trim().split("[,;\\s]+"))
 					.map(ThrowingFunction.sneaky(Class::forName)).collect(Collectors.toList());
 		} catch (Exception e) {
-			log.error("AutoTransactionFilter init エラー", e);
+			log.error("AutoTransactionFilter 初期化エラー", e);
 			throw e;
 		}
 	}
@@ -107,7 +107,7 @@ public class AutoTransactionFilter extends HttpFilter {
 				
 			} catch (Throwable e) {
 				if (noRollbackExceptionList.stream().anyMatch(c -> e.getClass().isAssignableFrom(c))) {
-					dao.commit(); // 例外でもコミットする例外クラス (Spring の noRollbackFor と同様の機能)
+					dao.commit(); // ↑例外でもコミットする例外クラス (Spring の noRollbackFor と同様の機能)
 				} else {
 					dao.rollback();
 				}
