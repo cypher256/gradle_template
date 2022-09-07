@@ -12,7 +12,9 @@
 	<p>Servlet JSP CRUD サンプル</p>
 </header>
 <main>
-	<aside><p>${request.remoteUser}<br><a href="${ctx}/logout">ログアウト</a></p></aside>
+	<c:if test="${request.remoteUser != null}"><%-- Servlet API の認証情報 (ShiroFilter 使用時) --%>
+		<aside><p>${request.remoteUser}<br><a href="${ctx}/logout">ログアウト</a></p></aside>
+	</c:if>
 	<blockquote id="_message">${fn:escapeXml(MESSAGE)}</blockquote>
 	<form id="_form" method="post" onsubmit="_submitButton.disabled = true"><%-- 二度押し防止 --%>
 		<input type="hidden" name="id" value="${item.id}"/>

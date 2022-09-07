@@ -104,7 +104,7 @@ public class AutoTransactionFilter extends HttpFilter {
 				dao.commit();
 				
 			} catch (Throwable e) {
-				if (noRollbackExceptionList.stream().anyMatch(def -> def.isAssignableFrom(e.getClass()))) {
+				if (noRollbackExceptionList.stream().anyMatch(def -> def.isInstance(e))) {
 					dao.commit(); // ↑例外でもコミットする例外クラス (Spring の noRollbackFor と同様の機能)
 				} else {
 					dao.rollback();

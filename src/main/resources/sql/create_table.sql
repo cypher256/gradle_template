@@ -1,4 +1,4 @@
--- ユーザー
+-- ユーザー (ログイン認証: shiro.ini 参照)
 CREATE TABLE users (
 	id INT AUTO_INCREMENT,
 	username VARCHAR(128),
@@ -10,7 +10,7 @@ INSERT INTO users (username, password, role) VALUES
 	('demouser','demo1234@','admin')
 ;
 
--- アイテム
+-- アイテム (CRUD サンプル)
 CREATE TABLE item (
 	id INT AUTO_INCREMENT, 
 	name VARCHAR(30), 

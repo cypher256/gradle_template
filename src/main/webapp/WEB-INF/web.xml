@@ -5,11 +5,22 @@
 	xsi:schemaLocation="http://www.oracle.com/webfolder/technetwork/jsc/xml/ns/javaee/index.html
 						http://www.oracle.com/webfolder/technetwork/jsc/xml/ns/javaee/web-app_4_0.xsd"
 	version="4.0">
-
-	<!-- エンコーディング: post リクエスト getParameter -->
-	<request-character-encoding>UTF-8</request-character-encoding>
-	<!-- エンコーディング: AJAX レスポンス -->
-	<response-character-encoding>UTF-8</response-character-encoding>
+	
+	<!-- ======================================================================
+	Servlet フィルター定義
+	===========================================================================
+	以下のフィルターが設定済みですが、サンプルの実行に必須なので 2 つだけです。
+	他は、すべてセキュリティ関連のフィルターでコメントアウトしても動作します。
+	
+		Tomcat 公式 RemoteIpFilter		
+		Tomcat 公式 SecurityFilter		
+		Tomcat 公式 CorsFilter			
+		Tomcat 公式 ShiroFilter			ログイン画面を使用する場合は必要
+		ローカル AutoCsrfFilter			
+		ローカル AutoFlashFilter			[必須]
+		ローカル AutoTransactionFilter	[必須]
+	
+	======================================================================= -->
 	
 	<!--
 	Tomcat 公式フィルター: リバースプロキシのヘッダ属性を引き継いて isSecure などで正しく判定できるようにする
@@ -125,6 +136,15 @@
 		<filter-name>AutoTransactionFilter</filter-name>
 		<url-pattern>/*</url-pattern>
 	</filter-mapping>
+	
+	<!-- ======================================================================
+	Servlet 全般設定
+	======================================================================= -->
+	
+	<!-- エンコーディング: post リクエスト getParameter -->
+	<request-character-encoding>UTF-8</request-character-encoding>
+	<!-- エンコーディング: AJAX レスポンス -->
+	<response-character-encoding>UTF-8</response-character-encoding>
 
 	<!-- 初回アクセス時の URL への jsessionid 追加を無効化 -->
 	<session-config>
