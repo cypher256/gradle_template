@@ -13,7 +13,7 @@ import lombok.SneakyThrows;
 
 /** 
  * item DTO クラスです。
- * @author Pleiades All in One New Gradle Project Wizard (EPL)
+ * @author New Gradle Project Wizard (c) https://opensource.org/licenses/mit-license.php
  */
 @Data
 @NoArgsConstructor

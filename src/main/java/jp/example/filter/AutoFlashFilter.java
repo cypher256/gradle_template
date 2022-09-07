@@ -186,8 +186,8 @@ public class AutoFlashFilter extends HttpFilter {
 	// Servlet フィルター処理
 	//-------------------------------------------------------------------------
 	
-	protected static class SuccessResponseCommitedException extends RuntimeException {};
-	protected static final RuntimeException SUCCESS_RESPONSE_COMMITTED = new SuccessResponseCommitedException();
+	protected static class SuccessResponseCommittedException extends RuntimeException {};
+	protected static final RuntimeException SUCCESS_RESPONSE_COMMITTED = new SuccessResponseCommittedException();
 	protected static final ObjectMapper jsonMapper = new ObjectMapper();
 	protected static final ThreadLocal<RequestContext> requestContextThreadLocal = new ThreadLocal<>();
 	
