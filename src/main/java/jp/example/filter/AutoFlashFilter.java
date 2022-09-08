@@ -25,7 +25,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * 自動フラッシュスコープとエラーを制御するフィルターです。
+ * リダイレクト時の自動フラッシュと例外ハンドリングを行うフィルターです。
  * <pre>
  * リダイレクト時に使用される一般的なフラッシュスコープ実装。このフィルターでは自動制御されます。
  * デフォルトでは開発者が Servlet で設定した、すべてのリクエスト属性がリダイレクト先でも、そのまま使用できます。
@@ -219,13 +219,17 @@ public class AutoFlashFilter extends HttpFilter {
 			// リクエスト属性追加時に、一時フラッシュに追加するリクエストラッパー作成 (redirect でセッションに移動)
 			Map<String, Object> tempFlash = new HashMap<>();
 			req.setAttribute(FLASH, tempFlash);
-			HttpServletRequest reqFlashWrapper = new HttpServletRequestWrapper(req) {
-				public void setAttribute(String name, Object o) {
+			HttpServletRequest flashReqWrapper = new HttpServletRequestWrapper(req) {
+				@Override public void setAttribute(String name, Object o) {
 					super.setAttribute(name, o);
 					tempFlash.put(name, o);
-				};
+				}
+				@Override public void removeAttribute(String name) {
+					super.removeAttribute(name);
+					tempFlash.remove(name);
+				}
 			};
-			super.doFilter(reqFlashWrapper, res, chain);
+			super.doFilter(flashReqWrapper, res, chain);
 			
 		// ルート例外の getMessage() をリクエスト属性 MESSAGE にセットして jsp や html から参照できるようにする
 		} catch (Throwable e) {

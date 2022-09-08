@@ -125,7 +125,7 @@
 		<filter-name>AutoTransactionFilter</filter-name>
 		<filter-class>jp.example.filter.AutoTransactionFilter</filter-class>
 		<init-param>
-			<!-- 例外でもコミットする例外クラスの [,;\s]+ 区切りリスト (Spring の noRollbackFor と同様の機能) -->
+			<!-- 例外でもコミットする例外クラスの [,;\s]+ 区切りリスト (JTA の dontRollbackOn と同様の機能) -->
 			<param-name>noRollbackExceptionList</param-name>
 			<param-value>
 				jp.example.filter.AutoFlashFilter$SuccessResponseCommittedException
