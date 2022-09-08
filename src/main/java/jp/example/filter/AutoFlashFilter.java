@@ -4,7 +4,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 
 import javax.servlet.FilterChain;
 import javax.servlet.http.HttpFilter;
@@ -16,9 +15,9 @@ import javax.servlet.http.HttpSession;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.commons.lang3.time.StopWatch;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Stopwatch;
 
 import jodd.servlet.DispatcherUtil;
 import jodd.servlet.ServletUtil;
@@ -208,7 +207,7 @@ public class AutoFlashFilter extends HttpFilter {
 		}
 		
 		// リクエストのスレッドローカル設定と次のフィルター呼び出し
-		Stopwatch stopwatch = Stopwatch.createStarted();
+		StopWatch stopWatch = StopWatch.createStarted();
 		try {
 			requestContextThreadLocal.set(new RequestContext(req, res));
 			
@@ -253,8 +252,8 @@ public class AutoFlashFilter extends HttpFilter {
 			}
 			
 		} finally {
-			long time = stopwatch.elapsed(TimeUnit.MILLISECONDS);
-			log.debug("処理時間 {}ms [{}] {} {}", time, req.getMethod(), DispatcherUtil.getFullUrl(req), $(MESSAGE, ""));
+			String fullUrl = DispatcherUtil.getFullUrl(req);
+			log.debug("処理時間 {}ms [{}] {} {}", stopWatch.getTime(), req.getMethod(), fullUrl, $(MESSAGE, ""));
 			requestContextThreadLocal.remove();
 		}
 	}

@@ -1,8 +1,8 @@
 package jp.example.filter;
 
-import static java.util.Arrays.*;
+import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.*;
-import static org.jooq.lambda.Sneaky.*;
+import static org.apache.commons.lang3.function.Failable.*;
 
 import java.sql.DriverManager;
 import java.util.Collections;
@@ -72,7 +72,7 @@ public class AutoTransactionFilter extends HttpFilter {
 				dao.update("create_table").count(); // ファイル実行 src/main/resources/sql/create_table.sql
 			}
 			String param = StringUtils.trimToEmpty(getFilterConfig().getInitParameter("noRollbackExceptionList"));
-			noRollbackExceptionList = stream(param.split("[,;\\s]+")).map(function(Class::forName)).collect(toList());
+			noRollbackExceptionList = stream(param.split("[,;\\s]+")).map(asFunction(Class::forName)).collect(toList());
 		} catch (Exception e) {
 			log.error("AutoTransactionFilter 初期化エラー", e);
 			throw e;
@@ -83,7 +83,7 @@ public class AutoTransactionFilter extends HttpFilter {
 	@Override @SneakyThrows
 	public void destroy() {
 		dataSource.close();
-		Collections.list(DriverManager.getDrivers()).forEach(consumer(DriverManager::deregisterDriver));
+		Collections.list(DriverManager.getDrivers()).forEach(asConsumer(DriverManager::deregisterDriver));
 	}
 	
 	/** トランザクション開始、コミット、ロールバック */
