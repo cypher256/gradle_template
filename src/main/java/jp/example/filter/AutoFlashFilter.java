@@ -50,9 +50,6 @@ public class AutoFlashFilter extends HttpFilter {
 
 	/** リクエスト属性名: 画面に表示するメッセージ (サーブレットから自分でセット、エラー時は例外メッセージがセットされる) */
 	public static final String MESSAGE = "MESSAGE";
-	
-	/** リクエスト属性名: リダイレクト時にフラッシュスコープとして扱う Map<String, Object> */
-	public static final String FLASH = "FLASH";
 
 	/** セッション属性名: アプリエラー時のフォワード先パス (デフォルトは表示元、変更する場合はサーブレットでセット) */
 	public static final String APP_ERROR_FORWARD_PATH = "APP_ERROR_FORWARD_PATH";
@@ -137,15 +134,13 @@ public class AutoFlashFilter extends HttpFilter {
 	 * リダイレクトします。
 	 * <pre>
 	 * 標準の res.sendRedirect(url) の代わりに使用します。
+	 * リダイレクト先に特定のリクエスト属性を引き継ぎたくない場合は、このメソッドを呼び出す前に req#removeAttribute してください。
 	 * 外部サイトへのリダイレクトは、標準の sendRedirect を使用してください。このメソッドは、以下の処理を行います。
 	 * 
 	 * 1. 指定した redirectUrl (null の場合はコンテキストルート) にリダイレクトします。
 	 * 2. リダイレクト先 URL をセッション属性 SYS_ERROR_REDIRECT_URL に保存します (システムエラー時のリダイレクト先として使用)。
-	 * 3. 現在のリクエスト属性をフラッシュ属性としてセッションに保存します (リダイレクト後にリクエスト属性に復元)。
+	 * 3. Servlet で追加されたリクエスト属性をフラッシュ属性としてセッションに保存します (リダイレクト後にリクエスト属性に復元)。
 	 * 4. 後続処理を飛ばすために、正常にレスポンスがコミットされたことを示す定数 SUCCESS_RESPONSE_COMMITTED をスローします。
-	 * 
-	 * リダイレクト先に引き継ぐ内容は、このメソッド呼び出し前に、下記のようにリクエストスコープから取得して、変更することができます。
-	 * 	  Map<String, Object> flash = $(FLASH);
 	 * </pre>
 	 * @param redirectUrl リダイレクト先 URL
 	 */
@@ -185,6 +180,7 @@ public class AutoFlashFilter extends HttpFilter {
 	// Servlet フィルター処理
 	//-------------------------------------------------------------------------
 	
+	protected static final String FLASH = "FLASH";
 	protected static class SuccessResponseCommittedException extends RuntimeException {};
 	protected static final RuntimeException SUCCESS_RESPONSE_COMMITTED = new SuccessResponseCommittedException();
 	protected static final ObjectMapper jsonMapper = new ObjectMapper();
