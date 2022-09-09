@@ -9,12 +9,17 @@ Servlet JSP CRUD プロジェクトサンプルビルド定義
 	サンプル REST API Servlet		src/main/java/jp/example/servlet/ItemRestServlet.java
 	データベース初期データ			src/main/resources/sql/create_table.sql
 
-Eclipse からの実行方法
+実行方法
 	
-	プロジェクト右クリック > 実行 > サーバーで実行 
+	Eclipse > プロジェクト右クリック > 実行 > サーバーで実行 
 		> サーバー > ツリーの localhost 開く > Tomcat9_Java17
 		> このプロジェクトを実行するときは常にこのサーバーを使用 ON
 		> 完了
+
+war ファイル作成
+	
+	Eclipse > Gradle タスク・ビュー > プロジェクト名 > build > war ダブル・クリック
+	プロジェクト配下の build/libs に war ファイルが作成される
 
 構成要素
 
