@@ -58,41 +58,6 @@ public class AutoFlashFilter extends HttpFilter {
 	public static final String SYS_ERROR_REDIRECT_URL = "SYS_ERROR_REDIRECT_URL";
 	
 	/**
-	 * JSP EL の ${name} のようにリクエスト、セッション、アプリケーションスコープから、最初に見つかった属性値を取得します。
-	 * @param <T> 戻り値の型 (代入先があればキャスト不要)
-	 * @param name 属性名
-	 * @return 属性値。見つからない場合は null。
-	 */
-	@SuppressWarnings("unchecked")
-	public static <T> T $(String name) {
-		return (T) ServletUtil.attribute(requestContextThreadLocal.get().req, name);
-	}
-	
-	/**
-	 * JSP EL の ${name} のようにリクエスト、セッション、アプリケーションスコープから、最初に見つかった属性値を取得します。
-	 * @param <T> 戻り値の型 (代入先があればキャスト不要)
-	 * @param name 属性名
-	 * @param defaultValue 値が見つからなかった場合のデフォルト値
-	 * @return 属性値。見つからない場合は defaultValue。
-	 */
-	public static <T> T $(String name, T defaultValue) {
-		return ObjectUtils.defaultIfNull($(name), defaultValue);
-	}
-
-	/**
-	 * エラーチェック用のメソッドです。<br>
-	 * 指定した条件が false の場合、引数のメッセージを持つ IllegalStateException をアプリエラーとしてスローします。
-	 * @param isValid 入力チェックなどが正しい場合に true となる条件
-	 * @param message リクエスト属性にセットするメッセージ
-	 * @param args メッセージの %s や %d に String#format で埋め込む文字列
-	 */
-	public static void valid(boolean isValid, String message, Object... args) {
-		if (!isValid) {
-			throw new IllegalStateException(String.format(message, args));
-		}
-	}
-	
-	/**
 	 * JSP にフォワードします。
 	 * <pre>
 	 * 標準の req.getRequestDispatcher(path).forward(req, res) の代わりに使用します。
@@ -175,6 +140,41 @@ public class AutoFlashFilter extends HttpFilter {
 		res.getWriter().print(resObject);
 		log.debug("戻り値 {}", resObject);
 		throw SUCCESS_RESPONSE_COMMITTED;
+	}
+
+	/**
+	 * エラーチェック用のメソッドです。<br>
+	 * 指定した条件が false の場合、引数のメッセージを持つ IllegalStateException をアプリエラーとしてスローします。
+	 * @param isValid 入力チェックなどが正しい場合に true となる条件
+	 * @param message リクエスト属性にセットするメッセージ
+	 * @param args メッセージの %s や %d に String#format で埋め込む文字列
+	 */
+	public static void valid(boolean isValid, String message, Object... args) {
+		if (!isValid) {
+			throw new IllegalStateException(String.format(message, args));
+		}
+	}
+	
+	/**
+	 * JSP EL の ${name} のようにリクエスト、セッション、アプリケーションスコープから、最初に見つかった属性値を取得します。
+	 * @param <T> 戻り値の型 (代入先があればキャスト不要)
+	 * @param name 属性名
+	 * @return 属性値。見つからない場合は null。
+	 */
+	@SuppressWarnings("unchecked")
+	public static <T> T $(String name) {
+		return (T) ServletUtil.attribute(requestContextThreadLocal.get().req, name);
+	}
+	
+	/**
+	 * JSP EL の ${name} のようにリクエスト、セッション、アプリケーションスコープから、最初に見つかった属性値を取得します。
+	 * @param <T> 戻り値の型 (代入先があればキャスト不要)
+	 * @param name 属性名
+	 * @param defaultValue 値が見つからなかった場合のデフォルト値
+	 * @return 属性値。見つからない場合は defaultValue。
+	 */
+	public static <T> T $(String name, T defaultValue) {
+		return ObjectUtils.defaultIfNull($(name), defaultValue);
 	}
 	
 	//-------------------------------------------------------------------------

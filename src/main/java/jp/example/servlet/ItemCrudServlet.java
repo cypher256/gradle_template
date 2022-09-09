@@ -25,11 +25,11 @@ import lombok.extern.slf4j.Slf4j;
  * 
  * AutoFlashFilter
  *  
- *   $(name)        JSP EL のようにリクエスト、セッション、アプリケーションスコープから、最初に見つかった属性値を取得 (キャスト不要)
  *   forward(jsp)   フォワードのショートカットメソッド (入力エラー時の戻り先として保存、CSRF 兼同期トークン自動埋め込み)
  *   redirect(url)  リダイレクトのショートカットメソッド (自動フラッシュにより、リダイレクト先でリクエスト属性がそのまま使用可能)
  *   returns(obj)   REST API などの戻り値として Java オブジェクトを JSON 文字列などに変換してクライアントに返却
  *   valid(〜)      条件とエラーメッセージを指定して、アプリエラー IllegalStateException をスローするためのショートカットメソッド
+ *   $(name)        JSP EL のようにリクエスト、セッション、アプリケーションスコープから、最初に見つかった属性値を取得 (キャスト不要)
  * 
  * AutoTransactionFilter
  *  
