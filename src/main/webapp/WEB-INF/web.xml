@@ -70,7 +70,8 @@
 	</filter-mapping>
 
 	<!--
-	自動 CSRF フィルター (ログイン時もチェックするため ShiroFilter より先)
+	自動 CSRF フィルター
+	ログインフォーム post もチェックするため ShiroFilter より先
 	-->
 	<filter>
 		<filter-name>AutoCsrfFilter</filter-name>
@@ -107,7 +108,8 @@
 	</listener>
 
 	<!--
-	自動フラッシュ属性フィルター (Shiro 固有リクエスト属性を除外するため、ShiroFilter より後)
+	自動フラッシュ例外ハンドリングフィルター
+	このフィルター以降で追加されたリクエスト属性を自動フラッシュするため、ShiroFilter より後 
 	-->
 	<filter>
 		<filter-name>AutoFlashFilter</filter-name>
@@ -120,6 +122,7 @@
 
 	<!--
 	自動トランザクションフィルター
+	例外でトランザクション制御した後、そのまま再スローするため、例外ハンドリングするフィルター (AutoFlashFilter) より後
 	-->
 	<filter>
 		<filter-name>AutoTransactionFilter</filter-name>
