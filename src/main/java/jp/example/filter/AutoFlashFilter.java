@@ -133,9 +133,10 @@ public class AutoFlashFilter extends HttpFilter {
 	/**
 	 * リダイレクトします。
 	 * <pre>
-	 * 標準の res.sendRedirect(url) の代わりに使用します。
-	 * リダイレクト先に特定のリクエスト属性を引き継ぎたくない場合は、このメソッドを呼び出す前に req#removeAttribute してください。
-	 * 外部サイトへのリダイレクトは、標準の sendRedirect を使用してください。このメソッドは、以下の処理を行います。
+	 * 標準の res.sendRedirect(url) の代わりに使用します。外部サイトへのリダイレクトは、標準の sendRedirect を使用してください。
+	 * デフォルトでは、このフィルター以降 (Servlet) で追加したリクエスト属性が、リダイレクト先のリクエスト属性に転送されます。
+	 * リダイレクト先に転送したくない項目がある場合は、このメソッドを呼び出す前に req#removeAttribute で個別に削除してください。
+	 * このメソッドは、以下の処理を行います。
 	 * 
 	 * 1. 指定した redirectUrl (null の場合はコンテキストルート) にリダイレクトします。
 	 * 2. リダイレクト先 URL をセッション属性 SYS_ERROR_REDIRECT_URL に保存します (システムエラー時のリダイレクト先として使用)。
