@@ -27,8 +27,8 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * リダイレクト時の自動フラッシュと例外ハンドリングを行うフィルターです。
  * <pre>
- * リダイレクト時に使用される一般的なフラッシュスコープ実装。このフィルターでは自動制御されます。
- * デフォルトでは開発者が Servlet で設定した、すべてのリクエスト属性がリダイレクト先でも、そのまま使用できます。
+ * セッションを使用した一般的なフラッシュスコープ実装です。このフィルターでは自動フラッシュ機構により、
+ * デフォルトでは、リダイレクト前に設定したリクエスト属性がリダイレクト先でも、意識することなく、そのまま使用できます。
  * その他の機能として、アプリエラー時に入力画面に自動フォワード、システムエラー時に自動リダイレクトします。
  * </pre>
  * 以下に、Servlet で例外がスローされた場合の動作を示します。
@@ -62,7 +62,7 @@ public class AutoFlashFilter extends HttpFilter {
 	 * JSP にフォワードします。
 	 * <pre>
 	 * 標準の req.getRequestDispatcher(path).forward(req, res) の代わりに使用します。
-	 * JSP 以外へのフォワードは上記の標準のメソッドを使用してください。このメソッドは、以下の処理を行います。
+	 * JSP 以外へのフォワードは標準の forward を使用してください。このメソッドは、以下の処理を行います。
 	 * 
 	 * 1. フォワードします。以下の 2 種類の記述が可能です。
 	 *  ・引数が絶対パス (先頭がスラッシュ　　) の場合: /WEB-INF/jsp + 引数 (分かりやすい)
@@ -100,9 +100,10 @@ public class AutoFlashFilter extends HttpFilter {
 	/**
 	 * リダイレクトします。
 	 * <pre>
-	 * 標準の res.sendRedirect(url) の代わりに使用します。外部サイトへのリダイレクトは、標準の sendRedirect を使用してください。
+	 * 標準の res.sendRedirect(url) の代わりに使用します。
 	 * デフォルトでは、このフィルター以降 (Servlet) で追加したリクエスト属性が、リダイレクト先のリクエスト属性に転送されます。
 	 * リダイレクト先に転送したくない項目がある場合は、このメソッドを呼び出す前に req#removeAttribute で個別に削除してください。
+	 * 一切転送したくない場合や外部サイトへのリダイレクトは、標準の sendRedirect を使用してください。
 	 * このメソッドは、以下の処理を行います。
 	 * 
 	 * 1. 指定した redirectUrl (null の場合はコンテキストルート) にリダイレクトします。
@@ -209,7 +210,7 @@ public class AutoFlashFilter extends HttpFilter {
 		try {
 			requestContextThreadLocal.set(new RequestContext(req, res));
 			
-			// フラッシュをセッションから復元
+			// フラッシュをセッションから復元し、セッションから削除
 			Map<String, Object> sessionFlash = $(FLASH, Collections.emptyMap());
 			sessionFlash.forEach(req::setAttribute);
 			req.getSession().removeAttribute(FLASH);
@@ -218,11 +219,11 @@ public class AutoFlashFilter extends HttpFilter {
 			Map<String, Object> tempFlash = new HashMap<>();
 			req.setAttribute(FLASH, tempFlash);
 			HttpServletRequest flashReqWrapper = new HttpServletRequestWrapper(req) {
-				@Override public void setAttribute(String name, Object o) {
+				public void setAttribute(String name, Object o) {
 					super.setAttribute(name, o);
 					tempFlash.put(name, o);
 				}
-				@Override public void removeAttribute(String name) {
+				public void removeAttribute(String name) {
 					super.removeAttribute(name);
 					tempFlash.remove(name);
 				}
