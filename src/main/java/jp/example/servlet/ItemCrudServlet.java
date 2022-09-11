@@ -19,7 +19,7 @@ import lombok.extern.slf4j.Slf4j;
  * Servlet JSP CRUD Servlet 定義クラスです。
  * <pre>
  * 検索一覧、登録、修正、削除画面のシンプルな Servlet パターンサンプル。
- *  IllegalStateException をスローすると、アプリエラーとしてリクエスト属性 MESSAGE にセットされ、表示中のページにフォワードされます。
+ * IllegalStateException をスローすると、アプリエラーとしてリクエスト属性 MESSAGE にセットされ、表示中のページにフォワードされます。
  * 以下のフィルタークラスの static メソッドを static インポートして使用できます。
  * forward、redirect、returns は条件分岐で呼び分ける場合でも、Servlet 内の処理はそこで終了するため、return 不要です。
  * 
