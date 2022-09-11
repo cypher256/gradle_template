@@ -28,7 +28,7 @@ import lombok.extern.slf4j.Slf4j;
  * リダイレクト時の自動フラッシュと例外ハンドリングを行うフィルターです。
  * <pre>
  * セッションを使用した一般的なフラッシュスコープ実装です。このフィルターでは自動フラッシュ機構により、
- * デフォルトでは、リダイレクト前に設定したリクエスト属性がリダイレクト先でも、意識することなく、そのまま使用できます。
+ * デフォルトでは、特に意識することなく、リダイレクト前に設定したリクエスト属性がリダイレクト先でも、そのまま使用できます。
  * その他の機能として、アプリエラー時に入力画面に自動フォワード、システムエラー時に自動リダイレクトします。
  * </pre>
  * 以下に、Servlet で例外がスローされた場合の動作を示します。
@@ -80,7 +80,7 @@ public class AutoFlashFilter extends HttpFilter {
 	 *    "/item/abc"     ../other/a.jsp    /WEB-INF/jsp/other/a.jsp
 	 * 
 	 * 2. AutoCsrfFilter を使用している場合は、meta と form input hidden に name="_csrf" として CSRF トークンが埋め込み。
-	 * 3. フォワード先パスをセッション属性 APP_ERROR_FORWARD_PATH に保存 (入力エラーなどのアプリエラー時のフォワード先として使用)。
+	 * 3. フォワード先パスをセッション属性 APP_ERROR_FORWARD_PATH に保存 (アプリエラー時の自動フォワード先として使用)。
 	 * 4. 後続処理を飛ばすために、正常にレスポンスがコミットされたことを示す定数 SUCCESS_RESPONSE_COMMITTED をスロー。
 	 * </pre>
 	 * @param jspPath JSP パス
@@ -107,7 +107,7 @@ public class AutoFlashFilter extends HttpFilter {
 	 * このメソッドは、以下の処理を行います。
 	 * 
 	 * 1. 指定した redirectUrl (null の場合はコンテキストルート) にリダイレクトします。
-	 * 2. リダイレクト先 URL をセッション属性 SYS_ERROR_REDIRECT_URL に保存します (システムエラー時のリダイレクト先として使用)。
+	 * 2. リダイレクト先 URL をセッション属性 SYS_ERROR_REDIRECT_URL に保存します (システムエラー時の自動リダイレクト先として使用)。
 	 * 3. Servlet で追加されたリクエスト属性をフラッシュ属性としてセッションに保存します (リダイレクト後にリクエスト属性に復元)。
 	 * 4. 後続処理を飛ばすために、正常にレスポンスがコミットされたことを示す定数 SUCCESS_RESPONSE_COMMITTED をスローします。
 	 * </pre>
@@ -146,6 +146,7 @@ public class AutoFlashFilter extends HttpFilter {
 	}
 	
 	/**
+	 * アプリエラーをスローするためのショートカットメソッドです。<br>
 	 * 指定した条件が false の場合は、アプリエラーを表す IllegalStateException をスローします。
 	 * @param isValid 入力チェックなどが正しい場合に true となる条件
 	 * @param message 例外にセットするメッセージ (クライアントに返すメッセージ)

@@ -28,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
  * 自動トランザクションフィルターです。
  * <pre>
  * データベーストランザクションの一般的なテンプレート実装です。
+ * Servlet の処理が正常に終了した場合はコミット、例外が発生した場合は自動的にロールバックされます。
  * このフィルターでは uroboroSQL を使用して、データベースの初期データロード、トランザクションを制御します。
  * </pre>
  * @author New Gradle Project Wizard (c) https://opensource.org/licenses/mit-license.php
