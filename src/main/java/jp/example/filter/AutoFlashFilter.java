@@ -33,11 +33,12 @@ import lombok.extern.slf4j.Slf4j;
  * </pre>
  * 以下に、Servlet で例外がスローされた場合の動作を示します。
  * <pre>
- * 1. AutoTransactionFilter を使用している場合はロールバックします。
- * 2. 例外メッセージを JSP 表示用にリクエスト属性 MESSAGE にセットします。
- * 3. IllegalStateException の場合、アプリエラーとしてセッション属性 APP_ERROR_FORWARD_PATH (通常は表示元) にフォワードします。
- * 4. 上記以外の例外の場合は、システムエラーとしてセッション属性 SYS_ERROR_REDIRECT_URL にリダイレクト (自動フラッシュ) します。
- * 5. セッションに APP_ERROR_FORWARD_PATH も SYS_ERROR_REDIRECT_URL も無い場合は、コンテキストルートにリダイレクト (自動フラッシュ)。
+ * 1. ロールバックします。(AutoTransactionFilter を使用している場合)
+ * 2. AJAX の場合、例外メッセージ文字列をレスポンスとしてクライアントに返して処理を終了します。そうでない場合、下記以降が実行されます。
+ * 3. 例外メッセージを JSP 表示用にリクエスト属性 MESSAGE にセットします。
+ * 4. IllegalStateException はアプリエラーとして、セッション属性 APP_ERROR_FORWARD_PATH (通常は表示元) にフォワードします。
+ * 5. 上記以外の例外の場合は、システムエラーとしてセッション属性 SYS_ERROR_REDIRECT_URL にリダイレクト (自動フラッシュ) します。
+ * 6. セッションに APP_ERROR_FORWARD_PATH も SYS_ERROR_REDIRECT_URL も無い場合は、コンテキストルートにリダイレクト (自動フラッシュ)。
  * </pre>
  * @author New Gradle Project Wizard (c) https://opensource.org/licenses/mit-license.php
  */
@@ -63,8 +64,9 @@ public class AutoFlashFilter extends HttpFilter {
 	 * 標準の req.getRequestDispatcher(path).forward(req, res) の代わりに使用します。
 	 * JSP 以外へのフォワードは上記の標準のメソッドを使用してください。このメソッドは、以下の処理を行います。
 	 * 
-	 * 1. 引数が絶対パス (先頭がスラッシュ) の場合は /WEB-INF/jsp + 引数、
-	 *    引数が相対パス (先頭がスラッシュ以外) の場合は /WEB-INF/jsp + getServletPath + 引数 にフォワードします。
+	 * 1. フォワードします。以下の 2 種類の記述が可能です。
+	 *  ・引数が絶対パス (先頭がスラッシュ　　) の場合: /WEB-INF/jsp + 引数 (分かりやすい)
+	 *  ・引数が相対パス (先頭がスラッシュ以外) の場合: /WEB-INF/jsp + getServletPath + 引数 (短い記述)
 	 * 
 	 *    getServletPath  引数の jspPath     RequestDispatcher#forward に渡されるパス
 	 *    "/item/abc"     /item/list.jsp    /WEB-INF/jsp/item/list.jsp
@@ -141,17 +143,16 @@ public class AutoFlashFilter extends HttpFilter {
 		log.debug("戻り値 {}", resObject);
 		throw SUCCESS_RESPONSE_COMMITTED;
 	}
-
+	
 	/**
-	 * エラーチェック用のメソッドです。<br>
-	 * 指定した条件が false の場合、引数のメッセージを持つ IllegalStateException をアプリエラーとしてスローします。
+	 * 指定した条件が false の場合は、アプリエラーを表す IllegalStateException をスローします。
 	 * @param isValid 入力チェックなどが正しい場合に true となる条件
-	 * @param message リクエスト属性にセットするメッセージ
+	 * @param message 例外にセットするメッセージ (クライアントに返すメッセージ)
 	 * @param args メッセージの %s や %d に String#format で埋め込む文字列
 	 */
 	public static void valid(boolean isValid, String message, Object... args) {
 		if (!isValid) {
-			throw new IllegalStateException(String.format(message, args));
+			throw new  IllegalStateException(String.format(message, args));
 		}
 	}
 	
@@ -239,12 +240,12 @@ public class AutoFlashFilter extends HttpFilter {
 				res.getWriter().print((String) $(MESSAGE));
 			} else {
 				
-				// アプリエラー (入力エラーなどの業務エラー)
+				// アプリエラー (画面入力チェックエラーなど)
 				String forwardPath = $(APP_ERROR_FORWARD_PATH);
-				if (cause instanceof IllegalStateException && forwardPath != null) {
+				if (cause instanceof  IllegalStateException && forwardPath != null) {
 					req.getRequestDispatcher(forwardPath).forward(req, res);
 					
-				// システムエラー (DB エラーなど)
+				// システムエラー (DB 接続エラーなど)
 				} else {
 					res.sendRedirect($(SYS_ERROR_REDIRECT_URL, req.getContextPath()));
 					req.getSession().setAttribute(FLASH, Map.of(MESSAGE, $(MESSAGE)));

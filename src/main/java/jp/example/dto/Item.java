@@ -30,6 +30,14 @@ public class Item {
 		req.setAttribute("item", this); // エラー時の JSP 再表示用
 	}
 	
+	/**
+	 * この DTO が保持する値を検証して不正な場合は、アプリエラーを表す IllegalStateException をスローします。
+	 * <pre>
+	 * スローされた例外は AutoFlashFilter で処理されます。
+	 * 画面の場合はリクエスト属性 MESSAGE にセットして現在の画面にフォワード、AJAX の場合はメッセージ文字列をクライアントに返します。
+	 * </pre>
+	 * @return このインスタンス
+	 */
 	public Item validate() {
 		valid(!name.isBlank(), "製品名は必須です。");
 		valid(name.matches("[^<>]+"), "製品名に <> は使用できません。(%d 文字目)", StringUtils.indexOfAny(name, "<>"));

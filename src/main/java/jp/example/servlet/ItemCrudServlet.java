@@ -19,7 +19,7 @@ import lombok.extern.slf4j.Slf4j;
  * Servlet JSP CRUD Servlet 定義クラスです。
  * <pre>
  * 検索一覧、登録、修正、削除画面のシンプルな Servlet パターンサンプル。
- * IllegalStateException をスローすると、アプリエラーとしてリクエスト属性 MESSAGE にセットされ、表示中のページにフォワードされます。
+ *  IllegalStateException をスローすると、アプリエラーとしてリクエスト属性 MESSAGE にセットされ、表示中のページにフォワードされます。
  * 以下のフィルタークラスの static メソッドを static インポートして使用できます。
  * forward、redirect、returns は条件分岐で呼び分ける場合でも、Servlet 内の処理はそこで終了するため、return 不要です。
  * 
@@ -28,7 +28,7 @@ import lombok.extern.slf4j.Slf4j;
  *   forward(jsp)   フォワードのショートカットメソッド (入力エラー時の戻り先として保存、CSRF 兼同期トークン自動埋め込み)
  *   redirect(url)  リダイレクトのショートカットメソッド (自動フラッシュにより、リダイレクト先でリクエスト属性がそのまま使用可能)
  *   returns(obj)   REST API などの戻り値として Java オブジェクトを JSON 文字列などに変換してクライアントに返却
- *   valid(〜)      条件とエラーメッセージを指定して、アプリエラー IllegalStateException をスローするためのショートカットメソッド
+ *   valid(〜)      条件とエラーメッセージを指定して、pplicationException をスローするためのショートカットメソッド
  *   $(name)        JSP EL のようにリクエスト、セッション、アプリケーションスコープから、最初に見つかった属性値を取得 (キャスト不要)
  * 
  * AutoTransactionFilter
@@ -83,7 +83,7 @@ public class ItemCrudServlet {
 		/** 登録画面の登録ボタン → 一覧画面へリダイレクト (PRG パターン: リロードによる二重登録抑止) */
 		@Override @SneakyThrows
 		protected void doPost(HttpServletRequest req, HttpServletResponse res) {
-			dao().insert(new Item(req).validate()); // 例外がスローされると AutoFlashFilter でリクエスト属性 MESSAGE セット
+			dao().insert(new Item(req).validate());
 			req.setAttribute(MESSAGE, "登録しました。");
 			redirect($("listQueryUrl"));
 		}
@@ -104,7 +104,7 @@ public class ItemCrudServlet {
 		/** 変更画面の更新ボタン → 一覧画面へリダイレクト (PRG パターン: リロードによる二回更新抑止) */
 		@Override @SneakyThrows
 		protected void doPost(HttpServletRequest req, HttpServletResponse res) {
-			dao().update(new Item(req).validate()); // 例外がスローされると AutoFlashFilter でリクエスト属性 MESSAGE セット
+			dao().update(new Item(req).validate());
 			req.setAttribute(MESSAGE, "更新しました。");
 			redirect($("listQueryUrl"));
 		}
