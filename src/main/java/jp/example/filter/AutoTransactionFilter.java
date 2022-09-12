@@ -1,10 +1,10 @@
 package jp.example.filter;
 
+import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.*;
 import static org.apache.commons.lang3.function.Failable.*;
 
 import java.sql.DriverManager;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -71,9 +71,8 @@ public class AutoTransactionFilter extends HttpFilter {
 				dao.update("create_table").count(); // ファイル実行 src/main/resources/sql/create_table.sql
 			}
 			String param = getFilterConfig().getInitParameter("noRollbackExceptionList");
-			noRollbackExceptionList = Arrays.stream(param.split("[,;\\s]+"))
-					.filter(StringUtils::isNotEmpty)
-					.map(asFunction(Class::forName)).collect(toList());
+			noRollbackExceptionList = stream(param.split("[,;\\s]+"))
+					.filter(StringUtils::isNotEmpty).map(asFunction(Class::forName)).collect(toList());
 			
 		} catch (Exception e) {
 			log.error("AutoTransactionFilter 初期化エラー", e);

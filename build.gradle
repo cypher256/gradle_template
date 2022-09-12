@@ -25,11 +25,11 @@ war ファイル作成
 
 構成要素
 
-	DB 接続情報     JNDI			src/main/webapp/META-INF/context.xml
-	DB アクセス     uroboroSQL		src/main/java/jp/example/filter/AutoTransactionFilter.java
-	ログ管理        SLF4J			src/main/resources/simplelogger.properties
-	認証制御        Apache Shiro	src/main/webapp/WEB-INF/shiro.ini
-	セキュリティ    CSRF, CORS,,,	src/main/webapp/WEB-INF/web.xml
+	DB 接続情報		JNDI			src/main/webapp/META-INF/context.xml
+	DB アクセス		uroboroSQL		src/main/java/jp/example/filter/AutoTransactionFilter.java
+	ログ管理			SLF4J			src/main/resources/simplelogger.properties
+	認証制御			Apache Shiro	src/main/webapp/WEB-INF/shiro.ini
+	セキュリティ		CSRF, CORS,,,	src/main/webapp/WEB-INF/web.xml
 	
 ------------------------------------------------------------------------------ */
 plugins {
