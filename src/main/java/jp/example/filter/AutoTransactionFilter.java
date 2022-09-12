@@ -74,6 +74,7 @@ public class AutoTransactionFilter extends HttpFilter {
 			noRollbackExceptionList = Arrays.stream(param.split("[,;\\s]+"))
 					.filter(StringUtils::isNotEmpty)
 					.map(asFunction(Class::forName)).collect(toList());
+			
 		} catch (Exception e) {
 			log.error("AutoTransactionFilter 初期化エラー", e);
 			throw e;
