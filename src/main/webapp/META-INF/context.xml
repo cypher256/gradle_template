@@ -1,0 +1,14 @@
+<Context>
+
+	<!-- JNDI DB 接続定義 (Tomcat DBCP, web.xml で resource-ref 定義) -->
+	<Resource 
+		name="jdbc/main"
+		auth="Container"
+		type="javax.sql.DataSource"
+		driverClassName="org.h2.Driver"
+		url="jdbc:h2:mem:test;DB_CLOSE_DELAY=-1"
+		username="sa"
+		password=""
+		maxWaitMillis="10000" />
+
+</Context>

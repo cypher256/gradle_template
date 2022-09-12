@@ -12,7 +12,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import jodd.servlet.DispatcherUtil;
 import jp.example.dto.Item;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -28,7 +27,7 @@ import lombok.extern.slf4j.Slf4j;
  *   forward(jsp)   フォワードのショートカットメソッド (入力エラー時の戻り先として保存、CSRF 兼同期トークン自動埋め込み)
  *   redirect(url)  リダイレクトのショートカットメソッド (自動フラッシュにより、リダイレクト先でリクエスト属性がそのまま使用可能)
  *   returns(obj)   REST API などの戻り値として Java オブジェクトを JSON 文字列などに変換してクライアントに返却
- *   valid(〜)      条件とエラーメッセージを指定して、アプリエラー IllegalStateException をスローするためのショートカットメソッド
+ *   valid(〜)      条件とエラーメッセージを指定して、pplicationException をスローするためのショートカットメソッド
  *   $(name)        JSP EL のようにリクエスト、セッション、アプリケーションスコープから、最初に見つかった属性値を取得 (キャスト不要)
  * 
  * AutoTransactionFilter
@@ -46,7 +45,6 @@ public class ItemCrudServlet {
 	public static class ListServlet extends HttpServlet {
 		
 		/** 検索一覧画面の表示 */
-		@Override @SneakyThrows
 		protected void doGet(HttpServletRequest req, HttpServletResponse res) {
 			
 			 // 検索 SQL (2WaySQL OGNL)
@@ -65,7 +63,7 @@ public class ItemCrudServlet {
 			List<Item> list = dao().queryWith(sql).paramBean(new Item(req)).collect(Item.class);
 			log.debug("SELECT 結果: {} 件", list.size());
 			req.setAttribute("itemList", list);
-			req.getSession().setAttribute("listQueryUrl", DispatcherUtil.getFullUrl(req));
+			req.getSession().setAttribute("lastQueryUrl", DispatcherUtil.getFullUrl(req));
 			forward("list.jsp");
 		}
 	}
@@ -75,17 +73,19 @@ public class ItemCrudServlet {
 	public static class CreateServlet extends HttpServlet {
 		
 		/** 一覧画面の新規登録ボタン → 登録画面の表示 */
-		@Override @SneakyThrows
 		protected void doGet(HttpServletRequest req, HttpServletResponse res) {
 			forward("detail.jsp");
 		}
 		
 		/** 登録画面の登録ボタン → 一覧画面へリダイレクト (PRG パターン: リロードによる二重登録抑止) */
-		@Override @SneakyThrows
 		protected void doPost(HttpServletRequest req, HttpServletResponse res) {
-			dao().insert(new Item(req).validate()); // 例外がスローされると AutoFlashFilter でリクエスト属性 MESSAGE セット
+			Item item = new Item(req).validate();
+			dao().query(Item.class).equal("name", item.name).exists(() -> {
+				throw new IllegalStateException("指定された製品名は、すでに登録されています。");
+			});
+			dao().insert(item);
 			req.setAttribute(MESSAGE, "登録しました。");
-			redirect($("listQueryUrl"));
+			redirect($("lastQueryUrl"));
 		}
 	}
 
@@ -94,7 +94,6 @@ public class ItemCrudServlet {
 	public static class UpdateServlet extends HttpServlet {
 		
 		/** 一覧画面の変更ボタン → 変更画面の表示 */
-		@Override @SneakyThrows
 		protected void doGet(HttpServletRequest req, HttpServletResponse res) {
 			Item item = dao().find(Item.class, new Item(req).id).orElseThrow(() -> new Error("存在しません。"));
 			req.setAttribute("item", item);
@@ -102,11 +101,14 @@ public class ItemCrudServlet {
 		}
 		
 		/** 変更画面の更新ボタン → 一覧画面へリダイレクト (PRG パターン: リロードによる二回更新抑止) */
-		@Override @SneakyThrows
 		protected void doPost(HttpServletRequest req, HttpServletResponse res) {
-			dao().update(new Item(req).validate()); // 例外がスローされると AutoFlashFilter でリクエスト属性 MESSAGE セット
+			Item item = new Item(req).validate();
+			dao().query(Item.class).notEqual("id", item.id).equal("name", item.name).exists(() -> {
+				throw new IllegalStateException("指定された製品名は、別の製品で使用されています。");
+			});
+			dao().update(item);
 			req.setAttribute(MESSAGE, "更新しました。");
-			redirect($("listQueryUrl"));
+			redirect($("lastQueryUrl"));
 		}
 	}
 
@@ -115,11 +117,10 @@ public class ItemCrudServlet {
 	public static class DeleteServlet extends HttpServlet {
 		
 		/** 一覧画面の削除ボタン → 一覧画面へリダイレクト (リロードによる二回削除抑止) */
-		@Override @SneakyThrows
 		protected void doGet(HttpServletRequest req, HttpServletResponse res) {
 			dao().delete(new Item(req));
 			req.setAttribute(MESSAGE, "削除しました。");
-			redirect($("listQueryUrl"));
+			redirect($("lastQueryUrl"));
 		}
 	}
 }

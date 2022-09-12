@@ -128,7 +128,10 @@
 		<filter-name>AutoTransactionFilter</filter-name>
 		<filter-class>jp.example.filter.AutoTransactionFilter</filter-class>
 		<init-param>
-			<!-- 例外でもコミットする例外クラスの [,;\s]+ 区切りリスト (JTA の dontRollbackOn と同様の機能) -->
+			<!-- 
+			例外でもコミットする例外クラスの [,;\s]+ 区切りリスト
+			JTA の dontRollbackOn や Spring の noRollbackFor と同様の機能
+			-->
 			<param-name>noRollbackExceptionList</param-name>
 			<param-value>
 				jp.example.filter.AutoFlashFilter$SuccessResponseCommittedException
@@ -165,5 +168,12 @@
 			<trim-directive-whitespaces>true</trim-directive-whitespaces>
 		</jsp-property-group>
 	</jsp-config>
+	
+	<!-- DB 接続 JNDI 参照 (接続情報は context.xml に定義) -->
+	<resource-ref>
+		<res-ref-name>jdbc/main</res-ref-name>
+		<res-type>javax.sql.DataSource</res-type>
+		<res-auth>Container</res-auth>
+	</resource-ref>
 
 </web-app>

@@ -10,12 +10,12 @@ import javax.servlet.http.HttpServletResponse;
 
 import jp.example.dto.Item;
 import lombok.Data;
-import lombok.SneakyThrows;
 
 /**
  * REST API Servlet サンプルクラスです。
  * <pre>
  * キーイベントによる AJAX リアルタイム通信のサンプルです。
+ * AJAX の場合、IllegalStateException をスローすると、例外メッセージ文字列がレスポンスとして返却されます。
  * </pre>
  * @author New Gradle Project Wizard (c) https://opensource.org/licenses/mit-license.php
  */
@@ -26,7 +26,6 @@ public class ItemRestServlet extends HttpServlet {
 	 * 検索画面の検索文字列 onkeyup 時の検索結果件数取得 API です。<br>
 	 * 戻り値: json 結果件数情報 (例外発生時は text エラーメッセージ文字列)
 	 */
-	@Override @SneakyThrows
 	protected void doGet(HttpServletRequest req, HttpServletResponse res) {
 		
 		String sql = """
@@ -53,8 +52,7 @@ public class ItemRestServlet extends HttpServlet {
 	 * (更新系ではないが post。post のためトークンもチェックされる。) 
 	 * 戻り値: text エラーメッセージ文字列 (エラーが無い場合は戻り値なし)
 	 */
-	@Override @SneakyThrows
 	protected void doPost(HttpServletRequest req, HttpServletResponse res) {
-		new Item(req).validate(); // 入力エラー時は例外がスローされ AutoFlashFilter でエラーメッセージ文字列が返却される
+		new Item(req).validate();
 	}
 }

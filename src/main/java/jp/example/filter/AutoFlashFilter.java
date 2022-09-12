@@ -27,17 +27,18 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * リダイレクト時の自動フラッシュと例外ハンドリングを行うフィルターです。
  * <pre>
- * リダイレクト時に使用される一般的なフラッシュスコープ実装。このフィルターでは自動制御されます。
- * デフォルトでは開発者が Servlet で設定した、すべてのリクエスト属性がリダイレクト先でも、そのまま使用できます。
+ * セッションを使用した一般的なフラッシュスコープ実装です。このフィルターでは自動フラッシュ機構により、
+ * デフォルトでは、特に意識することなく、リダイレクト前に設定したリクエスト属性がリダイレクト先でも、そのまま使用できます。
  * その他の機能として、アプリエラー時に入力画面に自動フォワード、システムエラー時に自動リダイレクトします。
  * </pre>
  * 以下に、Servlet で例外がスローされた場合の動作を示します。
  * <pre>
- * 1. AutoTransactionFilter を使用している場合はロールバックします。
- * 2. 例外メッセージを JSP 表示用にリクエスト属性 MESSAGE にセットします。
- * 3. IllegalStateException の場合、アプリエラーとしてセッション属性 APP_ERROR_FORWARD_PATH (通常は表示元) にフォワードします。
- * 4. 上記以外の例外の場合は、システムエラーとしてセッション属性 SYS_ERROR_REDIRECT_URL にリダイレクト (自動フラッシュ) します。
- * 5. セッションに APP_ERROR_FORWARD_PATH も SYS_ERROR_REDIRECT_URL も無い場合は、コンテキストルートにリダイレクト (自動フラッシュ)。
+ * 1. ロールバックします。(AutoTransactionFilter を使用している場合)
+ * 2. AJAX の場合、例外メッセージ文字列をレスポンスとしてクライアントに返して処理を終了します。そうでない場合、下記以降が実行されます。
+ * 3. 例外メッセージを JSP 表示用にリクエスト属性 MESSAGE にセットします。
+ * 4. IllegalStateException はアプリエラーとして、セッション属性 APP_ERROR_FORWARD_PATH (通常は表示元) にフォワードします。
+ * 5. 上記以外の例外の場合は、システムエラーとしてセッション属性 SYS_ERROR_REDIRECT_URL にリダイレクト (自動フラッシュ) します。
+ * 6. セッションに APP_ERROR_FORWARD_PATH も SYS_ERROR_REDIRECT_URL も無い場合は、コンテキストルートにリダイレクト (自動フラッシュ)。
  * </pre>
  * @author New Gradle Project Wizard (c) https://opensource.org/licenses/mit-license.php
  */
@@ -61,10 +62,11 @@ public class AutoFlashFilter extends HttpFilter {
 	 * JSP にフォワードします。
 	 * <pre>
 	 * 標準の req.getRequestDispatcher(path).forward(req, res) の代わりに使用します。
-	 * JSP 以外へのフォワードは上記の標準のメソッドを使用してください。このメソッドは、以下の処理を行います。
+	 * JSP 以外へのフォワードは標準の forward を使用してください。このメソッドは、以下の処理を行います。
 	 * 
-	 * 1. 引数が絶対パス (先頭がスラッシュ) の場合は /WEB-INF/jsp + 引数、
-	 *    引数が相対パス (先頭がスラッシュ以外) の場合は /WEB-INF/jsp + getServletPath + 引数 にフォワードします。
+	 * 1. フォワードします。以下の 2 種類の記述が可能です。
+	 *  ・引数が絶対パス (先頭がスラッシュ　　) の場合: /WEB-INF/jsp + 引数 (分かりやすい)
+	 *  ・引数が相対パス (先頭がスラッシュ以外) の場合: /WEB-INF/jsp + getServletPath + 引数 (短い記述)
 	 * 
 	 *    getServletPath  引数の jspPath     RequestDispatcher#forward に渡されるパス
 	 *    "/item/abc"     /item/list.jsp    /WEB-INF/jsp/item/list.jsp
@@ -78,7 +80,7 @@ public class AutoFlashFilter extends HttpFilter {
 	 *    "/item/abc"     ../other/a.jsp    /WEB-INF/jsp/other/a.jsp
 	 * 
 	 * 2. AutoCsrfFilter を使用している場合は、meta と form input hidden に name="_csrf" として CSRF トークンが埋め込み。
-	 * 3. フォワード先パスをセッション属性 APP_ERROR_FORWARD_PATH に保存 (入力エラーなどのアプリエラー時のフォワード先として使用)。
+	 * 3. フォワード先パスをセッション属性 APP_ERROR_FORWARD_PATH に保存 (アプリエラー時の自動フォワード先として使用)。
 	 * 4. 後続処理を飛ばすために、正常にレスポンスがコミットされたことを示す定数 SUCCESS_RESPONSE_COMMITTED をスロー。
 	 * </pre>
 	 * @param jspPath JSP パス
@@ -98,13 +100,14 @@ public class AutoFlashFilter extends HttpFilter {
 	/**
 	 * リダイレクトします。
 	 * <pre>
-	 * 標準の res.sendRedirect(url) の代わりに使用します。外部サイトへのリダイレクトは、標準の sendRedirect を使用してください。
+	 * 標準の res.sendRedirect(url) の代わりに使用します。
 	 * デフォルトでは、このフィルター以降 (Servlet) で追加したリクエスト属性が、リダイレクト先のリクエスト属性に転送されます。
 	 * リダイレクト先に転送したくない項目がある場合は、このメソッドを呼び出す前に req#removeAttribute で個別に削除してください。
+	 * 一切転送したくない場合や外部サイトへのリダイレクトは、標準の sendRedirect を使用してください。
 	 * このメソッドは、以下の処理を行います。
 	 * 
 	 * 1. 指定した redirectUrl (null の場合はコンテキストルート) にリダイレクトします。
-	 * 2. リダイレクト先 URL をセッション属性 SYS_ERROR_REDIRECT_URL に保存します (システムエラー時のリダイレクト先として使用)。
+	 * 2. リダイレクト先 URL をセッション属性 SYS_ERROR_REDIRECT_URL に保存します (システムエラー時の自動リダイレクト先として使用)。
 	 * 3. Servlet で追加されたリクエスト属性をフラッシュ属性としてセッションに保存します (リダイレクト後にリクエスト属性に復元)。
 	 * 4. 後続処理を飛ばすために、正常にレスポンスがコミットされたことを示す定数 SUCCESS_RESPONSE_COMMITTED をスローします。
 	 * </pre>
@@ -141,17 +144,17 @@ public class AutoFlashFilter extends HttpFilter {
 		log.debug("戻り値 {}", resObject);
 		throw SUCCESS_RESPONSE_COMMITTED;
 	}
-
+	
 	/**
-	 * エラーチェック用のメソッドです。<br>
-	 * 指定した条件が false の場合、引数のメッセージを持つ IllegalStateException をアプリエラーとしてスローします。
+	 * アプリエラーをスローするためのショートカットメソッドです。<br>
+	 * 指定した条件が false の場合は、アプリエラーを表す IllegalStateException をスローします。
 	 * @param isValid 入力チェックなどが正しい場合に true となる条件
-	 * @param message リクエスト属性にセットするメッセージ
+	 * @param message 例外にセットするメッセージ (クライアントに返すメッセージ)
 	 * @param args メッセージの %s や %d に String#format で埋め込む文字列
 	 */
 	public static void valid(boolean isValid, String message, Object... args) {
 		if (!isValid) {
-			throw new IllegalStateException(String.format(message, args));
+			throw new  IllegalStateException(String.format(message, args));
 		}
 	}
 	
@@ -208,7 +211,7 @@ public class AutoFlashFilter extends HttpFilter {
 		try {
 			requestContextThreadLocal.set(new RequestContext(req, res));
 			
-			// フラッシュをセッションから復元
+			// フラッシュをセッションから復元し、セッションから削除
 			Map<String, Object> sessionFlash = $(FLASH, Collections.emptyMap());
 			sessionFlash.forEach(req::setAttribute);
 			req.getSession().removeAttribute(FLASH);
@@ -217,11 +220,11 @@ public class AutoFlashFilter extends HttpFilter {
 			Map<String, Object> tempFlash = new HashMap<>();
 			req.setAttribute(FLASH, tempFlash);
 			HttpServletRequest flashReqWrapper = new HttpServletRequestWrapper(req) {
-				@Override public void setAttribute(String name, Object o) {
+				public void setAttribute(String name, Object o) {
 					super.setAttribute(name, o);
 					tempFlash.put(name, o);
 				}
-				@Override public void removeAttribute(String name) {
+				public void removeAttribute(String name) {
 					super.removeAttribute(name);
 					tempFlash.remove(name);
 				}
@@ -234,17 +237,17 @@ public class AutoFlashFilter extends HttpFilter {
 				return;
 			}
 			Throwable cause = ExceptionUtils.getRootCause(e);
-			req.setAttribute(MESSAGE, cause.getMessage());
+			req.setAttribute(MESSAGE, req.isSecure() ? "システムに問題が発生しました。" : cause.getMessage());
 			if (isAjax(req)) {
 				res.getWriter().print((String) $(MESSAGE));
 			} else {
 				
-				// アプリエラー (入力エラーなどの業務エラー)
+				// アプリエラー (画面入力チェックエラーなど)
 				String forwardPath = $(APP_ERROR_FORWARD_PATH);
-				if (cause instanceof IllegalStateException && forwardPath != null) {
+				if (cause instanceof  IllegalStateException && forwardPath != null) {
 					req.getRequestDispatcher(forwardPath).forward(req, res);
 					
-				// システムエラー (DB エラーなど)
+				// システムエラー (DB 接続エラーなど)
 				} else {
 					res.sendRedirect($(SYS_ERROR_REDIRECT_URL, req.getContextPath()));
 					req.getSession().setAttribute(FLASH, Map.of(MESSAGE, $(MESSAGE)));

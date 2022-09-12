@@ -30,6 +30,7 @@ public class Item {
 		req.setAttribute("item", this); // エラー時の JSP 再表示用
 	}
 	
+	/** この DTO が保持する値を検証して不正な場合はアプリエラーを表す IllegalStateException をスロー */
 	public Item validate() {
 		valid(!name.isBlank(), "製品名は必須です。");
 		valid(name.matches("[^<>]+"), "製品名に <> は使用できません。(%d 文字目)", StringUtils.indexOfAny(name, "<>"));

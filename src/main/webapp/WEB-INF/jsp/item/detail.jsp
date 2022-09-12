@@ -33,7 +33,7 @@
 			<input type="checkbox" name="faceAuth" ${item.faceAuth ? 'checked' : ''}
 				onchange="validate()">
 		</p>
-		<button type="button" onclick="location.href='${listQueryUrl == null ? 'list' : listQueryUrl}'">戻る</button>
+		<button type="button" onclick="location.href='${lastQueryUrl == null ? 'list' : lastQueryUrl}'">戻る</button>
 		<input id="_submitButton" type="submit" value=
 			${empty item || item.id == 0
 				? '"登録" formaction="create"' 
