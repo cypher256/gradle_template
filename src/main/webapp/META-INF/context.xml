@@ -1,6 +1,11 @@
 <Context>
 
-	<!-- JNDI DB 接続定義 (Tomcat DBCP, web.xml で resource-ref 定義) -->
+	<!-- 
+	JNDI DB 接続定義 (Tomcat DBCP)
+	web.xml と shiro.ini から、この定義を参照
+	テーブルは起動時に AutoTransactionFilter で create_table.sql を読み込んで作成
+	デフォルト値 https://tomcat.apache.org/tomcat-9.0-doc/jndi-resources-howto.html#JDBC_Data_Sources
+	-->
 	<Resource 
 		name="jdbc/main"
 		auth="Container"

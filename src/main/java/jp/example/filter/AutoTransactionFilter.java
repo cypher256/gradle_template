@@ -80,7 +80,7 @@ public class AutoTransactionFilter extends HttpFilter {
 		}
 	}
 	
-	/** データベースリソース破棄 (ドライバー解除は Tomcat 警告抑止) */
+	/** JDBC ドライバー破棄 (無くても問題ないが Tomcat 警告抑止のため) */
 	@Override
 	public void destroy() {
 		Collections.list(DriverManager.getDrivers()).forEach(asConsumer(DriverManager::deregisterDriver));
