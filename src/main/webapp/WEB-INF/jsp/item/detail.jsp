@@ -36,7 +36,7 @@
 		<p>
 			<label>メーカー</label>
 			<select name="companyId">
-	<c:forEach var="com" items="${companySelectOptions}">
+	<c:forEach var="com" items="${companyPulldownQuery.collect()}">
 				<option value="${com.id}" ${item.companyId == com.id ? 'selected' : ''}>${com.companyName}</option>
 	</c:forEach>
 			</select>

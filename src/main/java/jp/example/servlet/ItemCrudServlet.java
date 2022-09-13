@@ -65,6 +65,7 @@ public class ItemCrudServlet {
 			log.debug("検索して list.jsp にフォワード");
 			req.setAttribute("itemList", dao().queryWith(sql).paramBean(new ItemForm(req)).collect(ItemForm.class));
 			req.getSession().setAttribute("lastQueryUrl", DispatcherUtil.getFullUrl(req));
+			req.getSession().setAttribute("companyPulldownQuery", dao().query(Company.class).asc("id"));
 			forward("list.jsp");
 		}
 	}
@@ -75,7 +76,6 @@ public class ItemCrudServlet {
 		
 		/** 一覧画面の新規登録ボタン → 登録画面の表示 */
 		protected void doGet(HttpServletRequest req, HttpServletResponse res) {
-			req.setAttribute("companySelectOptions", dao().query(Company.class).asc("id").collect());
 			forward("detail.jsp");
 		}
 		
@@ -97,9 +97,8 @@ public class ItemCrudServlet {
 		
 		/** 一覧画面の変更ボタン → 変更画面の表示 */
 		protected void doGet(HttpServletRequest req, HttpServletResponse res) {
-			long id = new ItemForm(req).id;
-			req.setAttribute("item", dao().find(Item.class, id).orElseThrow(() -> new Error("存在しません。")));
-			req.setAttribute("companySelectOptions", dao().query(Company.class).asc("id").collect());
+			ItemForm form = new ItemForm(req);
+			req.setAttribute("item", dao().find(Item.class, form.id).orElseThrow(() -> new Error("存在しません。")));
 			forward("detail.jsp");
 		}
 		
