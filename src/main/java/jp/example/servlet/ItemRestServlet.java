@@ -8,7 +8,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import jp.example.dto.Item;
+import jp.example.form.ItemForm;
 import lombok.Data;
 
 /**
@@ -29,7 +29,8 @@ public class ItemRestServlet extends HttpServlet {
 	protected void doGet(HttpServletRequest req, HttpServletResponse res) {
 		
 		String sql = """
-				SELECT COUNT(*) FROM item
+				SELECT COUNT(*) 
+				FROM item
 				WHERE 1 = 1
 					/*IF SF.isNotBlank(name)*/
 						AND name LIKE /*SF.contains(name)*/'Pro' escape /*#ESC_CHAR*/'$'
@@ -41,7 +42,7 @@ public class ItemRestServlet extends HttpServlet {
 		
 		@Data
 		class SearchResult {
-			Item condition = new Item(req); // クライアントで件数以外は使用しないが json 返却例としてセット
+			ItemForm condition = new ItemForm(req); // クライアントで件数以外は使用しないが json 返却例としてセット
 			int count = dao().queryWith(sql).paramBean(condition).one(int.class);
 		}
 		returns(new SearchResult());
@@ -53,6 +54,6 @@ public class ItemRestServlet extends HttpServlet {
 	 * 戻り値: text エラーメッセージ文字列 (エラーが無い場合は戻り値なし)
 	 */
 	protected void doPost(HttpServletRequest req, HttpServletResponse res) {
-		new Item(req).validate();
+		new ItemForm(req).validate();
 	}
 }

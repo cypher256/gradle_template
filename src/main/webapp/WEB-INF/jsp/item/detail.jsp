@@ -33,6 +33,14 @@
 			<input type="checkbox" name="faceAuth" ${item.faceAuth ? 'checked' : ''}
 				onchange="validate()">
 		</p>
+		<p>
+			<label>メーカー</label>
+			<select name="companyId">
+	<c:forEach var="com" items="${companySelectOptions}">
+				<option value="${com.id}" ${item.companyId == com.id ? 'selected' : ''}>${com.companyName}</option>
+	</c:forEach>
+			</select>
+		</p>
 		<button type="button" onclick="location.href='${lastQueryUrl == null ? 'list' : lastQueryUrl}'">戻る</button>
 		<input id="_submitButton" type="submit" value=
 			${empty item || item.id == 0

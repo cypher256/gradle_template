@@ -244,12 +244,16 @@ public class AutoFlashFilter extends HttpFilter {
 				
 				// アプリエラー (画面入力チェックエラーなど)
 				String forwardPath = $(APP_ERROR_FORWARD_PATH);
-				if (cause instanceof  IllegalStateException && forwardPath != null) {
+				if (cause instanceof IllegalStateException && forwardPath != null) {
 					req.getRequestDispatcher(forwardPath).forward(req, res);
 					
 				// システムエラー (DB 接続エラーなど)
 				} else {
-					res.sendRedirect($(SYS_ERROR_REDIRECT_URL, req.getContextPath()));
+					String redirectUrl = $(SYS_ERROR_REDIRECT_URL);
+					if (redirectUrl == null || redirectUrl.equals(req.getRequestURI())) {
+						redirectUrl = req.getContextPath();
+					}
+					res.sendRedirect(redirectUrl);
 					req.getSession().setAttribute(FLASH, Map.of(MESSAGE, $(MESSAGE)));
 					log.warn(cause.getMessage(), cause);
 				}

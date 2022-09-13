@@ -18,7 +18,7 @@
 		Tomcat 公式 CorsFilter			
 		Tomcat 公式 ShiroFilter			ログイン画面を使用する場合は必要
 		ローカル AutoCsrfFilter			
-		ローカル AutoFlashFilter			[必須]
+		ローカル AutoFlashFilter		[必須]
 		ローカル AutoTransactionFilter	[必須]
 	===============================================================================================
 	-->

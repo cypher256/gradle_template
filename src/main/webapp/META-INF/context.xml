@@ -7,7 +7,7 @@
 	 
 	AutoTransactionFilter.java と shiro.ini から、この定義を参照
 	起動時に AutoTransactionFilter で create_table.sql を読み込んでテーブル作成
-	web.xml の JNDI 参照定義 <resource-ref> は無くても動作するため未定義
+	web.xml の JNDI 参照定義 <resource-ref> は定義不要
 	
 	設定デフォルト値 (maxWaitMillis のデフォルトは -1 無制限)
 	https://tomcat.apache.org/tomcat-9.0-doc/jndi-resources-howto.html#JDBC_Data_Sources

@@ -3,15 +3,15 @@ package jp.example.servlet;
 import static jp.example.filter.AutoFlashFilter.*;
 import static jp.example.filter.AutoTransactionFilter.*;
 
-import java.util.List;
-
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import jodd.servlet.DispatcherUtil;
-import jp.example.dto.Item;
+import jp.example.entity.Company;
+import jp.example.entity.Item;
+import jp.example.form.ItemForm;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -50,7 +50,9 @@ public class ItemCrudServlet {
 			 // 検索 SQL (2WaySQL OGNL)
 			 // https://future-architect.github.io/uroborosql-doc/background/#条件分岐-if-elif-else-end
 			String sql = """
-					SELECT * FROM item
+					SELECT item.*, company.company_name 
+					FROM item
+					LEFT JOIN company ON item.company_id = company.id
 					WHERE 1 = 1
 						/*IF SF.isNotBlank(name)*/
 							AND name LIKE /*SF.contains(name)*/'Pro' escape /*#ESC_CHAR*/'$'
@@ -60,9 +62,8 @@ public class ItemCrudServlet {
 						/*END*/
 				""";
 			
-			List<Item> list = dao().queryWith(sql).paramBean(new Item(req)).collect(Item.class);
-			log.debug("SELECT 結果: {} 件", list.size());
-			req.setAttribute("itemList", list);
+			log.debug("検索して list.jsp にフォワード");
+			req.setAttribute("itemList", dao().queryWith(sql).paramBean(new ItemForm(req)).collect(ItemForm.class));
 			req.getSession().setAttribute("lastQueryUrl", DispatcherUtil.getFullUrl(req));
 			forward("list.jsp");
 		}
@@ -74,16 +75,17 @@ public class ItemCrudServlet {
 		
 		/** 一覧画面の新規登録ボタン → 登録画面の表示 */
 		protected void doGet(HttpServletRequest req, HttpServletResponse res) {
+			req.setAttribute("companySelectOptions", dao().query(Company.class).asc("id").collect());
 			forward("detail.jsp");
 		}
 		
 		/** 登録画面の登録ボタン → 一覧画面へリダイレクト (PRG パターン: リロードによる二重登録抑止) */
 		protected void doPost(HttpServletRequest req, HttpServletResponse res) {
-			Item item = new Item(req).validate();
-			dao().query(Item.class).equal("name", item.name).exists(() -> {
+			ItemForm form = new ItemForm(req).validate();
+			dao().query(Item.class).equal("name", form.name).exists(() -> {
 				throw new IllegalStateException("指定された製品名は、すでに登録されています。");
 			});
-			dao().insert(item);
+			dao().insert(form.toEntity());
 			req.setAttribute(MESSAGE, "登録しました。");
 			redirect($("lastQueryUrl"));
 		}
@@ -95,18 +97,19 @@ public class ItemCrudServlet {
 		
 		/** 一覧画面の変更ボタン → 変更画面の表示 */
 		protected void doGet(HttpServletRequest req, HttpServletResponse res) {
-			Item item = dao().find(Item.class, new Item(req).id).orElseThrow(() -> new Error("存在しません。"));
-			req.setAttribute("item", item);
+			long id = new ItemForm(req).id;
+			req.setAttribute("item", dao().find(Item.class, id).orElseThrow(() -> new Error("存在しません。")));
+			req.setAttribute("companySelectOptions", dao().query(Company.class).asc("id").collect());
 			forward("detail.jsp");
 		}
 		
 		/** 変更画面の更新ボタン → 一覧画面へリダイレクト (PRG パターン: リロードによる二回更新抑止) */
 		protected void doPost(HttpServletRequest req, HttpServletResponse res) {
-			Item item = new Item(req).validate();
-			dao().query(Item.class).notEqual("id", item.id).equal("name", item.name).exists(() -> {
+			ItemForm form = new ItemForm(req).validate();
+			dao().query(Item.class).notEqual("id", form.id).equal("name", form.name).exists(() -> {
 				throw new IllegalStateException("指定された製品名は、別の製品で使用されています。");
 			});
-			dao().update(item);
+			dao().update(form.toEntity());
 			req.setAttribute(MESSAGE, "更新しました。");
 			redirect($("lastQueryUrl"));
 		}
@@ -118,7 +121,7 @@ public class ItemCrudServlet {
 		
 		/** 一覧画面の削除ボタン → 一覧画面へリダイレクト (リロードによる二回削除抑止) */
 		protected void doGet(HttpServletRequest req, HttpServletResponse res) {
-			dao().delete(new Item(req));
+			dao().delete(new ItemForm(req).toEntity());
 			req.setAttribute(MESSAGE, "削除しました。");
 			redirect($("lastQueryUrl"));
 		}
