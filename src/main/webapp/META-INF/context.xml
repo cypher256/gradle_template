@@ -1,10 +1,19 @@
 <Context>
 
-	<!-- 
-	JNDI DB 接続定義 (Tomcat DBCP)
-	web.xml と shiro.ini から、この定義を参照
-	テーブルは起動時に AutoTransactionFilter で create_table.sql を読み込んで作成
-	デフォルト値 https://tomcat.apache.org/tomcat-9.0-doc/jndi-resources-howto.html#JDBC_Data_Sources
+	<!--
+	================================================================================== 
+	JNDI DB 接続プール設定 (Tomcat DBCP)
+	==================================================================================
+	 
+	AutoTransactionFilter.java と shiro.ini から、この定義を参照
+	起動時に AutoTransactionFilter で create_table.sql を読み込んでテーブル作成
+	web.xml の JNDI 参照定義 <resource-ref> は無くても動作するため未定義
+	
+	設定デフォルト値 (maxWaitMillis のデフォルトは -1 無制限)
+	https://tomcat.apache.org/tomcat-9.0-doc/jndi-resources-howto.html#JDBC_Data_Sources
+	
+	デプロイ実行時は $CATALINA_BASE/conf の設定優先
+	https://tomcat.apache.org/tomcat-9.0-doc/config/context.html#Defining_a_context
 	-->
 	<Resource 
 		name="jdbc/main"

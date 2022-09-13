@@ -6,9 +6,10 @@
 						http://www.oracle.com/webfolder/technetwork/jsc/xml/ns/javaee/web-app_4_0.xsd"
 	version="4.0">
 	
-	<!-- ======================================================================
+	<!--
+	===============================================================================================
 	Servlet フィルター定義
-	===========================================================================
+	===============================================================================================
 	以下のフィルターが設定済みですが、サンプルの実行に必須なのは 2 つだけです。
 	他は、すべてセキュリティ関連のフィルターでコメントアウトしても動作します。
 	
@@ -19,8 +20,8 @@
 		ローカル AutoCsrfFilter			
 		ローカル AutoFlashFilter			[必須]
 		ローカル AutoTransactionFilter	[必須]
-	
-	======================================================================= -->
+	===============================================================================================
+	-->
 	
 	<!--
 	Tomcat 公式フィルター: リバースプロキシのヘッダ属性を引き継いて isSecure などで正しく判定できるようにする
@@ -109,7 +110,7 @@
 
 	<!--
 	自動フラッシュ例外ハンドリングフィルター
-	このフィルター以降で追加されたリクエスト属性を自動フラッシュするため、ShiroFilter より後 
+	このフィルター以降で追加されたリクエスト属性のみを自動フラッシュするため、ShiroFilter より後 
 	-->
 	<filter>
 		<filter-name>AutoFlashFilter</filter-name>
@@ -143,9 +144,11 @@
 		<url-pattern>/*</url-pattern>
 	</filter-mapping>
 	
-	<!-- ======================================================================
+	<!--
+	===============================================================================================
 	Servlet 全般設定
-	======================================================================= -->
+	===============================================================================================
+	-->
 	
 	<!-- エンコーディング: post リクエスト getParameter -->
 	<request-character-encoding>UTF-8</request-character-encoding>
@@ -153,7 +156,7 @@
 	<!-- エンコーディング: AJAX レスポンス -->
 	<response-character-encoding>UTF-8</response-character-encoding>
 
-	<!-- 初回アクセス時の URL への jsessionid 追加を無効化 -->
+	<!-- 初回アクセス時に URL へ jsessionid が追加されるのを無効化 -->
 	<session-config>
 		<tracking-mode>COOKIE</tracking-mode>
 		<session-timeout>30</session-timeout><!-- 単位:分 (デフォルト 30) -->
@@ -169,12 +172,5 @@
 			<trim-directive-whitespaces>true</trim-directive-whitespaces>
 		</jsp-property-group>
 	</jsp-config>
-	
-	<!-- DB 接続 JNDI 参照 (接続情報は context.xml に定義) -->
-	<resource-ref>
-		<res-ref-name>jdbc/main</res-ref-name>
-		<res-type>javax.sql.DataSource</res-type>
-		<res-auth>Container</res-auth>
-	</resource-ref>
 
 </web-app>
