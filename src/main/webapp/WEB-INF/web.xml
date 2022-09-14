@@ -18,8 +18,8 @@
 		Tomcat 公式 CorsFilter			
 		Tomcat 公式 ShiroFilter			ログイン画面を使用する場合は必要
 		ローカル AutoCsrfFilter			
-		ローカル AutoFlashFilter		[必須]
 		ローカル AutoTransactionFilter	[必須]
+		ローカル AutoFlashFilter		[必須]
 	===============================================================================================
 	-->
 	
@@ -109,8 +109,22 @@
 	</listener>
 
 	<!--
-	自動フラッシュ例外ハンドリングフィルター
-	このフィルター以降で追加されたリクエスト属性のみを自動フラッシュするため、ShiroFilter より後 
+	自動トランザクションフィルター
+	例外でトランザクション制御した後、再スローしない (上位に例外を伝播しない)
+	-->
+	<filter>
+		<filter-name>AutoTransactionFilter</filter-name>
+		<filter-class>jp.example.filter.AutoTransactionFilter</filter-class>
+	</filter>
+	<filter-mapping>
+		<filter-name>AutoTransactionFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+
+	<!--
+	自動フラッシュと例外ハンドリングを行うフィルター
+	このフィルター以降で追加されたリクエスト属性のみを自動フラッシュするため、できるだけ最後に定義
+	例外ハンドリングして、上位フィルターにロールバックなどを任せるため再スローする (上位に例外を伝播する) 
 	-->
 	<filter>
 		<filter-name>AutoFlashFilter</filter-name>
@@ -118,29 +132,6 @@
 	</filter>
 	<filter-mapping>
 		<filter-name>AutoFlashFilter</filter-name>
-		<url-pattern>/*</url-pattern>
-	</filter-mapping>
-
-	<!--
-	自動トランザクションフィルター
-	例外でトランザクション制御した後、そのまま再スローするため、例外ハンドリングするフィルター (AutoFlashFilter) より後
-	-->
-	<filter>
-		<filter-name>AutoTransactionFilter</filter-name>
-		<filter-class>jp.example.filter.AutoTransactionFilter</filter-class>
-		<init-param>
-			<!-- 
-			例外でもコミットする例外クラスの [,;\s]+ 区切りリスト
-			JTA の dontRollbackOn や Spring の noRollbackFor と同様の機能
-			-->
-			<param-name>noRollbackExceptionList</param-name>
-			<param-value>
-				jp.example.filter.AutoFlashFilter$SuccessResponseCommittedException
-			</param-value>
-		</init-param>
-	</filter>
-	<filter-mapping>
-		<filter-name>AutoTransactionFilter</filter-name>
 		<url-pattern>/*</url-pattern>
 	</filter-mapping>
 	

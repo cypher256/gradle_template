@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import jp.example.form.ItemForm;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * REST API Servlet サンプルクラスです。
@@ -17,9 +18,10 @@ import lombok.Data;
  * キーイベントによる AJAX リアルタイム通信のサンプルです。
  * AJAX の場合、IllegalStateException をスローすると、例外メッセージ文字列がレスポンスとして返却されます。
  * </pre>
- * @author New Gradle Project Wizard (c) https://opensource.org/licenses/mit-license.php
+ * @author Pleiades New Gradle Project Wizard
  */
 @WebServlet("/item/api")
+@Slf4j
 public class ItemRestServlet extends HttpServlet {
 	
 	/** 
@@ -40,6 +42,7 @@ public class ItemRestServlet extends HttpServlet {
 					/*END*/
 			""";
 		
+		log.debug("検索結果件数情報を json として返却");
 		@Data
 		class SearchResult {
 			ItemForm condition = new ItemForm(req); // クライアントで件数以外は使用しないが json 返却例としてセット
@@ -50,10 +53,10 @@ public class ItemRestServlet extends HttpServlet {
 	
 	/**
 	 * 登録、変更画面の onkeyup、onchange 時の入力チェック API です。<br>
-	 * (更新系ではないが post。post のためトークンもチェックされる。) 
+	 * (サンプルのため post。CSRF チェックされる。通常は更新系でない場合は get が望ましい。) 
 	 * 戻り値: text エラーメッセージ文字列 (エラーが無い場合は戻り値なし)
 	 */
 	protected void doPost(HttpServletRequest req, HttpServletResponse res) {
-		new ItemForm(req).validate();
+		new ItemForm(req).validate(req);
 	}
 }

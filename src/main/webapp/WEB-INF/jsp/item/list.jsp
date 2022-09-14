@@ -30,9 +30,9 @@
 		<button formaction="list">検索</button>
 		<button formaction="create">新規登録</button>
 	</form>
-	<p style="margin:0 0.3rem -1rem; text-align:right;">検索結果 ${itemList.size()} 件</p>
+	<p style="margin:0 0.3rem -1rem; text-align:right;">検索結果 ${formList.size()} 件</p>
 	<table>
-		<tr style="display:${empty itemList ? 'none' : ''}">
+		<tr style="display:${empty formList ? 'none' : ''}">
 			<th>製品名</th>
 			<th>発売日</th>
 			<th class="_center">顔認証</th>
@@ -40,15 +40,15 @@
 			<th class="_center">操作</th>
 		</tr>
 		<tbody>
-	<c:forEach var="item" items="${itemList}">
+	<c:forEach var="form" items="${formList}">
 			<tr>
-				<td>${fn:escapeXml(item.name)}</td>
-				<td>${fn:escapeXml(item.releaseDate)}</td>
-				<td class="_center">${item.faceAuth ? '○' : ''}</td>
-				<td>${fn:escapeXml(item.companyName)}</td>
+				<td>${fn:escapeXml(form.name)}</td>
+				<td>${fn:escapeXml(form.releaseDate)}</td>
+				<td class="_center">${form.faceAuth ? '○' : ''}</td>
+				<td>${fn:escapeXml(form.companyName)}</td>
 				<td class="_center">
-					<button type="button" onclick="location.href='update?id=${item.id}'">変更</button>
-					<button type="button" onclick="location.href='delete?id=${item.id}'">削除</button>
+					<button type="button" onclick="location.href='update?id=${form.id}'">変更</button>
+					<button type="button" onclick="location.href='delete?id=${form.id}'">削除</button>
 				</td>
 			</tr>
 	</c:forEach>

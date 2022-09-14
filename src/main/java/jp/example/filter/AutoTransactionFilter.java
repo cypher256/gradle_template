@@ -1,12 +1,9 @@
 package jp.example.filter;
 
-import static java.util.Arrays.stream;
-import static java.util.stream.Collectors.*;
 import static org.apache.commons.lang3.function.Failable.*;
 
 import java.sql.DriverManager;
 import java.util.Collections;
-import java.util.List;
 
 import javax.naming.InitialContext;
 import javax.servlet.FilterChain;
@@ -14,8 +11,6 @@ import javax.servlet.http.HttpFilter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
-
-import org.apache.commons.lang3.StringUtils;
 
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
@@ -26,11 +21,11 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * 自動トランザクションフィルターです。
  * <pre>
- * データベーストランザクションの一般的なテンプレート実装です。
+ * スレッドローカルを使用した一般的なデータベーストランザクションのテンプレート実装です。
  * Servlet の処理が正常に終了した場合はコミット、例外が発生した場合は自動的にロールバックされます。
  * このフィルターでは uroboroSQL を使用して、データベースの初期データロード、トランザクションを制御します。
  * </pre>
- * @author New Gradle Project Wizard (c) https://opensource.org/licenses/mit-license.php
+ * @author Pleiades New Gradle Project Wizard
  */
 @Slf4j
 public class AutoTransactionFilter extends HttpFilter {
@@ -42,10 +37,20 @@ public class AutoTransactionFilter extends HttpFilter {
 	/**
 	 * 汎用 DAO トランザクションマネージャーを取得します。
 	 * <pre>
-	 * 自動採番の主キーを持つテーブルは、id などのエンティティに関するアノテーションは不要です。
-	 * スネークケース、キャメルケースは自動変換されます。ただし、バインドパラメータ名は変換されません。
-	 * <a href="https://future-architect.github.io/uroborosql-doc/why_uroborosql/"
-	 * >GitHub: uroboroSQL (ウロボロスキュール)</a>
+	 * AutoTransactionFilter の制御
+	 * 
+	 * ・JTA や Spring のデフォルトと異なり、単純にどんな例外でもロールバックします。
+	 * ・ロールバックしたい場合は、例外をスローしてください。
+	 * ・手動で制御しなければならない場合は、dao().commit() や dao().setRollbackOnly() が可能です。
+	 * ・トランザクション境界内に JSP も含まれているため、JSP EL から参照するフォームのメソッド内でも利用可能です。 
+	 *   (分散モデルが不要な Web 単一層アーキテクチャ向け)
+	 * 
+	 * SqlAgent の仕様 (uroboroSQL)
+	 * 
+	 * ・自動採番の主キーを持つテーブルは、id などのエンティティに関するアノテーションは不要です。
+	 * ・スネークケース、キャメルケースは自動変換されます。ただし、バインドパラメータ名は変換されません。
+	 * ・simplelogger.properties で SQL のログレベルを設定できます。
+	 * 
 	 * </pre>
 	 * @return SqlAgent
 	 */
@@ -59,7 +64,6 @@ public class AutoTransactionFilter extends HttpFilter {
 	
 	protected static final ThreadLocal<SqlAgent> daoThreadLocal = new ThreadLocal<>();
 	protected SqlConfig daoConfig;
-	protected List<Class<?>> noRollbackExceptionList;
 
 	/** データベース接続設定と初期データロード */
 	@Override @SneakyThrows
@@ -70,10 +74,6 @@ public class AutoTransactionFilter extends HttpFilter {
 			try (SqlAgent dao = daoConfig.agent()) {
 				dao.update("create_table").count(); // ファイル実行 src/main/resources/sql/create_table.sql
 			}
-			String param = getFilterConfig().getInitParameter("noRollbackExceptionList");
-			noRollbackExceptionList = stream(param.split("[,;\\s]+"))
-					.filter(StringUtils::isNotEmpty).map(asFunction(Class::forName)).collect(toList());
-			
 		} catch (Exception e) {
 			log.error("AutoTransactionFilter 初期化エラー", e);
 			throw e;
@@ -104,12 +104,8 @@ public class AutoTransactionFilter extends HttpFilter {
 				dao.commit();
 				
 			} catch (Throwable e) {
-				if (noRollbackExceptionList.stream().anyMatch(def -> def.isInstance(e))) {
-					dao.commit(); // ↑例外でもコミットする例外クラス (web.xml の init-param 設定)
-				} else {
-					dao.rollback();
-				}
-				throw e;
+				dao.rollback();
+				// ここから再スローはしない (下位フィルターで例外ハンドリングして再スローが前提)
 				
 			} finally {
 				daoThreadLocal.remove();

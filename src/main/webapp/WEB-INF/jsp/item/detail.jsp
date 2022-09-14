@@ -8,7 +8,7 @@
 </head>
 <body>
 <header onclick="location.href='${ctx}'">
-	<h1>${empty item || item.id == 0 ? '登録' : '変更'}画面</h1>
+	<h1>${form.id == 0 ? '登録' : '変更'}画面</h1>
 	<p>Servlet JSP CRUD サンプル</p>
 </header>
 <main>
@@ -17,33 +17,33 @@
 	</c:if>
 	<blockquote id="_message">${fn:escapeXml(MESSAGE)}</blockquote>
 	<form id="_form" method="post" onsubmit="_submitButton.disabled = true"><%-- 二度押し防止 --%>
-		<input type="hidden" name="id" value="${item.id}"/>
+		<input type="hidden" name="id" value="${form.id}"/>
 		<p>
 			<label>製品名 <mark>必須</mark></label>
-			<input type="text" name="name" value="${fn:escapeXml(item.name)}"
+			<input type="text" name="name" value="${fn:escapeXml(form.name)}"
 				onkeyup="validate()" required autofocus onfocus="this.setSelectionRange(99,99)" size="40">
 		</p>
 		<p>
 			<label>発売日</label>
-			<input type="date" name="releaseDate" value="${fn:escapeXml(item.releaseDate)}"
+			<input type="date" name="releaseDate" value="${fn:escapeXml(form.releaseDate)}"
 				onchange="validate()">
 		</p>
 		<p>
 			<label>顔認証</label>
-			<input type="checkbox" name="faceAuth" ${item.faceAuth ? 'checked' : ''}
+			<input type="checkbox" name="faceAuth" ${form.faceAuth ? 'checked' : ''}
 				onchange="validate()">
 		</p>
 		<p>
 			<label>メーカー</label>
 			<select name="companyId">
-	<c:forEach var="com" items="${companyPulldownQuery.collect()}">
-				<option value="${com.id}" ${item.companyId == com.id ? 'selected' : ''}>${com.companyName}</option>
+	<c:forEach var="com" items="${form.companySelectOptions}">
+				<option value="${com.id}" ${form.companyId == com.id ? 'selected' : ''}>${com.companyName}</option>
 	</c:forEach>
 			</select>
 		</p>
 		<button type="button" onclick="location.href='${lastQueryUrl == null ? 'list' : lastQueryUrl}'">戻る</button>
 		<input id="_submitButton" type="submit" value=
-			${empty item || item.id == 0
+			${form.id == 0
 				? '"登録" formaction="create"' 
 				: '"更新" formaction="update"'
 			}/>

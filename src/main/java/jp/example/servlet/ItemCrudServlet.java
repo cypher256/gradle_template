@@ -9,7 +9,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import jodd.servlet.DispatcherUtil;
-import jp.example.entity.Company;
 import jp.example.entity.Item;
 import jp.example.form.ItemForm;
 import lombok.extern.slf4j.Slf4j;
@@ -18,24 +17,24 @@ import lombok.extern.slf4j.Slf4j;
  * Servlet JSP CRUD Servlet 定義クラスです。
  * <pre>
  * 検索一覧、登録、修正、削除画面のシンプルな Servlet パターンサンプル。
- * IllegalStateException をスローすると、アプリエラーとしてリクエスト属性 MESSAGE にセットされ、表示中のページにフォワードされます。
+ * IllegalStateException をスローすると、アプリエラーとして表示中のページにフォワードされます。
  * 以下のフィルタークラスの static メソッドを static インポートして使用できます。
  * forward、redirect、returns は条件分岐で呼び分ける場合でも、Servlet 内の処理はそこで終了するため、return 不要です。
  * 
  * AutoFlashFilter
  *  
- *   forward(jsp)   フォワードのショートカットメソッド (入力エラー時の戻り先として保存、CSRF 兼同期トークン自動埋め込み)
- *   redirect(url)  リダイレクトのショートカットメソッド (自動フラッシュにより、リダイレクト先でリクエスト属性がそのまま使用可能)
+ *   forward(jsp)   フォワードのショートカット (入力エラー時の戻り先として保存、CSRF 兼同期トークン自動埋め込み)
+ *   redirect(url)  リダイレクトのショートカット (自動フラッシュにより、リダイレクト先でリクエスト属性がそのまま使用可能)
  *   returns(obj)   REST API などの戻り値として Java オブジェクトを JSON 文字列などに変換してクライアントに返却
  *   valid(〜)      条件とエラーメッセージを指定して、pplicationException をスローするためのショートカットメソッド
- *   $(name)        JSP EL のようにリクエスト、セッション、アプリケーションスコープから、最初に見つかった属性値を取得 (キャスト不要)
+ *   $("name")      JSP EL のようにリクエスト、セッションなどのスコープから、最初に見つかった属性値を取得 (キャスト不要)
  * 
  * AutoTransactionFilter
  *  
  *   dao()          汎用 DAO トランザクションマネージャー取得 (正常時は自動コミット、ロールバックしたい場合は例外スロー)
  *   
  * </pre>
- * @author New Gradle Project Wizard (c) https://opensource.org/licenses/mit-license.php
+ * @author Pleiades New Gradle Project Wizard
  */
 @Slf4j
 public class ItemCrudServlet {
@@ -63,9 +62,8 @@ public class ItemCrudServlet {
 				""";
 			
 			log.debug("検索して list.jsp にフォワード");
-			req.setAttribute("itemList", dao().queryWith(sql).paramBean(new ItemForm(req)).collect(ItemForm.class));
+			req.setAttribute("formList", dao().queryWith(sql).paramBean(new ItemForm(req)).collect(ItemForm.class));
 			req.getSession().setAttribute("lastQueryUrl", DispatcherUtil.getFullUrl(req));
-			req.getSession().setAttribute("companyPulldownQuery", dao().query(Company.class).asc("id"));
 			forward("list.jsp");
 		}
 	}
@@ -76,12 +74,13 @@ public class ItemCrudServlet {
 		
 		/** 一覧画面の新規登録ボタン → 登録画面の表示 */
 		protected void doGet(HttpServletRequest req, HttpServletResponse res) {
+			req.setAttribute("form", new ItemForm());
 			forward("detail.jsp");
 		}
 		
 		/** 登録画面の登録ボタン → 一覧画面へリダイレクト (PRG パターン: リロードによる二重登録抑止) */
 		protected void doPost(HttpServletRequest req, HttpServletResponse res) {
-			ItemForm form = new ItemForm(req).validate();
+			ItemForm form = new ItemForm(req).validate(req);
 			dao().query(Item.class).equal("name", form.name).exists(() -> {
 				throw new IllegalStateException("指定された製品名は、すでに登録されています。");
 			});
@@ -97,14 +96,14 @@ public class ItemCrudServlet {
 		
 		/** 一覧画面の変更ボタン → 変更画面の表示 */
 		protected void doGet(HttpServletRequest req, HttpServletResponse res) {
-			ItemForm form = new ItemForm(req);
-			req.setAttribute("item", dao().find(Item.class, form.id).orElseThrow(() -> new Error("存在しません。")));
+			Item entity = dao().find(Item.class, new ItemForm(req).id).orElseThrow(() -> new Error("存在しません。"));
+			req.setAttribute("form", new ItemForm(entity));
 			forward("detail.jsp");
 		}
 		
 		/** 変更画面の更新ボタン → 一覧画面へリダイレクト (PRG パターン: リロードによる二回更新抑止) */
 		protected void doPost(HttpServletRequest req, HttpServletResponse res) {
-			ItemForm form = new ItemForm(req).validate();
+			ItemForm form = new ItemForm(req).validate(req);
 			dao().query(Item.class).notEqual("id", form.id).equal("name", form.name).exists(() -> {
 				throw new IllegalStateException("指定された製品名は、別の製品で使用されています。");
 			});
