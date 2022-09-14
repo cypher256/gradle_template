@@ -100,7 +100,7 @@ public class AutoTransactionFilter extends HttpFilter {
 		try (SqlAgent dao = daoConfig.agent()) {
 			try {
 				daoThreadLocal.set(dao);
-				super.doFilter(req, res, chain); // Servlet 呼び出し
+				super.doFilter(req, res, chain); // 次のフィルター呼び出し
 				dao.commit();
 				
 			} catch (Throwable e) {

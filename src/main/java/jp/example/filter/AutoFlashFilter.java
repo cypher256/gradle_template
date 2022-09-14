@@ -216,7 +216,7 @@ public class AutoFlashFilter extends HttpFilter {
 			
 			// AJAX の場合はフラッシュを復元・削除しない (フラッシュは画面の機能)
 			if (isAjax(req)) {
-				super.doFilter(req, res, chain);
+				super.doFilter(req, res, chain); // AJAX Servlet 呼び出し
 				return;
 			}
 			
@@ -238,7 +238,7 @@ public class AutoFlashFilter extends HttpFilter {
 					tempFlash.remove(name);
 				}
 			};
-			super.doFilter(flashReqWrapper, res, chain);
+			super.doFilter(flashReqWrapper, res, chain); // 画面 Servlet 呼び出し
 			
 		} catch (Throwable e) {
 			if (e == SUCCESS_RESPONSE_COMMITTED) {
@@ -280,10 +280,12 @@ public class AutoFlashFilter extends HttpFilter {
 			return;
 		}
 			
-		// システムエラー (DB 接続エラーなど) → 直近のリダイレクト先またはトップにリダイレクト
-		String redirectUrl = $(SYS_ERROR_REDIRECT_URL);
-		if (redirectUrl == null || redirectUrl.equals(req.getRequestURI())) { // リダイレクトループ回避
-			redirectUrl = req.getContextPath();
+		// システムエラー (SQL エラーなど) → 直近のリダイレクト先またはトップにリダイレクト
+		String redirectUrl = $(SYS_ERROR_REDIRECT_URL, req.getContextPath());
+		if (redirectUrl.equals(req.getRequestURI())) {
+			log.warn("リダイレクトループ検出: {} {}", req.getRequestURI(), $(MESSAGE), cause);
+			res.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+			return;
 		}
 		res.sendRedirect(redirectUrl);
 		req.getSession().setAttribute(FLASH, Map.of(MESSAGE, $(MESSAGE)));
