@@ -32,7 +32,7 @@ public class ItemForm {
 	public String companyName;
 	
 	/**
-	 * リクエストからフォームを構築します。
+	 * リクエストパラメーターからフォームを構築します。
 	 * @param req コピー元となる HTTP サーブレットリクエスト
 	 */
 	@SneakyThrows
@@ -76,8 +76,8 @@ public class ItemForm {
 	}
 
 	/**
-	 * 会社 select タグ選択肢を取得します。
-	 * @return 会社 select タグ選択肢 (JSP EL で使用)
+	 * 会社 select タグ選択肢を取得します (JSP から呼び出し)。
+	 * @return 会社 select タグ選択肢
 	 */
 	public List<Company> getCompanySelectOptions() {
 		return dao().query(Company.class).asc("id").collect();

@@ -28,9 +28,9 @@ import lombok.extern.slf4j.Slf4j;
  * 
  * 1. Java コードや特別なタグ指定なしで、自動的に jsp と html に meta や form の hidden を埋め込み、Cookie にもセット。
  * 2. 画面遷移ごとにトークンが新しく生成されるため、同期トークンとしても機能する。
- * 3. ブラウザ標準の戻るボタンが使用可能。戻る操作後でも同期トークン相違による CSRF 攻撃誤認は発生しない。
- * 4. AJAX アクセスの場合はトークンを更新しないため、AJAX 後の画面からの post でトークンエラーは発生しない。
- *    (画面遷移と AJAX 混在で順序が保証されない並行リクエストがある場合を除く)
+ *    ・AJAX アクセスの場合はトークンを更新しないため、AJAX 後の画面からの post でトークンエラーは発生しない。
+ *    ・画面遷移と AJAX の順序が保証されない並行リクエストがある場合の動作は不定。
+ * 3. ブラウザ標準の戻るボタンが使用可能。同期トークン相違による CSRF 攻撃誤認は発生しない。
  * 
  * クライアントでのトークン手動操作
  * 
@@ -140,7 +140,7 @@ public class AutoCsrfFilter extends HttpFilter {
 		res.addHeader("Set-Cookie", format("XSRF-TOKEN=%s;%sSameSite=Strict;", 
 				session.getAttribute(_csrf), req.isSecure() ? " Secure;" : ""));
 		
-		// Cache-Control で bfcache 無効化
+		// Cache-Control で bfcache 無効化 (ブラウザの種類やバージョンに依存する場合あり)
 		// * ブラウザ戻るボタンでできるだけエラーにならないようにする
 		// * ブラウザ戻るボタンでの get ページ表示は、bfcache ではなくサーバから再取得される (トークンを一致させる)
 		// * 登録 → ブラウザ戻るボタン → 登録: 不正ではなく連続登録できる

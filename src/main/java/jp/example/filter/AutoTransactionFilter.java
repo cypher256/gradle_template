@@ -35,7 +35,8 @@ public class AutoTransactionFilter extends HttpFilter {
 	//-------------------------------------------------------------------------
 
 	/**
-	 * 汎用 DAO トランザクションマネージャーを取得します。
+	 * 汎用 DAO トランザクションマネージャーを取得します。<br>
+	 * SLF4J の simplelogger.properties で SQL のログレベルを設定できます。
 	 * <pre>
 	 * AutoTransactionFilter の制御
 	 * 
@@ -49,7 +50,6 @@ public class AutoTransactionFilter extends HttpFilter {
 	 * 
 	 * ・自動採番の主キーを持つテーブルは、id などのエンティティに関するアノテーションは不要です。
 	 * ・スネークケース、キャメルケースは自動変換されます。ただし、バインドパラメータ名は変換されません。
-	 * ・simplelogger.properties で SQL のログレベルを設定できます。
 	 * 
 	 * </pre>
 	 * @return SqlAgent

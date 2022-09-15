@@ -30,15 +30,15 @@ import lombok.extern.slf4j.Slf4j;
  * セッションを使用した一般的なフラッシュスコープ実装です。
  * このフィルターを使用すると、リダイレクト前のリクエスト属性がリダイレクト先で、そのまま使用できます。
  * また、アプリエラー時は入力画面に自動フォワード、システムエラー時は自動リダイレクトします。
- * 以下に、Servlet で例外がスローされた場合の動作を示します。
+ * 以下に、Servlet で例外をスローした場合の動作を示します。
  * 
- * 1. AJAX の場合、例外メッセージ文字列をレスポンスに書き込んで終了。
+ * 1. AJAX リクエストの場合、例外メッセージ文字列をレスポンスに書き込んで終了。
  * 2. 例外メッセージを JSP 表示用にリクエスト属性 MESSAGE にセット。
  * 3. IllegalStateException はアプリエラーとして、セッション属性 APP_ERROR_FORWARD_PATH (通常は表示元) にフォワード。
  * 4. 上記以外の例外の場合は、システムエラーとしてセッション属性 SYS_ERROR_REDIRECT_URL にリダイレクト (自動フラッシュ)。
  * 5. APP_ERROR_FORWARD_PATH も SYS_ERROR_REDIRECT_URL も無い場合は、コンテキストルートにリダイレクト (自動フラッシュ)。
  * 
- * いずれの場合も、最後に例外が再スローされ、上位の AutoTransactionFilter でロールバックされます。
+ * いずれの場合も、例外は再スローされ、上位の AutoTransactionFilter でロールバックされます。
  * </pre>
  * @author Pleiades New Gradle Project Wizard
  */
@@ -214,7 +214,7 @@ public class AutoFlashFilter extends HttpFilter {
 		try {
 			requestContextThreadLocal.set(new RequestContext(req, res));
 			
-			// AJAX の場合はフラッシュを復元・削除しない (フラッシュは画面の機能)
+			// フラッシュは画面の機能のため AJAX の場合はフラッシュを復元・削除しない (例外ハンドリングは必要)
 			if (isAjax(req)) {
 				super.doFilter(req, res, chain); // AJAX Servlet 呼び出し
 				return;
