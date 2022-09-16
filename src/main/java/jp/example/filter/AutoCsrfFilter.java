@@ -30,8 +30,9 @@ import lombok.extern.slf4j.Slf4j;
  * 2. 画面遷移ごとにトークンが新しく生成されるため、同期トークンとしても機能する。
  *    ・AJAX アクセスの場合はトークンを更新しないため、AJAX 後の画面からの post でトークンエラーは発生しない。
  *    ・画面遷移と AJAX の順序が保証されない並行リクエストがある場合の動作は不定。
- * 3. Chrome のような bfcache 無効化対応ブラウザでは、標準の戻るボタンが使用可能。同期トークン相違によるエラーは発生しない。
- *    ・修正画面 → 完了画面 → ブラウザ戻る → 修正画面 のような遷移でも直感的な再修正が可能
+ * 3. Chrome のような bfcache 無効化対応ブラウザでは、標準の戻るボタンでエラーにならずに以下のような直感的な操作が可能。
+ *    ・修正画面 → 完了画面 → ブラウザ戻る → 修正画面 (再修正)
+ *    ・登録画面 → 完了画面 → ブラウザ戻る → 登録画面 (連続登録)
  * 
  * クライアントでのトークン手動操作
  * 
@@ -95,12 +96,15 @@ public class AutoCsrfFilter extends HttpFilter {
 			super.doFilter(req, resWrapper, chain);
 			String csrfToken = (String) req.getSession().getAttribute(_csrf);
 			String html = new String(resWrapper.toByteArray(), resWrapper.getCharacterEncoding())
+
 				// meta タグ追加
 				.replaceFirst("(?i)(<head>)", format("""
 					$1\n<meta name="_csrf" content="%s">""", csrfToken))
+					
 				// form post 内に hidden 追加
 				.replaceAll("(?is)([ \t]*)(<form[^>]+post[^>]+>)", format("""
 					$1$2\n$1\t<input type="hidden" name="_csrf" value="%s">""", csrfToken));
+					
 			res.setContentLength(html.getBytes(resWrapper.getCharacterEncoding()).length);
 			res.getWriter().print(html);
 		} else {
