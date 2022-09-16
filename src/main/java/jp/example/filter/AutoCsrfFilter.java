@@ -30,7 +30,7 @@ import lombok.extern.slf4j.Slf4j;
  * 2. 画面遷移ごとにトークンが新しく生成されるため、同期トークンとしても機能する。
  *    ・AJAX アクセスの場合はトークンを更新しないため、AJAX 後の画面からの post でトークンエラーは発生しない。
  *    ・画面遷移と AJAX の順序が保証されない並行リクエストがある場合の動作は不定。
- * 3. Chrome のような bfcache 無効化対応ブラウザでは、標準の戻るボタンでエラーにならずに以下のような直感的な操作が可能。
+ * 3. 標準の戻るボタンでエラーにならずに以下のような直感的な操作が可能 (Chrome のような bfcache 無効化対応ブラウザのみ)。
  *    ・修正画面 → 完了画面 → ブラウザ戻る → 修正画面 (再修正)
  *    ・登録画面 → 完了画面 → ブラウザ戻る → 登録画面 (連続登録)
  * 
@@ -80,7 +80,8 @@ public class AutoCsrfFilter extends HttpFilter {
 				res.sendError(HttpServletResponse.SC_FORBIDDEN);
 			} else {
 				// トップへリダイレクト (AutoFlashFilter で使えるフラッシュ属性 MESSAGE をセットしておく)
-				req.getSession().setAttribute("FLASH", Map.of("MESSAGE", "セッションが切れました。"));
+				String msg = req.isSecure() ? "セッションが切れました。" : "CSRF トークンが不正です。";
+				req.getSession().setAttribute("FLASH", Map.of("MESSAGE", msg));
 				res.sendRedirect(req.getContextPath());
 				// 同期トークンチェックとしても機能する (bfcache 無効化により、戻るボタンからの送信は正常に機能する) ため、
 				// 二重送信やリロード多重送信も検出できるが、事後検出ではユーザビリティが悪いため、事前に
