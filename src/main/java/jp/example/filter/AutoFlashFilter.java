@@ -110,7 +110,7 @@ public class AutoFlashFilter extends HttpFilter {
 	 * 除外できます。外部サイトへのリダイレクトや一切転送したくない場合は、普通の sendRedirect を使用してください。
 	 * このメソッドは、以下の処理を行います。
 	 * 
-	 * 1. 指定した redirectUrl (null の場合はコンテキストルート) にリダイレクト。
+	 * 1. 指定した redirectUrl (null の場合はコンテキストルート) をリダイレクト先としてレスポンスにセット。
 	 * 2. リダイレクト先 URL をセッション属性 SYS_ERROR_REDIRECT_URL に保存 (システムエラー時の自動リダイレクト先)。
 	 * 3. Servlet で追加されたリクエスト属性をフラッシュ属性としてセッションに保存。
 	 * 4. 後続処理を飛ばすために、正常にレスポンスがコミットされたことを示す定数 SUCCESS_RESPONSE_COMMITTED をスロー。
