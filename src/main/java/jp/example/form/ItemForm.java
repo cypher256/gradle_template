@@ -42,7 +42,7 @@ public class ItemForm {
 	
 	/**
 	 * エンティティからフォームを構築します。
-	 * @param entity コピー元となるアイテムエンティティ
+	 * @param entity コピー元となるエンティティ
 	 */
 	@SneakyThrows
 	public ItemForm(Item entity) {
