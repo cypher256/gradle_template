@@ -31,6 +31,11 @@ form[method=get] p {
 	margin-inline-end: 1em;
 }
 
+/* テーブル内フォーム横並び */
+td form {
+	display: inline-block;
+}
+
 /* テーブル 横幅 100% */
 table {
     display: table;

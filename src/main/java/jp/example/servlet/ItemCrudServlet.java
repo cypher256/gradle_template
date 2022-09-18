@@ -34,7 +34,7 @@ import lombok.extern.slf4j.Slf4j;
  *   dao()          汎用 DAO トランザクションマネージャー取得 (正常時は自動コミット、ロールバックしたい場合は例外スロー)
  *   
  * </pre>
- * @author Pleiades New Gradle Project Wizard (c) MPL
+ * @author New Gradle Project Wizard (c) Pleiades MPL
  */
 @Slf4j
 public class ItemCrudServlet {
@@ -78,7 +78,7 @@ public class ItemCrudServlet {
 			forward("detail.jsp");
 		}
 		
-		/** 登録画面の登録ボタン → 一覧画面へリダイレクト (PRG パターン: リロードによる二重登録抑止) */
+		/** 登録画面の登録ボタン → 一覧画面へリダイレクト (PRG パターン: リロードによる多重送信抑止) */
 		protected void doPost(HttpServletRequest req, HttpServletResponse res) {
 			ItemForm form = new ItemForm(req).validate(req);
 			dao().query(Item.class).equal("name", form.name).exists(() -> {
@@ -101,7 +101,7 @@ public class ItemCrudServlet {
 			forward("detail.jsp");
 		}
 		
-		/** 変更画面の更新ボタン → 一覧画面へリダイレクト (PRG パターン: リロードによる二回更新抑止) */
+		/** 変更画面の更新ボタン → 一覧画面へリダイレクト (PRG パターン: リロードによる多重送信抑止) */
 		protected void doPost(HttpServletRequest req, HttpServletResponse res) {
 			ItemForm form = new ItemForm(req).validate(req);
 			dao().query(Item.class).notEqual("id", form.id).equal("name", form.name).exists(() -> {
@@ -117,8 +117,8 @@ public class ItemCrudServlet {
 	@WebServlet("/item/delete")
 	public static class DeleteServlet extends HttpServlet {
 		
-		/** 一覧画面の削除ボタン → 一覧画面へリダイレクト (リロードによる二回削除抑止) */
-		protected void doGet(HttpServletRequest req, HttpServletResponse res) {
+		/** 一覧画面の削除ボタン → 一覧画面へリダイレクト (PRG パターン: リロードによる多重送信抑止) */
+		protected void doPost(HttpServletRequest req, HttpServletResponse res) {
 			dao().delete(new ItemForm(req).toEntity());
 			req.setAttribute(MESSAGE, "削除しました。");
 			redirect($("lastQueryUrl"));

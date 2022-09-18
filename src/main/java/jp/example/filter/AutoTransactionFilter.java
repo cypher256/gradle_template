@@ -25,7 +25,7 @@ import lombok.extern.slf4j.Slf4j;
  * Servlet の処理が正常に終了した場合はコミット、例外が発生した場合は自動的にロールバックされます。
  * このフィルターでは uroboroSQL を使用して、データベースの初期データロード、トランザクションを制御します。
  * </pre>
- * @author Pleiades New Gradle Project Wizard (c) MPL
+ * @author New Gradle Project Wizard (c) Pleiades MPL
  */
 @Slf4j
 public class AutoTransactionFilter extends HttpFilter {

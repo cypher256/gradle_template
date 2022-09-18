@@ -55,7 +55,7 @@ import lombok.extern.slf4j.Slf4j;
  *     action="/upload?_csrf=${_csrf}" method="post" enctype="multipart/form-data"
  * 
  * </pre>
- * @author Pleiades New Gradle Project Wizard (c) MPL
+ * @author New Gradle Project Wizard (c) Pleiades MPL
  */
 @Slf4j
 public class AutoCsrfFilter extends HttpFilter {
@@ -103,7 +103,7 @@ public class AutoCsrfFilter extends HttpFilter {
 					$1\n<meta name="_csrf" content="%s">""", csrfToken))
 					
 				// form post 内に hidden 追加
-				.replaceAll("(?is)([ \t]*)(<form[^>]+post[^>]+>)", format("""
+				.replaceAll("(?is)([ \t]*)(<form[^>]+method=\"post[^>]+>)", format("""
 					$1$2\n$1\t<input type="hidden" name="_csrf" value="%s">""", csrfToken));
 					
 			res.setContentLength(html.getBytes(resWrapper.getCharacterEncoding()).length);

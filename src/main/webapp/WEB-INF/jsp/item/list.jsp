@@ -48,7 +48,7 @@
 				<td>${fn:escapeXml(form.companyName)}</td>
 				<td class="_center">
 					<button type="button" onclick="location.href='update?id=${form.id}'">変更</button>
-					<button type="button" onclick="location.href='delete?id=${form.id}'">削除</button>
+					<form method="post" action="delete?id=${form.id}"><button>削除</button></form>
 				</td>
 			</tr>
 	</c:forEach>
