@@ -17,7 +17,7 @@ import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 
 /** 
- * アイテムフォームです。
+ * 登録、変更画面共通のアイテムフォームです。
  * @author Pleiades New Gradle Project Wizard
  */
 @Data
@@ -62,7 +62,7 @@ public class ItemForm {
 	
 	/**
 	 * 入力値を検証します。 <br>
-	 * 不正な場合はアプリエラーを表す IllegalStateException をスローします。 
+	 * 登録、変更画面共通の入力チェックを行い、不正な場合はアプリエラーを表す IllegalStateException をスローします。 
 	 * @param req HTTP サーブレットリクエスト (エラー表示用に、このフォームをリクエスト属性にセット)
 	 * @return このインスタンス
 	 */
