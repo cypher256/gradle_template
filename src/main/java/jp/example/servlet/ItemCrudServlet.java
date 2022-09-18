@@ -85,8 +85,7 @@ public class ItemCrudServlet {
 				throw new IllegalStateException("指定された製品名は、すでに登録されています。");
 			});
 			dao().insert(form.toEntity());
-			req.setAttribute(MESSAGE, "登録しました。");
-			redirect($("lastQueryUrl"));
+			redirect($("lastQueryUrl"), "登録しました。");
 		}
 	}
 
@@ -108,8 +107,7 @@ public class ItemCrudServlet {
 				throw new IllegalStateException("指定された製品名は、別の製品で使用されています。");
 			});
 			dao().update(form.toEntity());
-			req.setAttribute(MESSAGE, "更新しました。");
-			redirect($("lastQueryUrl"));
+			redirect($("lastQueryUrl"), "更新しました。");
 		}
 	}
 
@@ -120,8 +118,7 @@ public class ItemCrudServlet {
 		/** 一覧画面の削除ボタン → 一覧画面へリダイレクト (PRG パターン: リロードによる多重送信抑止) */
 		protected void doPost(HttpServletRequest req, HttpServletResponse res) {
 			dao().delete(new ItemForm(req).toEntity());
-			req.setAttribute(MESSAGE, "削除しました。");
-			redirect($("lastQueryUrl"));
+			redirect($("lastQueryUrl"), "削除しました。");
 		}
 	}
 }

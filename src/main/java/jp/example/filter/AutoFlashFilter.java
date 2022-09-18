@@ -109,17 +109,20 @@ public class AutoFlashFilter extends HttpFilter {
 	 * 外部サイトへのリダイレクトや一切転送したくない場合は、普通の sendRedirect を使用してください。
 	 * このメソッドは、以下の処理を行います。
 	 * 
-	 * 1. 指定した redirectUrl (null の場合はコンテキストルート) をリダイレクト先としてレスポンスにセット。
-	 * 2. リダイレクト先 URL をセッション属性 SYS_ERROR_REDIRECT_URL に保存 (システムエラー時の自動リダイレクト先)。
-	 * 3. Servlet で追加されたリクエスト属性をフラッシュ属性としてセッションに保存 (リダイレクト先で復元)。
-	 * 4. 後続処理を飛ばすために、正常にレスポンスがコミットされたことを示す定数 SUCCESS_RESPONSE_COMMITTED をスロー。
+	 * 1. 指定した flashMessage をリクエスト属性 MESSAGE にセット (使用しない場合は null を指定)。
+	 * 2. 指定した redirectUrl (null の場合はコンテキストルート) をリダイレクト先としてレスポンスにセット。
+	 * 3. リダイレクト先 URL をセッション属性 SYS_ERROR_REDIRECT_URL に保存 (システムエラー時の自動リダイレクト先)。
+	 * 4. このフィルター以降で追加されたリクエスト属性をフラッシュ属性としてセッションに保存 (リダイレクト先で復元)。
+	 * 5. 後続処理を飛ばすために、正常にレスポンスがコミットされたことを示す定数 SUCCESS_RESPONSE_COMMITTED をスロー。
 	 * </pre>
 	 * @param redirectUrl リダイレクト先 URL
+	 * @param flashMessage フラッシュメッセージ (使用しない場合は null)
 	 */
 	@SneakyThrows
-	public static void redirect(String redirectUrl) {
+	public static void redirect(String redirectUrl, String flashMessage) {
 		RequestContext context = requestContextThreadLocal.get();
 		HttpServletRequest req = context.req;
+		req.setAttribute(MESSAGE, flashMessage);
 		String url = Objects.toString(redirectUrl, req.getContextPath());
 		log.debug("リダイレクト {} (引数[{}])", url, redirectUrl);
 		context.res.sendRedirect(url);
@@ -237,6 +240,7 @@ public class AutoFlashFilter extends HttpFilter {
 					tempFlash.remove(name);
 				}
 			};
+			requestContextThreadLocal.set(new RequestContext(flashReqWrapper, res));
 			super.doFilter(flashReqWrapper, res, chain); // 画面 Servlet 呼び出し
 			
 		} catch (Throwable e) {
