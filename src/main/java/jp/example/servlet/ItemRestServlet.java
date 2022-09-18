@@ -53,7 +53,7 @@ public class ItemRestServlet extends HttpServlet {
 	
 	/**
 	 * 登録、変更画面の onkeyup、onchange 時の入力チェック API です。<br>
-	 * (サンプルのため post。CSRF チェックされる。通常は更新系でない場合は get が望ましい。) 
+	 * (サンプルのため post。CSRF チェックされる。通常、更新系でない場合は get が使用される。) 
 	 * 戻り値: text エラーメッセージ文字列 (エラーが無い場合は戻り値なし)
 	 */
 	protected void doPost(HttpServletRequest req, HttpServletResponse res) {
