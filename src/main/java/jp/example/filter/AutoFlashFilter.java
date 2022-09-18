@@ -10,7 +10,6 @@ import javax.servlet.http.HttpFilter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -92,7 +91,7 @@ public class AutoFlashFilter extends HttpFilter {
 		String path = jspPath.startsWith("/") ? jspPath : req.getServletPath().replaceFirst("[^/]*$", "") + jspPath;
 		path = ("/WEB-INF/jsp/" + path).replace("//", "/");
 		log.debug("フォワード {} (servletPath[{}] 引数[{}])", path, req.getServletPath(), jspPath);
-		req.getRequestDispatcher(path).forward(context.req, context.res);
+		req.getRequestDispatcher(path).forward(req, context.res);
 		req.getSession().setAttribute(APP_ERROR_FORWARD_PATH, path);
 		throw SUCCESS_RESPONSE_COMMITTED;
 	}
@@ -106,13 +105,13 @@ public class AutoFlashFilter extends HttpFilter {
 	 * リダイレクト先に引き継ぐと問題が発生する可能性があるため、このフィルター以降 (通常は Servlet) でセットした
 	 * リクエスト属性のみが転送されます。
 	 * 
-	 * 転送したくない項目がある場合は、このメソッドを呼び出す前に req#removeAttribute で個別に削除することにより、
-	 * 除外できます。外部サイトへのリダイレクトや一切転送したくない場合は、普通の sendRedirect を使用してください。
+	 * 転送したくない項目がある場合は、このメソッドを呼び出す前に req#removeAttribute で個別に削除してください。
+	 * 外部サイトへのリダイレクトや一切転送したくない場合は、普通の sendRedirect を使用してください。
 	 * このメソッドは、以下の処理を行います。
 	 * 
 	 * 1. 指定した redirectUrl (null の場合はコンテキストルート) をリダイレクト先としてレスポンスにセット。
 	 * 2. リダイレクト先 URL をセッション属性 SYS_ERROR_REDIRECT_URL に保存 (システムエラー時の自動リダイレクト先)。
-	 * 3. Servlet で追加されたリクエスト属性をフラッシュ属性としてセッションに保存。
+	 * 3. Servlet で追加されたリクエスト属性をフラッシュ属性としてセッションに保存 (リダイレクト先で復元)。
 	 * 4. 後続処理を飛ばすために、正常にレスポンスがコミットされたことを示す定数 SUCCESS_RESPONSE_COMMITTED をスロー。
 	 * </pre>
 	 * @param redirectUrl リダイレクト先 URL
@@ -120,12 +119,12 @@ public class AutoFlashFilter extends HttpFilter {
 	@SneakyThrows
 	public static void redirect(String redirectUrl) {
 		RequestContext context = requestContextThreadLocal.get();
-		String url = Objects.toString(redirectUrl, context.req.getContextPath());
+		HttpServletRequest req = context.req;
+		String url = Objects.toString(redirectUrl, req.getContextPath());
 		log.debug("リダイレクト {} (引数[{}])", url, redirectUrl);
 		context.res.sendRedirect(url);
-		HttpSession session = context.req.getSession();
-		session.setAttribute(SYS_ERROR_REDIRECT_URL, url);
-		session.setAttribute(FLASH, context.req.getAttribute(FLASH));
+		req.getSession().setAttribute(SYS_ERROR_REDIRECT_URL, url);
+		req.getSession().setAttribute(FLASH, req.getAttribute(FLASH));
 		throw SUCCESS_RESPONSE_COMMITTED;
 	}
 	
