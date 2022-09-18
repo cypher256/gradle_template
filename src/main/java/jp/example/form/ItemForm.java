@@ -64,6 +64,7 @@ public class ItemForm {
 	 * 入力値を検証します。 <br>
 	 * 不正な場合はアプリエラーを表す IllegalStateException をスローします。 
 	 * @param req HTTP サーブレットリクエスト (エラー表示用に、このフォームをリクエスト属性にセット)
+	 * @return このインスタンス
 	 */
 	public ItemForm validate(HttpServletRequest req) {
 		req.setAttribute("form", this);
