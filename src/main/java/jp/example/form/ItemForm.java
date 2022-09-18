@@ -50,6 +50,17 @@ public class ItemForm {
 	}
 	
 	/**
+	 * このフォームをエンティティに変換します。
+	 * @return エンティティ
+	 */
+	@SneakyThrows
+	public Item toEntity() {
+		Item entity = new Item();
+		BeanUtils.copyProperties(entity, this);
+		return entity;
+	}
+	
+	/**
 	 * 入力値を検証します。 <br>
 	 * 不正な場合はアプリエラーを表す IllegalStateException をスローします。 
 	 * @param req HTTP サーブレットリクエスト (エラー再表示用に、このフォームをリクエスト属性にセット)
@@ -64,17 +75,6 @@ public class ItemForm {
 		return this;
 	}
 	
-	/**
-	 * このフォームをエンティティに変換します。
-	 * @return エンティティ
-	 */
-	@SneakyThrows
-	public Item toEntity() {
-		Item entity = new Item();
-		BeanUtils.copyProperties(entity, this);
-		return entity;
-	}
-
 	/**
 	 * 会社 select タグ選択肢を取得します (JSP から呼び出し)。
 	 * @return 会社 select タグ選択肢
