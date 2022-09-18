@@ -55,7 +55,7 @@ import lombok.extern.slf4j.Slf4j;
  *     action="/upload?_csrf=${_csrf}" method="post" enctype="multipart/form-data"
  * 
  * </pre>
- * @author Pleiades New Gradle Project Wizard
+ * @author Pleiades New Gradle Project Wizard (c) MPL
  */
 @Slf4j
 public class AutoCsrfFilter extends HttpFilter {

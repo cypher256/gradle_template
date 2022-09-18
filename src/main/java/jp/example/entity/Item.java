@@ -4,7 +4,7 @@ import lombok.Data;
 
 /** 
  * アイテムエンティティです。
- * @author Pleiades New Gradle Project Wizard
+ * @author Pleiades New Gradle Project Wizard (c) MPL
  */
 @Data
 public class Item {
