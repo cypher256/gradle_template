@@ -268,7 +268,7 @@ public class AutoFlashFilter extends HttpFilter {
 		if (!isAppError) {
 			log.warn(cause.getMessage(), cause);
 		}
-		req.setAttribute(MESSAGE, req.isSecure() ? "システムに問題が発生しました。" : cause.getMessage());
+		req.setAttribute(MESSAGE, "❌ " + (req.isSecure() ? "システムに問題が発生しました。" : cause.getMessage()));
 		
 		// AJAX リクエスト時のエラー (アプリエラー、システムエラー両方) → メッセージ文字列を返す
 		if (isAjax(req)) {
