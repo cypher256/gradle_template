@@ -3,6 +3,8 @@ package jp.example.servlet;
 import static jp.example.filter.AutoFlashFilter.*;
 import static jp.example.filter.AutoTransactionFilter.*;
 
+import java.util.List;
+
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -16,7 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * Servlet JSP CRUD Servlet 定義クラスです。
  * <pre>
- * 検索一覧、登録、修正、削除画面のシンプルな Servlet パターンサンプル。
+ * 検索一覧、登録、修正、削除のシンプルな Servlet パターンサンプル。
  * IllegalStateException をスローすると、アプリエラーとして表示中のページにフォワードされます。
  * 以下のフィルタークラスの static メソッドを static インポート (Ctrl/Cmd + Shift + m) して使用できます。
  * forward、redirect、returns は条件分岐で呼び分ける場合でも、Servlet 内の処理はそこで終了するため、return 不要です。
@@ -62,7 +64,8 @@ public class ItemCrudServlet {
 				""";
 			
 			log.debug("検索して list.jsp にフォワード");
-			req.setAttribute("formList", dao().queryWith(sql).paramBean(new ItemForm(req)).collect(ItemForm.class));
+			List<ItemForm> formList = dao().queryWith(sql).paramBean(new ItemForm(req)).collect(ItemForm.class);
+			req.setAttribute("formList", formList);
 			req.getSession().setAttribute("lastQueryUrl", DispatcherUtil.getFullUrl(req));
 			forward("list.jsp");
 		}
