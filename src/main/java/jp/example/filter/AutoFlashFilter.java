@@ -80,7 +80,7 @@ public class AutoFlashFilter extends HttpFilter {
 	 * 
 	 * 2. AutoCsrfFilter を使用している場合は、meta と form input hidden に name="_csrf" として CSRF トークンが埋め込み。
 	 * 3. フォワード先パスをセッション属性 APP_ERROR_FORWARD_PATH に保存 (アプリエラー時の自動フォワード先として使用)。
-	 * 4. 後続処理を飛ばすために、正常にレスポンスがコミットされたことを示す定数 SUCCESS_RESPONSE_COMMITTED をスロー。
+	 * 4. 後続処理をスキップするために、正常にレスポンスがコミットされたことを示す定数 SUCCESS_RESPONSE_COMMITTED をスロー。
 	 * </pre>
 	 * @param jspPath JSP パス
 	 */
@@ -106,14 +106,14 @@ public class AutoFlashFilter extends HttpFilter {
 	 * リクエスト属性のみが転送されます。
 	 * 
 	 * 転送したくない項目がある場合は、このメソッドを呼び出す前に req#removeAttribute で個別に削除してください。
-	 * 外部サイトへのリダイレクトや一切転送したくない場合は、普通の sendRedirect を使用してください。
+	 * 外部サイトへのリダイレクトや一切転送したくない場合は、普通の res#sendRedirect を使用してください。
 	 * このメソッドは、以下の処理を行います。
 	 * 
 	 * 1. 指定した flashMessage をリクエスト属性 MESSAGE にセット (使用しない場合は null を指定)。
 	 * 2. 指定した redirectUrl (null の場合はコンテキストルート) をリダイレクト先としてレスポンスにセット。
 	 * 3. リダイレクト先 URL をセッション属性 SYS_ERROR_REDIRECT_URL に保存 (システムエラー時の自動リダイレクト先)。
 	 * 4. このフィルター以降で追加されたリクエスト属性をフラッシュ属性としてセッションに保存 (リダイレクト先で復元)。
-	 * 5. 後続処理を飛ばすために、正常にレスポンスがコミットされたことを示す定数 SUCCESS_RESPONSE_COMMITTED をスロー。
+	 * 5. 後続処理をスキップするために、正常にレスポンスがコミットされたことを示す定数 SUCCESS_RESPONSE_COMMITTED をスロー。
 	 * </pre>
 	 * @param redirectUrl リダイレクト先 URL
 	 * @param flashMessage フラッシュメッセージ (使用しない場合は null)
@@ -135,7 +135,7 @@ public class AutoFlashFilter extends HttpFilter {
 	 * REST API の戻り値をクライアントに返却します。
 	 * <pre>
 	 * 1. 引数の型が CharSequence の場合は文字列、それ以外の場合は json 文字列に変換し、レスポンスに書き込み。
-	 * 2. 後続処理を飛ばすために、正常にレスポンスがコミットされたことを示す定数 SUCCESS_RESPONSE_COMMITTED をスロー。
+	 * 2. 後続処理をスキップするために、正常にレスポンスがコミットされたことを示す定数 SUCCESS_RESPONSE_COMMITTED をスロー。
 	 * </pre>
 	 * @param resObject 返却する Java オブジェクト
 	 */
@@ -265,20 +265,19 @@ public class AutoFlashFilter extends HttpFilter {
 	protected void handleException(HttpServletRequest req, HttpServletResponse res, Throwable e) {
 		Throwable cause = ExceptionUtils.getRootCause(e);
 		boolean isAppError = cause instanceof IllegalStateException;
-		if (!isAppError) {
-			log.warn(cause.getMessage(), cause);
-		}
-		req.setAttribute(MESSAGE, "❌ " + (req.isSecure() ? "システムに問題が発生しました。" : cause.getMessage()));
+		if (!isAppError) log.warn(cause.getMessage(), cause);
+		String message = "❌ " + (req.isSecure() ? "システムに問題が発生しました。" : cause.getMessage());
 		
 		// AJAX リクエスト時のエラー (アプリエラー、システムエラー両方) → メッセージ文字列を返す
 		if (isAjax(req)) {
-			res.getWriter().print((String) $(MESSAGE));
+			res.getWriter().print(message);
 			return;
 		}
 		
 		// アプリエラー (画面入力チェックエラーなど) → 入力画面にフォワード
 		String forwardPath = $(APP_ERROR_FORWARD_PATH);
 		if (isAppError && forwardPath != null) {
+			req.setAttribute(MESSAGE, message);
 			req.getRequestDispatcher(forwardPath).forward(req, res);
 			return;
 		}
@@ -286,12 +285,12 @@ public class AutoFlashFilter extends HttpFilter {
 		// システムエラー (SQL エラーなど) → 直近のリダイレクト先またはトップにリダイレクト
 		String redirectUrl = $(SYS_ERROR_REDIRECT_URL, req.getContextPath());
 		if (redirectUrl.equals(req.getRequestURI())) {
-			log.warn("リダイレクトループ検出: {} {}", req.getRequestURI(), $(MESSAGE), cause);
+			log.warn("リダイレクトループ検出: {} {}", req.getRequestURI(), message, cause);
 			res.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 			return;
 		}
 		res.sendRedirect(redirectUrl);
-		req.getSession().setAttribute(FLASH, Map.of(MESSAGE, $(MESSAGE)));
+		req.getSession().setAttribute(FLASH, Map.of(MESSAGE, message));
 	}
 
 	/**
