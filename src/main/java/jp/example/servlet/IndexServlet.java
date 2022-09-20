@@ -14,7 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * コンテキストルートのトップ画面を表示するインデックス Servlet クラスです。
- * @author New Gradle Project Wizard (c) Pleiades MPL
+ * @author Pleiades New Gradle Project Wizard
  */
 @WebServlet("")
 @Slf4j

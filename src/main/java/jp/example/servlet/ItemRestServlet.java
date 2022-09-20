@@ -18,7 +18,7 @@ import lombok.extern.slf4j.Slf4j;
  * キーイベントによる AJAX リアルタイム通信のサンプルです。
  * AJAX の場合、IllegalStateException をスローすると、例外メッセージ文字列がレスポンスとして返却されます。
  * </pre>
- * @author New Gradle Project Wizard (c) Pleiades MPL
+ * @author Pleiades New Gradle Project Wizard
  */
 @WebServlet("/item/api")
 @Slf4j

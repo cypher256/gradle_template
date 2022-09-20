@@ -18,7 +18,7 @@ import lombok.SneakyThrows;
 
 /** 
  * 検索一覧、登録、変更画面共通のアイテムフォームです。
- * @author New Gradle Project Wizard (c) Pleiades MPL
+ * @author Pleiades New Gradle Project Wizard
  */
 @Data
 @NoArgsConstructor

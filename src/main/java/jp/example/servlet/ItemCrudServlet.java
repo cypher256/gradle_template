@@ -36,7 +36,7 @@ import lombok.extern.slf4j.Slf4j;
  *   dao()          汎用 DAO トランザクションマネージャー取得 (正常時は自動コミット、ロールバックしたい場合は例外スロー)
  *   
  * </pre>
- * @author New Gradle Project Wizard (c) Pleiades MPL
+ * @author Pleiades New Gradle Project Wizard
  */
 @Slf4j
 public class ItemCrudServlet {
