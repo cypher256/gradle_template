@@ -80,7 +80,7 @@ public class AutoFlashFilter extends HttpFilter {
 	 * 
 	 * 2. AutoCsrfFilter を使用している場合は、meta と form input hidden に name="_csrf" として CSRF トークンが埋め込み。
 	 * 3. フォワード先パスをセッション属性 APP_ERROR_FORWARD_PATH に保存 (アプリエラー時の自動フォワード先として使用)。
-	 * 4. 後続処理をスキップするために、正常にレスポンスがコミットされたことを示す定数 SUCCESS_RESPONSE_COMMITTED をスロー。
+	 * 4. 後続処理をスキップするために、正常にレスポンスがコミットされたことを示す定数 SUCCESS_RESPONSE_COMMITTED スロー。
 	 * </pre>
 	 * @param jspPath JSP パス
 	 */
@@ -113,7 +113,7 @@ public class AutoFlashFilter extends HttpFilter {
 	 * 2. 指定した redirectUrl (null の場合はコンテキストルート) をリダイレクト先としてレスポンスにセット。
 	 * 3. リダイレクト先 URL をセッション属性 SYS_ERROR_REDIRECT_URL に保存 (システムエラー時の自動リダイレクト先)。
 	 * 4. このフィルター以降で追加されたリクエスト属性をフラッシュ属性としてセッションに保存 (リダイレクト先で復元)。
-	 * 5. 後続処理をスキップするために、正常にレスポンスがコミットされたことを示す定数 SUCCESS_RESPONSE_COMMITTED をスロー。
+	 * 5. 後続処理をスキップするために、正常にレスポンスがコミットされたことを示す定数 SUCCESS_RESPONSE_COMMITTED スロー。
 	 * </pre>
 	 * @param redirectUrl リダイレクト先 URL
 	 * @param flashMessage フラッシュメッセージ (使用しない場合は null)
@@ -135,7 +135,7 @@ public class AutoFlashFilter extends HttpFilter {
 	 * REST API の戻り値をクライアントに返却します。
 	 * <pre>
 	 * 1. 引数の型が CharSequence の場合は文字列、それ以外の場合は json 文字列に変換し、レスポンスに書き込み。
-	 * 2. 後続処理をスキップするために、正常にレスポンスがコミットされたことを示す定数 SUCCESS_RESPONSE_COMMITTED をスロー。
+	 * 2. 後続処理をスキップするために、正常にレスポンスがコミットされたことを示す定数 SUCCESS_RESPONSE_COMMITTED スロー。
 	 * </pre>
 	 * @param resObject 返却する Java オブジェクト
 	 */
@@ -267,6 +267,7 @@ public class AutoFlashFilter extends HttpFilter {
 		boolean isAppError = cause instanceof IllegalStateException;
 		if (!isAppError) log.warn(cause.getMessage(), cause);
 		String message = "❌ " + (req.isSecure() ? "システムに問題が発生しました。" : cause.getMessage());
+		req.setAttribute(MESSAGE, message); // finally でも使用
 		
 		// AJAX リクエスト時のエラー (アプリエラー、システムエラー両方) → メッセージ文字列を返す
 		if (isAjax(req)) {
@@ -277,7 +278,6 @@ public class AutoFlashFilter extends HttpFilter {
 		// アプリエラー (画面入力チェックエラーなど) → 入力画面にフォワード
 		String forwardPath = $(APP_ERROR_FORWARD_PATH);
 		if (isAppError && forwardPath != null) {
-			req.setAttribute(MESSAGE, message);
 			req.getRequestDispatcher(forwardPath).forward(req, res);
 			return;
 		}
