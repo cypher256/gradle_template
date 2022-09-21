@@ -84,14 +84,11 @@ public class ItemCrudServlet {
 		/** 登録画面の登録ボタン → 一覧画面へリダイレクト (PRG パターン: リロードによる多重送信抑止) */
 		protected void doPost(HttpServletRequest req, HttpServletResponse res) {
 			ItemForm form = new ItemForm(req).validate(req);
-			dao().query(Item.class).equal("name", form.name).exists(() -> {
-				throw new IllegalStateException("指定された製品名は、すでに登録されています。");
-			});
-			dao().insert(form.toEntity());
+			dao().insert(form.toEntity(new Item()));
 			redirect($("lastQueryUrl"), "ℹ️ 登録しました。");
 		}
 	}
-
+	
 	/** CRUD の U: Update 変更 Servlet */
 	@WebServlet("/item/update")
 	public static class UpdateServlet extends HttpServlet {
@@ -106,21 +103,19 @@ public class ItemCrudServlet {
 		/** 変更画面の更新ボタン → 一覧画面へリダイレクト (PRG パターン: リロードによる多重送信抑止) */
 		protected void doPost(HttpServletRequest req, HttpServletResponse res) {
 			ItemForm form = new ItemForm(req).validate(req);
-			dao().query(Item.class).notEqual("id", form.id).equal("name", form.name).exists(() -> {
-				throw new IllegalStateException("指定された製品名は、別の製品で使用されています。");
-			});
-			dao().update(form.toEntity());
+			Item entity = dao().find(Item.class, form.id).orElseThrow(() -> new Error("存在しません。"));
+			dao().update(form.toEntity(entity));
 			redirect($("lastQueryUrl"), "ℹ️ 更新しました。");
 		}
 	}
-
+	
 	/** CRUD の D: Delete 削除 Servlet */
 	@WebServlet("/item/delete")
 	public static class DeleteServlet extends HttpServlet {
 		
 		/** 一覧画面の削除ボタン → 一覧画面へリダイレクト (PRG パターン: リロードによる多重送信抑止) */
 		protected void doPost(HttpServletRequest req, HttpServletResponse res) {
-			dao().delete(new ItemForm(req).toEntity());
+			dao().delete(new ItemForm(req).toEntity(new Item()));
 			redirect($("lastQueryUrl"), "️ℹ️ 削除しました。");
 		}
 	}

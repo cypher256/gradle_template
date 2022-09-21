@@ -37,6 +37,7 @@ public class ItemForm {
 	 */
 	@SneakyThrows
 	public ItemForm(HttpServletRequest req) {
+		// hidden の id をセキュアにする場合はセッション保持や暗号化が必要
 		BeanUtils.populate(this, req.getParameterMap());
 	}
 	
@@ -50,30 +51,14 @@ public class ItemForm {
 	}
 	
 	/**
-	 * このフォームをエンティティに変換します。
-	 * @return エンティティ
+	 * このフォームの値を指定したエンティティに上書きコピーします。
+	 * @param entity コピー先となるエンティティ
+	 * @return 引数のエンティティ
 	 */
 	@SneakyThrows
-	public Item toEntity() {
-		Item entity = new Item();
+	public Item toEntity(Item entity) {
 		BeanUtils.copyProperties(entity, this);
 		return entity;
-	}
-	
-	/**
-	 * 入力値を検証します。 <br>
-	 * 登録、変更画面共通の入力チェックを行い、不正な場合はアプリエラーを表す IllegalStateException をスローします。 
-	 * @param req HTTP サーブレットリクエスト (エラー表示用に、このフォームをリクエスト属性にセット)
-	 * @return このインスタンス
-	 */
-	public ItemForm validate(HttpServletRequest req) {
-		req.setAttribute("form", this);
-		valid(!name.isBlank(), "製品名は必須です。");
-		valid(name.matches("[^<>]+"), "製品名に <> は使用できません。(%d 文字目)", StringUtils.indexOfAny(name, "<>"));
-		valid(name.matches(".{10,25}"), "製品名は 10 〜 25 文字で入力してください。(現在 %d 文字)", name.length());
-		valid(!(name.matches("(?i).*iphone.*") && !faceAuth), "iPhone は顔認証を有効にしてください。");
-		valid(releaseDate.matches("(|.+1.)"), "発売日の日は 10 〜 19 日の範囲で入力してください。");
-		return this;
 	}
 	
 	/**
@@ -82,5 +67,30 @@ public class ItemForm {
 	 */
 	public List<Company> getCompanySelectOptions() {
 		return dao().query(Company.class).asc("id").collect();
+	}
+	
+	/**
+	 * 入力値を検証します。 <br>
+	 * 登録、変更画面共通の入力チェックを行い、不正な場合はアプリエラーを表す IllegalStateException をスローします。 
+	 * @param req HTTP サーブレットリクエスト
+	 * @return このインスタンス
+	 */
+	public ItemForm validate(HttpServletRequest req) {
+		
+		// エラーの場合は例外がスローされるため、画面に表示する入力値を先にセット
+		req.setAttribute("form", this);
+		
+		// 形式チェック
+		valid(!name.isBlank(), "製品名は必須です。");
+		valid(name.matches("[^<>]+"), "製品名に <> は使用できません。(%d 文字目)", StringUtils.indexOfAny(name, "<>"));
+		valid(name.matches(".{10,25}"), "製品名は 10 〜 25 文字で入力してください。(現在 %d 文字)", name.length());
+		valid(!(name.matches("(?i).*iphone.*") && !faceAuth), "iPhone は顔認証を有効にしてください。");
+		valid(releaseDate.matches("(|.+1.)"), "発売日の日は 10 〜 19 日の範囲で入力してください。");
+		
+		// DB 相関チェック (id: 変更時は自身を除外、登録時は 0 で DB に存在しないため実質 name 条件のみ)
+		dao().query(Item.class).notEqual("id", id).equal("name", name).exists(() -> {
+			throw new IllegalStateException("指定された製品名は、別の製品で使用されています。");
+		});
+		return this;
 	}
 }
