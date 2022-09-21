@@ -17,7 +17,7 @@ import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 
 /** 
- * 検索一覧、登録、変更画面共通のアイテムフォームです。
+ * アイテムフォームモデルです。
  * @author Pleiades New Gradle Project Wizard
  */
 @Data
@@ -37,36 +37,28 @@ public class ItemForm {
 	 */
 	@SneakyThrows
 	public ItemForm(HttpServletRequest req) {
-		// hidden の id をセキュアにする場合はセッション保持や暗号化が必要
 		BeanUtils.populate(this, req.getParameterMap());
+		// hidden の id をセキュアにする場合はセッション保持や暗号化が必要
 	}
 	
 	/**
 	 * エンティティからフォームを構築します。
-	 * @param entity コピー元となるエンティティ
+	 * @param sourceEntity コピー元となるエンティティ
 	 */
 	@SneakyThrows
-	public ItemForm(Item entity) {
-		BeanUtils.copyProperties(this, entity);
+	public ItemForm(Item sourceEntity) {
+		BeanUtils.copyProperties(this, sourceEntity);
 	}
 	
 	/**
 	 * このフォームの値を指定したエンティティに上書きコピーします。
-	 * @param entity コピー先となるエンティティ
+	 * @param targetEntity コピー先となるエンティティ
 	 * @return 引数のエンティティ
 	 */
 	@SneakyThrows
-	public Item toEntity(Item entity) {
-		BeanUtils.copyProperties(entity, this);
-		return entity;
-	}
-	
-	/**
-	 * 会社 select タグ選択肢を取得します (JSP から呼び出し)。
-	 * @return 会社 select タグ選択肢
-	 */
-	public List<Company> getCompanySelectOptions() {
-		return dao().query(Company.class).asc("id").collect();
+	public Item toEntity(Item targetEntity) {
+		BeanUtils.copyProperties(targetEntity, this);
+		return targetEntity;
 	}
 	
 	/**
@@ -77,7 +69,7 @@ public class ItemForm {
 	 */
 	public ItemForm validate(HttpServletRequest req) {
 		
-		// エラーの場合は例外がスローされるため、画面に表示する入力値を先にセット
+		// エラーの場合は例外がスローされるため、画面に再表示する入力値を先にセット
 		req.setAttribute("form", this);
 		
 		// 形式チェック
@@ -92,5 +84,54 @@ public class ItemForm {
 			throw new IllegalStateException("指定された製品名は、別の製品で使用されています。");
 		});
 		return this;
+	}
+	
+	/**
+	 * このフォームを条件としてアイテムを検索します。
+	 * @return アイテムフォームリスト
+	 */
+	public List<ItemForm> find() {
+		 // 検索 SQL (2WaySQL OGNL)
+		 // https://future-architect.github.io/uroborosql-doc/background/#条件分岐-if-elif-else-end
+		String sql = """
+				SELECT item.*, company.company_name 
+				FROM item
+				LEFT JOIN company ON item.company_id = company.id
+				WHERE 1 = 1
+					/*IF SF.isNotBlank(name)*/
+						AND name LIKE /*SF.contains(name)*/'Pro' escape /*#ESC_CHAR*/'$'
+					/*END*/
+					/*IF SF.isNotBlank(releaseDate)*/
+						AND release_date = /*releaseDate*/'2022-09-11'
+					/*END*/
+			""";
+		return dao().queryWith(sql).paramBean(this).collect(ItemForm.class);
+	}
+	
+	/**
+	 * このフォームを条件としてアイテム件数を取得します。
+	 * @return 件数
+	 */
+	public long count() {
+		String sql = """
+				SELECT COUNT(*) 
+				FROM item
+				WHERE 1 = 1
+					/*IF SF.isNotBlank(name)*/
+						AND name LIKE /*SF.contains(name)*/'Pro' escape /*#ESC_CHAR*/'$'
+					/*END*/
+					/*IF SF.isNotBlank(releaseDate)*/
+						AND release_date = /*releaseDate*/'2022-09-11'
+					/*END*/
+			""";
+		return dao().queryWith(sql).paramBean(this).one(long.class);
+	}
+	
+	/**
+	 * 会社 select タグ選択肢を取得します (JSP から呼び出し)。
+	 * @return 会社 select タグ選択肢
+	 */
+	public List<Company> getCompanySelectOptions() {
+		return dao().query(Company.class).asc("id").collect();
 	}
 }

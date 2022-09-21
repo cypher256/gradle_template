@@ -204,7 +204,7 @@ public class AutoFlashFilter extends HttpFilter {
 	@Override @SneakyThrows
 	protected void doFilter(HttpServletRequest req, HttpServletResponse res, FilterChain chain) {
 		
-		// css js などを除外 (html は web.xml で jsp 扱いのため除外しない)
+		// css js などを除外 (html は web.xml で jsp 扱いのため除外しない、ドットを含む Servlet マッピングはサポートしない)
 		String uri = req.getRequestURI();
 		if (uri.contains(".") && !uri.endsWith(".html")) {
 			super.doFilter(req, res, chain); 

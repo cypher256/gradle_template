@@ -66,7 +66,7 @@ public class AutoCsrfFilter extends HttpFilter {
 	@Override @SneakyThrows
 	protected void doFilter(HttpServletRequest req, HttpServletResponse res, FilterChain chain) {
 		
-		// css js などを除外 (html や jsp は除外しない)
+		// css js などを除外 (html や jsp は除外しない、ドットを含む Servlet マッピングはサポートしない)
 		String uri = req.getRequestURI();
 		boolean isHtml = StringUtils.endsWithAny(uri, ".jsp", ".html"); // .jsp は FORWARD 時
 		if (!isHtml && uri.contains(".")) {

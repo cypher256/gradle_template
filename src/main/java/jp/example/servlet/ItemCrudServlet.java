@@ -3,8 +3,6 @@ package jp.example.servlet;
 import static jp.example.filter.AutoFlashFilter.*;
 import static jp.example.filter.AutoTransactionFilter.*;
 
-import java.util.List;
-
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -13,6 +11,7 @@ import javax.servlet.http.HttpServletResponse;
 import jodd.servlet.DispatcherUtil;
 import jp.example.entity.Item;
 import jp.example.form.ItemForm;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -47,26 +46,9 @@ public class ItemCrudServlet {
 		
 		/** 検索一覧画面の表示 */
 		protected void doGet(HttpServletRequest req, HttpServletResponse res) {
-			
-			 // 検索 SQL (2WaySQL OGNL)
-			 // https://future-architect.github.io/uroborosql-doc/background/#条件分岐-if-elif-else-end
-			String sql = """
-					SELECT item.*, company.company_name 
-					FROM item
-					LEFT JOIN company ON item.company_id = company.id
-					WHERE 1 = 1
-						/*IF SF.isNotBlank(name)*/
-							AND name LIKE /*SF.contains(name)*/'Pro' escape /*#ESC_CHAR*/'$'
-						/*END*/
-						/*IF SF.isNotBlank(releaseDate)*/
-							AND release_date = /*releaseDate*/'2022-09-11'
-						/*END*/
-				""";
-			
 			log.debug("検索して list.jsp にフォワード");
-			List<ItemForm> formList = dao().queryWith(sql).paramBean(new ItemForm(req)).collect(ItemForm.class);
-			req.setAttribute("formList", formList);
-			req.getSession().setAttribute("lastQueryUrl", DispatcherUtil.getFullUrl(req));
+			req.setAttribute("formList", new ItemForm(req).find());
+			req.getSession().setAttribute("lastQueryUrl", DispatcherUtil.getFullUrl(req)); // PRG リダイレクト先保存
 			forward("list.jsp");
 		}
 	}
@@ -117,6 +99,25 @@ public class ItemCrudServlet {
 		protected void doPost(HttpServletRequest req, HttpServletResponse res) {
 			dao().delete(new ItemForm(req).toEntity(new Item()));
 			redirect($("lastQueryUrl"), "️ℹ️ 削除しました。");
+		}
+	}
+
+	/** REST API Servlet */
+	@WebServlet("/item/api")
+	public static class RestServlet extends HttpServlet {
+		
+		/** 検索画面の検索文字列 onkeyup 時の検索結果件数取得 API */
+		protected void doGet(HttpServletRequest req, HttpServletResponse res) {
+			@Data class SearchResult {
+				ItemForm condition = new ItemForm(req); // クライアントで件数以外は使用しないが json 返却例としてセット
+				long count = condition.count();
+			}
+			returns(new SearchResult()); // 戻り値: json 結果件数情報 (例外発生時は text エラーメッセージ文字列)
+		}
+		
+		/** 登録、変更画面の onkeyup、onchange 時の入力チェック API */
+		protected void doPost(HttpServletRequest req, HttpServletResponse res) {
+			new ItemForm(req).validate(req); // 戻り値: text エラーメッセージ文字列 (エラーが無い場合は戻り値なし)
 		}
 	}
 }

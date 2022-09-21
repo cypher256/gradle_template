@@ -90,7 +90,7 @@ public class AutoTransactionFilter extends HttpFilter {
 	@Override @SneakyThrows
 	protected void doFilter(HttpServletRequest req, HttpServletResponse res, FilterChain chain) {
 		
-		// html css js などを除外
+		// html css js などを除外 (ドットを含む Servlet マッピングはサポートしない)
 		if (req.getRequestURI().contains(".")) {
 			super.doFilter(req, res, chain);
 			return;
