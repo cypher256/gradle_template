@@ -104,7 +104,7 @@ public class AutoCsrfFilter extends HttpFilter {
 					
 				// form post 内に hidden 追加
 				.replaceAll("(?is)([ \t]*)(<form[^>]+method=\"post[^>]+>)", format("""
-					$1$2\n$1\t<input type="hidden" name="_csrf" value="%s">""", csrfToken));
+					$1$2\n$1\t<input type="hidden" name="_csrf" value="%s">\n$1\t""", csrfToken));
 					
 			res.setContentLength(html.getBytes(resWrapper.getCharacterEncoding()).length);
 			res.getWriter().print(html);

@@ -37,7 +37,8 @@
 			<label>メーカー</label>
 			<select name="companyId">
 	<c:forEach var="com" items="${form.companySelectOptions}">
-				<option value="${com.id}" ${form.companyId == com.id ? 'selected' : ''}>${com.companyName}</option>
+				<option value="${com.id}" ${form.companyId == com.id ? 'selected' : ''}
+					>${fn:escapeXml(com.companyName)}</option>
 	</c:forEach>
 			</select>
 		</p>
@@ -55,7 +56,7 @@
 </body>
 <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 <script>
-<%-- 入力中のリアルタイム API チェック結果を文字列で取得 (form が post のため _csrf が含まれる) --%>
+<%-- axios で post (_csrf 有り、入力中のリアルタイム API チェック結果を文字列で取得) --%>
 const validate = async() => {
 	_message.textContent = (await axios.post('api', new URLSearchParams(new FormData(_form)))).data;
 };

@@ -11,6 +11,7 @@ CREATE TABLE users (
 	password VARCHAR(128),
 	PRIMARY KEY (id)
 );
+CREATE INDEX ix__users__username ON users (username);
 INSERT INTO users (username, password) VALUES 
 	('demouser','demo1234@')
 ;
@@ -26,6 +27,7 @@ CREATE TABLE item (
 	company_id BIGINT,
 	PRIMARY KEY (id)
 );
+CREATE INDEX ix__item__name ON item (name);
 INSERT INTO item (name, release_date, face_auth, company_id) VALUES 
 	('iPhone 14 Pro Docomo版','2022-09-11',true,1),
 	('iPhone 14 Pro Max Docomo版','2022-12-15',true,1),

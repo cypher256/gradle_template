@@ -48,7 +48,8 @@
 				<td>${fn:escapeXml(form.companyName)}</td>
 				<td class="_center">
 					<button type="button" onclick="location.href='update?id=${form.id}'">変更</button>
-					<form method="post" action="delete?id=${form.id}"><button>削除</button></form><%--状態変更操作のため post --%>
+					<%--削除は状態変更操作のため post (_csrf 有り) --%>
+					<form method="post" action="delete?id=${form.id}"><button>削除</button></form>
 				</td>
 			</tr>
 	</c:forEach>
@@ -61,7 +62,7 @@
 </body>
 <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 <script>
-<%-- 検索条件入力中のリアルタイム API 件数 JSON 取得 (form が get のため _csrf が含まれない) --%>
+<%-- axios で get (_csrf 無し、検索条件入力中のリアルタイム API 件数 JSON 取得) --%>
 const count = async() => {
 	const res = (await axios.get('api?' + new URLSearchParams(new FormData(_form)))).data;
 	_message.textContent = res.count != null ? '結果予想件数: ' + res.count + ' 件' : res;
