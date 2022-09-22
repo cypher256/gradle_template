@@ -19,10 +19,11 @@ import lombok.SneakyThrows;
 /** 
  * アイテムフォームモデルです。
  * <pre>
- * アプリでスローされた例外は AutoFlashFilter で下記の処理が行われます。
+ * アプリでスローした例外は AutoFlashFilter で下記の処理が行われます。
+ * JSP では ${MESSAGE} で例外メッセージを取得できます。
  * 
- *   IllegalStateException スローで入力画面にフォワードし、メッセージを表示します。
- *   java.lang.Error スローで直近のリダイレクト先またはトップへリダイレクトし、メッセージを表示します。
+ *   IllegalStateException の場合: 入力画面にフォワード
+ *   java.lang.Error の場合: 直近のリダイレクト先またはトップへリダイレクト
  *   
  * </pre>
  * @author Pleiades New Gradle Project Wizard
