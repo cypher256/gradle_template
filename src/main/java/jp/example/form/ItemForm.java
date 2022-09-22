@@ -91,8 +91,6 @@ public class ItemForm {
 	 * @return アイテムフォームリスト
 	 */
 	public List<ItemForm> find() {
-		 // 検索 SQL (2WaySQL OGNL)
-		 // https://future-architect.github.io/uroborosql-doc/background/#条件分岐-if-elif-else-end
 		String sql = """
 				SELECT item.*, company.company_name 
 				FROM item

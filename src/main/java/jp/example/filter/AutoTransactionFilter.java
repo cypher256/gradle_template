@@ -38,6 +38,13 @@ public class AutoTransactionFilter extends HttpFilter {
 	 * 汎用 DAO トランザクションマネージャーを取得します。<br>
 	 * SLF4J の simplelogger.properties で SQL のログレベルを設定できます。
 	 * <pre>
+	 * SqlAgent の仕様 (uroboroSQL)
+	 * 
+	 * ・自動採番の主キーを持つテーブルは、id などのエンティティに関するアノテーションは不要です。
+	 * ・スネークケース、キャメルケースは自動変換されます。ただし、バインドパラメータ名は変換されません。
+	 * ・queryWith や query で使用する 2Way SQL の条件 (OGNL) は下記を参照してください。
+	 * 　https://future-architect.github.io/uroborosql-doc/background/#条件分岐-if-elif-else-end
+	 * 
 	 * AutoTransactionFilter の制御
 	 * 
 	 * ・JTA や Spring のデフォルトと異なり、単純にどんな例外でもロールバックします。
@@ -45,11 +52,6 @@ public class AutoTransactionFilter extends HttpFilter {
 	 * ・手動で制御しなければならない場合は、dao().commit() や dao().setRollbackOnly() が可能です。
 	 * ・トランザクション境界内に JSP も含まれているため、JSP EL から参照するフォームのメソッド内でも利用可能です。 
 	 *   (分散モデルが不要な Web 単一層アーキテクチャ向け)
-	 * 
-	 * SqlAgent の仕様 (uroboroSQL)
-	 * 
-	 * ・自動採番の主キーを持つテーブルは、id などのエンティティに関するアノテーションは不要です。
-	 * ・スネークケース、キャメルケースは自動変換されます。ただし、バインドパラメータ名は変換されません。
 	 * 
 	 * </pre>
 	 * @return SqlAgent
