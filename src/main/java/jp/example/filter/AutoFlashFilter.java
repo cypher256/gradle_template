@@ -34,8 +34,10 @@ import lombok.extern.slf4j.Slf4j;
  * 1. AJAX リクエストの場合、例外メッセージ文字列をレスポンスに書き込んで終了。
  * 2. 例外メッセージを JSP 表示用にリクエスト属性 MESSAGE にセット (リダイレクトの場合はフラッシュ)。
  * 3. IllegalStateException はアプリエラーとして、セッション属性 APP_ERROR_FORWARD_PATH (通常は表示元) にフォワード。
- * 4. 上記以外の例外の場合は、システムエラーとしてセッション属性 SYS_ERROR_REDIRECT_URL にリダイレクト。
- * 5. APP_ERROR_FORWARD_PATH も SYS_ERROR_REDIRECT_URL も無い場合は、コンテキストルートにリダイレクト。
+ * 4. java.lang.Error クラスの場合はアプリのシステムエラーとして、セッション属性 SYS_ERROR_REDIRECT_URL にリダイレクト。
+ * 5. 上記以外の場合は、致命的システムエラーとしてスタックトレースログを出力し、SYS_ERROR_REDIRECT_URL にリダイレクト。
+ *    (4 と 5 の動作の違いはスタックトレースログ有無のみ。Error のサブクラスは 5 として扱われる。)
+ * 6. APP_ERROR_FORWARD_PATH も SYS_ERROR_REDIRECT_URL も無い場合は、コンテキストルートにリダイレクト。
  * 
  * いずれの場合も、例外は再スローされ、上位の AutoTransactionFilter でロールバックされます。
  * </pre>
@@ -257,17 +259,22 @@ public class AutoFlashFilter extends HttpFilter {
 		}
 	}
 	
-	/**
-	 * Servlet で発生したすべての例外を処理します。<br>
-	 * ルート例外の getMessage() をリクエスト属性 MESSAGE にセットして jsp や html から参照できるようにします。
-	 */
+	/** Servlet で発生したすべての例外を処理 */
 	@SneakyThrows
 	protected void handleException(HttpServletRequest req, HttpServletResponse res, Throwable e) {
+		
+		// IllegalStateException インスタンスと Error クラスはアプリエラー扱い (スタックトレースログを出さない)
 		Throwable cause = ExceptionUtils.getRootCause(e);
-		boolean isAppError = cause instanceof IllegalStateException;
-		if (!isAppError) log.warn(cause.getMessage(), cause);
-		String message = "❌ " + (req.isSecure() ? "システムに問題が発生しました。" : cause.getMessage());
-		req.setAttribute(MESSAGE, message); // finally でも使用
+		boolean isAppErrorFoward = cause instanceof IllegalStateException;
+		boolean isAppErrorRedirect = cause.getClass() == Error.class;
+		String message = "❌ " + cause.getMessage();
+		if (!isAppErrorFoward && !isAppErrorRedirect) {
+			log.warn("致命的システムエラー", cause);
+			if (req.isSecure()) {
+				message = "❌ システムに問題が発生しました。";
+			}
+		}
+		req.setAttribute(MESSAGE, message); // jsp や html から参照可能にする (finally でも使用)
 		
 		// AJAX リクエスト時のエラー (アプリエラー、システムエラー両方) → メッセージ文字列を返す
 		if (isAjax(req)) {
@@ -275,14 +282,17 @@ public class AutoFlashFilter extends HttpFilter {
 			return;
 		}
 		
-		// アプリエラー (画面入力チェックエラーなど) → 入力画面にフォワード
+		// アプリエラー (IllegalStateException 画面入力チェックエラーなど、アプリ側で入力画面に戻したい場合)
+		// → 入力画面にフォワード
 		String forwardPath = $(APP_ERROR_FORWARD_PATH);
-		if (isAppError && forwardPath != null) {
+		if (isAppErrorFoward && forwardPath != null) {
 			req.getRequestDispatcher(forwardPath).forward(req, res);
 			return;
 		}
 			
-		// システムエラー (SQL エラーなど) → 直近のリダイレクト先またはトップにリダイレクト
+		// アプリエラー (Error.class - アプリ側で直近にリダイレクトにしたい場合)
+		// システムエラー (SQLException など - Error との違いはスタックトレースログ有無のみ) 
+		// → 直近のリダイレクト先またはトップにリダイレクト
 		String redirectUrl = $(SYS_ERROR_REDIRECT_URL, req.getContextPath());
 		if (redirectUrl.equals(req.getRequestURI())) {
 			log.warn("リダイレクトループ検出: {} {}", req.getRequestURI(), message, cause);
