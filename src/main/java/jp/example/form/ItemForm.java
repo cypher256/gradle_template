@@ -19,8 +19,7 @@ import lombok.SneakyThrows;
 /** 
  * アイテムフォームモデルです。
  * <pre>
- * アプリでスローした例外は AutoFlashFilter で下記の処理が行われます。
- * JSP では ${MESSAGE} で例外メッセージを取得できます。
+ * アプリでスローした例外は AutoFlashFilter で下記の処理が行われ、JSP では ${MESSAGE} で例外メッセージを取得できます。
  * 
  *   IllegalStateException の場合: 入力画面にフォワード
  *   java.lang.Error の場合: 直近のリダイレクト先またはトップへリダイレクト
