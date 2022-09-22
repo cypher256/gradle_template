@@ -18,6 +18,13 @@ import lombok.SneakyThrows;
 
 /** 
  * アイテムフォームモデルです。
+ * <pre>
+ * Servlet でスローされた例外スローにより、AutoFlashFilter で下記の処理が行われます。
+ * 
+ *   IllegalStateException スローで入力画面にフォワードし、メッセージを表示します。
+ *   java.lang.Error スローで直近のリダイレクト先またはトップへリダイレクトし、メッセージを表示します。
+ *   
+ * </pre>
  * @author Pleiades New Gradle Project Wizard
  */
 @Data
@@ -77,7 +84,7 @@ public class ItemForm {
 		valid(name.matches("[^<>]+"), "製品名に <> は使用できません。(%d 文字目)", StringUtils.indexOfAny(name, "<>"));
 		valid(name.matches(".{10,25}"), "製品名は 10 〜 25 文字で入力してください。(現在 %d 文字)", name.length());
 		valid(!(name.matches("(?i).*iphone.*") && !faceAuth), "iPhone は顔認証を有効にしてください。");
-		valid(releaseDate.matches("(|.+1.)"), "発売日の日は 10 〜 19 日の範囲で入力してください。");
+		valid(releaseDate.matches(".+1."), "発売日の日は 10 〜 19 日の範囲で入力してください。");
 		
 		// DB 相関チェック (id: 変更時は自身を除外、登録時は 0 で DB に存在しないため実質 name 条件のみ)
 		dao().query(Item.class).notEqual("id", id).equal("name", name).exists(() -> {
@@ -86,11 +93,20 @@ public class ItemForm {
 		return this;
 	}
 	
+	
 	/**
-	 * このフォームを条件としてアイテムを検索します。
+	 * このフォームの id を持つエンティティを取得します。
+	 * @return アイテムエンティティ
+	 */
+	public Item findEntityById() {
+		return dao().find(Item.class, id).orElseThrow(() -> new Error("指定された製品は、すでに削除されています。"));
+	}
+	
+	/**
+	 * このフォームを条件としてアイテムフォームリストを取得します。
 	 * @return アイテムフォームリスト
 	 */
-	public List<ItemForm> find() {
+	public List<ItemForm> findFormList() {
 		String sql = """
 				SELECT item.*, company.company_name 
 				FROM item
@@ -102,6 +118,7 @@ public class ItemForm {
 					/*IF SF.isNotBlank(releaseDate)*/
 						AND release_date = /*releaseDate*/'2022-09-11'
 					/*END*/
+				LIMIT 100
 			""";
 		return dao().queryWith(sql).paramBean(this).collect(ItemForm.class);
 	}

@@ -22,9 +22,10 @@ INSERT INTO users (username, password) VALUES
 CREATE TABLE item (
 	id BIGINT AUTO_INCREMENT, 
 	name VARCHAR(30), 
-	release_date CHAR(10), 
+	release_date DATE, 
 	face_auth BOOLEAN,
 	company_id BIGINT,
+	created_date DATE DEFAULT CURRENT_DATE(),
 	PRIMARY KEY (id)
 );
 CREATE INDEX ix__item__name ON item (name);

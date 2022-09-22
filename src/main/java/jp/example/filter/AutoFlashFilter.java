@@ -36,8 +36,8 @@ import lombok.extern.slf4j.Slf4j;
  * 3. 例外の種類によりフォワードまたはリダイレクト。
  * 
  *    (1) アプリエラー (入力エラーなど): IllegalStateException とそのサブクラス → フォワード
- *    (2) アプリのシステムエラー: java.lang.Error (サブクラス除く) → リダイレクト
- *    (3) 致命的なシステムエラー: 上記以外 → スタックトレースログを出力してリダイレクト
+ *    (2) アプリのシステムエラー (あるべきデータが無いなど): java.lang.Error (サブクラス除く) → リダイレクト
+ *    (3) 致命的なシステムエラー (SQL 構文エラーなど): 上記以外 → スタックトレースログを出力してリダイレクト
  * 
  *    フォワード先: セッション属性 APP_ERROR_FORWARD_PATH (デフォルトは直近のフォワード先、通常は表示元)
  *    リダイレクト先: セッション属性 SYS_ERROR_REDIRECT_URL (デフォルトは直近のリダイレクト先)
@@ -295,8 +295,8 @@ public class AutoFlashFilter extends HttpFilter {
 			return;
 		}
 			
-		// アプリエラー (Error.class - アプリ側で直近にリダイレクトにしたい場合)
-		// システムエラー (SQLException など - Error との違いはスタックトレースログ有無のみ) 
+		// アプリのシステムエラー (Error.class - アプリ側で直近にリダイレクトにしたい場合)
+		// 致命的なシステムエラー (SQLException など - Error との違いはスタックトレースログ有無のみ) 
 		// → 直近のリダイレクト先またはトップにリダイレクト
 		String redirectUrl = $(SYS_ERROR_REDIRECT_URL, req.getContextPath());
 		if (redirectUrl.equals(req.getRequestURI())) {

@@ -47,7 +47,7 @@ public class ItemCrudServlet {
 		/** 検索一覧画面の表示 */
 		protected void doGet(HttpServletRequest req, HttpServletResponse res) {
 			log.debug("検索して list.jsp にフォワード");
-			req.setAttribute("formList", new ItemForm(req).find());
+			req.setAttribute("formList", new ItemForm(req).findFormList());
 			req.getSession().setAttribute("lastQueryUrl", DispatcherUtil.getFullUrl(req)); // PRG リダイレクト先保存
 			forward("list.jsp");
 		}
@@ -77,7 +77,7 @@ public class ItemCrudServlet {
 		
 		/** 一覧画面の変更ボタン → 変更画面の表示 */
 		protected void doGet(HttpServletRequest req, HttpServletResponse res) {
-			Item entity = dao().find(Item.class, new ItemForm(req).id).orElseThrow(() -> new Error("存在しません。"));
+			Item entity = new ItemForm(req).findEntityById();
 			req.setAttribute("form", new ItemForm(entity));
 			forward("detail.jsp");
 		}
@@ -85,8 +85,7 @@ public class ItemCrudServlet {
 		/** 変更画面の更新ボタン → 一覧画面へリダイレクト (PRG パターン: リロードによる多重送信抑止) */
 		protected void doPost(HttpServletRequest req, HttpServletResponse res) {
 			ItemForm form = new ItemForm(req).validate(req);
-			Item entity = dao().find(Item.class, form.id).orElseThrow(() -> new Error("存在しません。"));
-			dao().update(form.toEntity(entity));
+			dao().update(form.toEntity(form.findEntityById()));
 			redirect($("lastQueryUrl"), "ℹ️ 更新しました。");
 		}
 	}

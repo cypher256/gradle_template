@@ -26,7 +26,7 @@
 		<p>
 			<label>発売日</label>
 			<input type="date" name="releaseDate" value="${fn:escapeXml(form.releaseDate)}"
-				onchange="validate()">
+				onchange="validate()" required>
 		</p>
 		<p>
 			<label>顔認証</label>
