@@ -19,7 +19,7 @@ import lombok.SneakyThrows;
 /** 
  * アイテムフォームモデルです。
  * <pre>
- * Servlet でスローされた例外スローにより、AutoFlashFilter で下記の処理が行われます。
+ * アプリでスローされた例外は AutoFlashFilter で下記の処理が行われます。
  * 
  *   IllegalStateException スローで入力画面にフォワードし、メッセージを表示します。
  *   java.lang.Error スローで直近のリダイレクト先またはトップへリダイレクトし、メッセージを表示します。
