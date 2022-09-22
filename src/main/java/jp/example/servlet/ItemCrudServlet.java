@@ -117,7 +117,7 @@ public class ItemCrudServlet {
 		
 		/** 登録、変更画面の onkeyup、onchange 時の入力チェック API */
 		protected void doPost(HttpServletRequest req, HttpServletResponse res) {
-			new ItemForm(req).validate(req); // 戻り値: text エラーメッセージ文字列 (エラーが無い場合は戻り値なし)
+			new ItemForm(req).validate(req); // 戻り値: 正常時はなし、例外スロー時は text エラーメッセージ文字列
 		}
 	}
 }
