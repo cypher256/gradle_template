@@ -31,7 +31,7 @@
  	<div class="alert mb-0" id="_message" style="min-height:4rem">${fn:escapeXml(MESSAGE)}</div>
 	<form id="_form" method="get" class="d-sm-flex flex-wrap align-items-end">
 		<label class="form-label me-sm-3">製品名</label>
-		<div class="me-sm-5">
+		<div class="me-sm-4">
 			<input class="form-control" type="search" name="name" value="${fn:escapeXml(param.name)}"
 				onkeyup="count()" autofocus onfocus="this.setSelectionRange(99,99)">
 		</div>

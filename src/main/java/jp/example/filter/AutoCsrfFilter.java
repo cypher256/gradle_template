@@ -24,7 +24,7 @@ import lombok.extern.slf4j.Slf4j;
  * 自動 CSRF フィルターです。
  * <pre>
  * web.xml の dispatcher 要素に REQUEST, FORWARD を指定する必要があります。
- * 一般的な CSRF 実装と比較して以下が自動化されているため、通常は Servlet や JSP で何もする必要はありません。
+ * 一般的な CSRF 攻撃への対策実装と比較して以下が自動化されているため、通常はフロントエンドで何もする必要はありません。
  * 
  * 1. Java コードや特別なタグ指定なしで、自動的に jsp と html に meta や form の hidden を埋め込み、Cookie にもセット。
  * 2. 画面遷移ごとにトークンが新しく生成されるため、同期トークンとしても機能する。
