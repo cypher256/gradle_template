@@ -4,7 +4,7 @@ import lombok.Data;
 
 /** 
  * 会社エンティティです。
- * @author Pleiades New Gradle Project Wizard
+ * @author New Gradle Project Wizard (c) Pleiades MIT
  */
 @Data
 public class Company {

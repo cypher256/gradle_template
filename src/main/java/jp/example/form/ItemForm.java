@@ -2,6 +2,7 @@ package jp.example.form;
 
 import static jp.example.filter.AutoFlashFilter.*;
 import static jp.example.filter.AutoTransactionFilter.*;
+import static org.apache.commons.lang3.StringUtils.*;
 
 import java.util.List;
 
@@ -15,6 +16,7 @@ import jp.example.entity.Item;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 
 /** 
  * アイテムフォームモデルです。
@@ -25,10 +27,11 @@ import lombok.SneakyThrows;
  *   java.lang.Error の場合: 直近のリダイレクト先またはトップへリダイレクト
  *   
  * </pre>
- * @author Pleiades New Gradle Project Wizard
+ * @author New Gradle Project Wizard (c) Pleiades MIT
  */
 @Data
 @NoArgsConstructor
+@Slf4j
 public class ItemForm {
 	
 	public long id;
@@ -95,7 +98,7 @@ public class ItemForm {
 	
 	
 	/**
-	 * このフォームの id を持つエンティティを取得します。
+	 * このフォームの id を条件にエンティティを取得します。
 	 * @return アイテムエンティティ
 	 */
 	public Item findEntityById() {
@@ -120,7 +123,9 @@ public class ItemForm {
 					/*END*/
 				LIMIT 100
 			""";
-		return dao().queryWith(sql).paramBean(this).collect(ItemForm.class);
+		List<ItemForm> formList = dao().queryWith(sql).paramBean(this).collect(ItemForm.class);
+		log.debug("WHERE name={} releaseDate={} \n{}", name, releaseDate, joinWith("\n", formList.toArray()));
+		return formList;
 	}
 	
 	/**

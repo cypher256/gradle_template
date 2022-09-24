@@ -46,7 +46,7 @@ import lombok.extern.slf4j.Slf4j;
  * 4. 例外が再スローされ、上位フィルターの AutoTransactionFilter でロールバック。
  * 
  * </pre>
- * @author Pleiades New Gradle Project Wizard
+ * @author New Gradle Project Wizard (c) Pleiades MIT
  */
 @Slf4j
 public class AutoFlashFilter extends HttpFilter {
