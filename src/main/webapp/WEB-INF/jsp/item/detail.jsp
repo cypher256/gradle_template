@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5/dist/css/bootstrap.min.css">
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5/dist/js/bootstrap.bundle.min.js"></script>
-<title>タイトル</title>
+<title>JSP の場合</title>
 </head>
 <body class="bg-dark bg-gradient text-light vh-100">
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-1">

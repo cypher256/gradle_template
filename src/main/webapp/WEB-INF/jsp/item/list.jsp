@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5/dist/css/bootstrap.min.css">
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5/dist/js/bootstrap.bundle.min.js"></script>
-<title>タイトル</title>
+<title>JSP の場合</title>
 </head>
 <body class="bg-dark bg-gradient text-light vh-100">
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-1">
@@ -17,7 +17,7 @@
 		<div class="collapse navbar-collapse" id="navbarSupportedContent">
 			<ul class="navbar-nav me-auto mb-2 mb-lg-0">
 				<li class="nav-item"><a class="nav-link active" href="${ctx}/item/list">JSP</a></li>
-				<li class="nav-item"><a class="nav-link" href="#">React</a></li>
+				<li class="nav-item"><a class="nav-link" href="${ctx}/react/">React</a></li>
 				<li class="nav-item"><a class="nav-link" href="#">Vue</a></li>
 			</ul>
 			<div class="navbar-text d-flex ${empty request.remoteUser ? 'd-none' : ''}">
@@ -36,14 +36,14 @@
 				onkeyup="count()" autofocus onfocus="this.setSelectionRange(99,99)">
 		</div>
 		<label class="form-label me-sm-3">発売日</label>
-		<div class="me-sm-5">
+		<div class="me-sm-4">
 			<input class="form-control w-auto mb-3 mb-sm-0" type="date" name="releaseDate"
 				value="${fn:escapeXml(param.releaseDate)}" onchange="count()">
 		</div>
-		<button formaction="list" class="btn btn-secondary px-5 me-1">検索</button>
-		<button formaction="create" class="btn btn-secondary px-5">新規登録</button>
+		<button formaction="list" class="btn btn-secondary px-5">検索</button>
+		<button formaction="create" class="btn btn-secondary px-5 ms-auto">新規登録</button>
 	</form>
-	<p class="text-end">検索結果 ${formList.size()} 件</p>
+	<p class="text-end mt-4 me-1 mb-2">検索結果 ${formList.size()} 件</p>
 	<table class="table table-striped table-dark">
 		<thead>
 			<tr class="${empty formList ? 'd-none' : ''}">
@@ -63,7 +63,7 @@
 				<td>${fn:escapeXml(form.companyName)}</td>
 				<td class="text-center">
 					<a href="update?id=${form.id}" class="btn btn-secondary">変更</a>
-					<%--削除は状態変更操作のため post (_csrf 有り) --%>
+					<%-- 削除は状態変更操作のため post (_csrf 有り) --%>
 					<form method="post" action="delete?id=${form.id}" class="d-inline">
 						<button class="btn btn-warning">削除</button>
 					</form>

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5/dist/css/bootstrap.min.css">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<title>React の場合</title>
+</head>
+<body class="bg-dark bg-gradient text-light vh-100">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-1">
+	<div class="container">
+		<a class="navbar-brand" href="${ctx}">Servlet CRUD サンプル</a>
+		<button class="navbar-toggler" type="button"
+			data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
+			<span class="navbar-toggler-icon"></span>
+		</button>
+		<div class="collapse navbar-collapse" id="navbarSupportedContent">
+			<ul class="navbar-nav me-auto mb-2 mb-lg-0">
+				<li class="nav-item"><a class="nav-link" href="${ctx}/item/list">JSP</a></li>
+				<li class="nav-item"><a class="nav-link active" href="${ctx}/react/">React</a></li>
+				<li class="nav-item"><a class="nav-link" href="#">Vue</a></li>
+			</ul>
+			<div class="navbar-text d-flex ${empty request.remoteUser ? 'd-none' : ''}">
+				<span class="me-3">${fn:escapeXml(request.remoteUser)}</span>
+				<a class="nav-link active" href="${ctx}/logout">ログアウト</a>
+			</div>
+		</div>
+	</div>
+</nav>
+<div class="container" id="_root"></div>
+<script type="text/babel" src="list.jsx"></script>
+<footer class="footer fixed-bottom py-3 text-center bg-dark">
+	<div class="container">
+		<span class="text-muted">New Gradle Project Wizard (c) Pleiades MIT</span>
+	</div>
+</footer>
+</body>
+</html>

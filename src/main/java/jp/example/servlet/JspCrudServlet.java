@@ -37,7 +37,7 @@ import lombok.extern.slf4j.Slf4j;
  * @author New Gradle Project Wizard (c) Pleiades MIT
  */
 @Slf4j
-public class ItemCrudServlet {
+public class JspCrudServlet {
 
 	/** CRUD の R: Read 検索 Servlet */
 	@WebServlet("/item/list")
