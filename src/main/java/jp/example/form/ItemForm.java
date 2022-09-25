@@ -98,13 +98,20 @@ public class ItemForm {
 		return this;
 	}
 	
-	
 	/**
 	 * このフォームの id を条件にエンティティを取得します。
 	 * @return アイテムエンティティ
 	 */
 	public Item findEntityById() {
 		return dao().find(Item.class, id).orElseThrow(() -> new Error("指定された製品は、すでに削除されています。"));
+	}
+	
+	/**
+	 * このフォームの id を条件にエンティティを取得し、フォームに変換して返します。
+	 * @return アイテムフォーム
+	 */
+	public ItemForm findFormById() {
+		return new ItemForm(findEntityById());
 	}
 	
 	/**

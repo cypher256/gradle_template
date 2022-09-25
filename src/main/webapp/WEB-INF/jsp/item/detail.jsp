@@ -3,7 +3,6 @@
 <head>
 <meta name="viewport" content="width=device-width">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5/dist/css/bootstrap.min.css">
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5/dist/js/bootstrap.bundle.min.js"></script>
 <title>JSP の場合</title>
 </head>
 <body class="bg-dark bg-gradient text-light vh-100">
@@ -38,7 +37,7 @@
 		</div>
 		<div class="mb-3 form-check">
 			<input type="checkbox" name="faceAuth" id="faceAuth" class="form-check-input"
-				${form.faceAuth ? 'checked' : ''} onchange="validate()">
+				onchange="validate()" ${form.faceAuth ? 'checked' : ''}>
 			<label class="form-check-label" for="faceAuth">顔認証</label>
 		</div>
 		<div class="mb-5">
@@ -56,6 +55,7 @@
 				? '"登録" formaction="create"' 
 				: '"更新" formaction="update"'
 			}/>
+	</form>
 </div>
 <footer class="footer fixed-bottom py-3 text-center bg-dark">
 	<div class="container">
@@ -63,6 +63,7 @@
 	</div>
 </footer>
 </body>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 <script>
 <%-- axios で post (_csrf 有り、入力中のリアルタイム API チェック結果を文字列で取得) --%>

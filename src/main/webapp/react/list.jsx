@@ -1,6 +1,16 @@
 const { useState, useEffect } = React;
+const { HashRouter, Route, Link, useParams } = ReactRouterDOM; // v5 (v6 は script タグ未対応)
 
 const App = () => {
+	return (
+		<HashRouter>
+			<Route path="/" exact component={List} />
+			<Route path="/detail/:id" component={Detail} />
+		</HashRouter>
+	);
+};
+
+const List = () => {
    
 	const [formList, setFormList] = useState([]);
 	const [message, setMessage] = useState();
@@ -8,7 +18,7 @@ const App = () => {
 
 	/* 検索ボタンクリック → 検索 API 呼び出し */   
 	const handleSearch = async() => {
-		const res = (await axios.get('list?' + new URLSearchParams(new FormData(_form)))).data;
+		const res = (await axios.get('search?' + new URLSearchParams(new FormData(_form)))).data;
 		if (Array.isArray(res)) {
 			setFormList(res);
 			setMessage("");
@@ -37,8 +47,8 @@ const App = () => {
   	};
   	
 	return (
-<div>
- 	<div className="alert mb-0" id="_message" style={{minHeight:'4rem'}}>{message}</div>
+<HashRouter>
+ 	<div className="alert mb-0" style={{minHeight:'4rem'}}>{message}</div>
 	<form id="_form" method="get" className="d-sm-flex flex-wrap align-items-end" onSubmit={handleSubmit}>
 		<label className="form-label me-sm-3">製品名</label>
 		<div className="me-sm-4">
@@ -48,8 +58,8 @@ const App = () => {
 		<div className="me-sm-4">
 			<input className="form-control w-auto mb-3 mb-sm-0" type="date" name="releaseDate" onChange={handleChange}/>
 		</div>
-		<button type="submit" formAction="list" className="btn btn-secondary px-5">検索</button>
-		<button type="button" formAction="create" className="btn btn-secondary px-5 ms-auto">新規登録</button>
+		<button type="submit" className="btn btn-secondary px-5">検索</button>
+		<Link to="/detail/0" className="btn btn-secondary px-5 ms-auto">新規登録</Link>
 	</form>
 	<p className="text-end mt-4 me-1 mb-2">検索結果 {formList.length} 件</p>
 	<table className="table table-striped table-dark">
@@ -70,15 +80,15 @@ const App = () => {
 				<td className="text-center">{form.faceAuth ? '○' : ''}</td>
 				<td>{form.companyName}</td>
 				<td className="text-center">
-					<a href="update?id={form.id}" className="btn btn-secondary me-1">変更</a>
+					<Link to={'/detail/' + form.id} className="btn btn-secondary me-1">変更</Link>
 					<button type="button" onClick={() => handleDelete(form.id)} className="btn btn-warning">削除</button>
 				</td>
 			</tr>
 			))}
 		</tbody>
 	</table>
-</div>
+</HashRouter>
 	);
 }
 
-ReactDOM.createRoot(_root).render(<App />);
+ReactDOM.createRoot(_root).render(<App />); // v18 以降の推奨の書き方

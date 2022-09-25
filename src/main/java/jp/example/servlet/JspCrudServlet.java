@@ -76,8 +76,7 @@ public class JspCrudServlet {
 		
 		/** 一覧画面の変更ボタン → 変更画面の表示 */
 		protected void doGet(HttpServletRequest req, HttpServletResponse res) {
-			Item entity = new ItemForm(req).findEntityById();
-			req.setAttribute("form", new ItemForm(entity));
+			req.setAttribute("form", new ItemForm(req).findFormById());
 			forward("detail.jsp");
 		}
 		
