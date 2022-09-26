@@ -16,7 +16,9 @@ const Detail = () => {
 		if (id != 0) {
 			const res = (await axios.get('detail?id=' + id)).data;
 			if (typeof res === 'string') {
-				setMessage(res);
+				AppState.message = res;
+				history.goBack();
+				return;
 			} else {
 				setForm(res);
 				setCompanyId(res.companyId);
