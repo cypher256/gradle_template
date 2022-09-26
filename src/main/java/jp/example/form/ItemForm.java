@@ -4,7 +4,6 @@ import static jp.example.filter.AutoFlashFilter.*;
 import static jp.example.filter.AutoTransactionFilter.*;
 import static org.apache.commons.lang3.StringUtils.*;
 
-import java.util.Collections;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -49,7 +48,7 @@ public class ItemForm {
 	@SneakyThrows
 	public ItemForm(HttpServletRequest req) {
 		BeanUtils.populate(this, req.getParameterMap());
-		log.debug("リクエスト {}", Collections.list(req.getParameterNames()));
+		log.debug("リクエスト {}", this);
 		// hidden の id をセキュアにする場合はセッション保持や暗号化が必要
 	}
 	

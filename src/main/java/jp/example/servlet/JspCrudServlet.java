@@ -109,12 +109,12 @@ public class JspCrudServlet {
 				ItemForm condition = new ItemForm(req); // クライアントで件数以外は使用しないが json 返却例としてセット
 				long count = condition.count();
 			}
-			returns(new SearchResult()); // 戻り値: json 結果件数情報 (例外発生時は text エラーメッセージ文字列)
+			returns(new SearchResult()); // レスポンス: json 結果件数情報 (例外発生時は text エラーメッセージ文字列)
 		}
 		
 		/** 登録、変更画面の onkeyup、onchange 時の入力チェック API */
 		protected void doPost(HttpServletRequest req, HttpServletResponse res) {
-			new ItemForm(req).validate(req); // 戻り値: 正常時はなし、例外スロー時は text エラーメッセージ文字列
+			new ItemForm(req).validate(req); // レスポンス: 正常時はなし、例外スロー時は text エラーメッセージ文字列
 		}
 	}
 }

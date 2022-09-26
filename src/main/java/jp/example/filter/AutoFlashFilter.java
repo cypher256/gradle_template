@@ -74,16 +74,16 @@ public class AutoFlashFilter extends HttpFilter {
 	 *  ・引数が絶対パス (先頭がスラッシュ　　) の場合: /WEB-INF/jsp + 引数 (ルートが固定のため分かりやすい)
 	 *  ・引数が相対パス (先頭がスラッシュ以外) の場合: /WEB-INF/jsp + getServletPath + 引数 (より短い記述)
 	 * 
-	 *    getServletPath  引数の jspPath     RequestDispatcher#forward に渡されるパス
-	 *    "/item/abc"     /item/list.jsp    /WEB-INF/jsp/item/list.jsp
-	 *    "/item"         /item/list.jsp    /WEB-INF/jsp/item/list.jsp
-	 *    "/item/abc"     /index.jsp        /WEB-INF/jsp/index.jsp
-	 *    "/item/abc"     list.jsp          /WEB-INF/jsp/item/list.jsp
-	 *    "/item"         list.jsp          /WEB-INF/jsp/list.jsp
-	 *    "/"             list.jsp          /WEB-INF/jsp/list.jsp
-	 *    ""              list.jsp          /WEB-INF/jsp/list.jsp
-	 *    "/item/abc"     ../index.jsp      /WEB-INF/jsp/index.jsp
-	 *    "/item/abc"     ../other/a.jsp    /WEB-INF/jsp/other/a.jsp
+	 *    getRequestURI       引数の jspPath     RequestDispatcher#forward に渡されるパス
+	 *    "/{ctx}/item/abc"   /item/list.jsp    /WEB-INF/jsp/item/list.jsp
+	 *    "/{ctx}/item"       /item/list.jsp    /WEB-INF/jsp/item/list.jsp
+	 *    "/{ctx}/item/abc"   /index.jsp        /WEB-INF/jsp/index.jsp
+	 *    "/{ctx}/item/abc"   list.jsp          /WEB-INF/jsp/item/list.jsp
+	 *    "/{ctx}/item"       list.jsp          /WEB-INF/jsp/list.jsp
+	 *    "/{ctx}/"           list.jsp          /WEB-INF/jsp/list.jsp
+	 *    "/{ctx}"            list.jsp          /WEB-INF/jsp/list.jsp
+	 *    "/{ctx}/item/abc"   ../index.jsp      /WEB-INF/jsp/index.jsp
+	 *    "/{ctx}/item/abc"   ../other/a.jsp    /WEB-INF/jsp/other/a.jsp
 	 * 
 	 * 2. AutoCsrfFilter を使用している場合は、meta と form input hidden に name="_csrf" として CSRF トークンが埋め込み。
 	 * 3. フォワード先パスをセッション属性 APP_ERROR_FORWARD_PATH に保存 (アプリエラー時の自動フォワード先として使用)。
@@ -95,9 +95,9 @@ public class AutoFlashFilter extends HttpFilter {
 	public static void forward(String jspPath) {
 		RequestContext context = requestContextThreadLocal.get();
 		HttpServletRequest req = context.req;
-		String path = jspPath.startsWith("/") ? jspPath : req.getServletPath().replaceFirst("[^/]*$", "") + jspPath;
-		path = ("/WEB-INF/jsp/" + path).replace("//", "/");
-		log.debug("フォワード {} (servletPath[{}] 引数[{}])", path, req.getServletPath(), jspPath);
+		String uriDir = req.getRequestURI().replaceFirst("^/[^/]+(.*?)[^/]*$", "$1");
+		String path = "/WEB-INF/jsp" + (jspPath.startsWith("/") ? jspPath : uriDir + jspPath);
+		log.debug("フォワード {} (getRequestURI[{}] uriDir[{}] jspPath[{}])", path, req.getRequestURI(), uriDir, jspPath);
 		req.getRequestDispatcher(path).forward(req, context.res);
 		req.getSession().setAttribute(APP_ERROR_FORWARD_PATH, path);
 		throw SUCCESS_RESPONSE_COMMITTED;

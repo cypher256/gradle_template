@@ -1,5 +1,10 @@
 const { useState, useEffect } = React;
-const { HashRouter, Route, Link, useParams } = ReactRouterDOM; // v5 (v6 は script タグ未対応)
+const { HashRouter, Route, Link } = ReactRouterDOM; // v5 (v6 は script タグ未対応)
+
+const AppState = {
+	message: null,
+	searchForm: {name:'', releaseDate:''},
+};
 
 const App = () => {
 	return (
@@ -12,6 +17,7 @@ const App = () => {
 
 const List = () => {
    
+	const form = AppState.searchForm;
 	const [formList, setFormList] = useState([]);
 	const [message, setMessage] = useState();
 	useEffect(() => {handleSearch()}, []);
@@ -19,12 +25,9 @@ const List = () => {
 	/* 検索ボタンクリック → 検索 API 呼び出し */   
 	const handleSearch = async() => {
 		const res = (await axios.get('search?' + new URLSearchParams(new FormData(_form)))).data;
-		if (Array.isArray(res)) {
-			setFormList(res);
-			setMessage("");
-		} else {
-			setMessage(res);
-		}
+		typeof res === 'string' ? AppState.message = res : setFormList(res);
+		setMessage(AppState.message);
+		AppState.message = null;
   	};
   	
   	/* フォーム Enter → 検索 API 呼び出し */
@@ -34,15 +37,15 @@ const List = () => {
   	};
 
 	/* 製品名・発売日変更イベント → 件数取得 API 呼び出し */   
-	const handleChange = async() => {
+	const handleChange = async(target) => {
+		form[target.name] = target.value;
 		const res = (await axios.get('count?' + new URLSearchParams(new FormData(_form)))).data;
 		setMessage(res);
   	};
 	
 	/* 削除ボタンクリック → 削除 API 呼び出し (削除は状態変更操作のため post、axios により CSRF ヘッダが自動追加) */
 	const handleDelete = async(id) => {
-		const res = (await axios.post('delete?id=' + id)).data;
-		setMessage(res);
+		AppState.message = (await axios.post('delete?id=' + id)).data || 'ℹ️ 削除しました。';
 		handleSearch();
   	};
   	
@@ -52,11 +55,13 @@ const List = () => {
 	<form id="_form" method="get" className="d-sm-flex flex-wrap align-items-end" onSubmit={handleSubmit}>
 		<label className="form-label me-sm-3">製品名</label>
 		<div className="me-sm-4">
-			<input className="form-control" type="search" name="name" autoFocus onChange={handleChange}/>
+			<input className="form-control" type="search" name="name" autoFocus 
+				onChange={e => handleChange(e.target)} defaultValue={form.name}/>
 		</div>
 		<label className="form-label me-sm-3">発売日</label>
 		<div className="me-sm-4">
-			<input className="form-control w-auto mb-3 mb-sm-0" type="date" name="releaseDate" onChange={handleChange}/>
+			<input className="form-control w-auto mb-3 mb-sm-0" type="date" name="releaseDate" 
+				onChange={e => handleChange(e.target)} defaultValue={form.releaseDate}/>
 		</div>
 		<button type="submit" className="btn btn-secondary px-5">検索</button>
 		<Link to="/detail/0" className="btn btn-secondary px-5 ms-auto">新規登録</Link>

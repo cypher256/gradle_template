@@ -1,5 +1,5 @@
 const { useState, useEffect } = React;
-const { HashRouter, Route, Link, useParams } = ReactRouterDOM; // v5 (v6 は script タグ未対応)
+const { HashRouter, Route, Link, useParams, useHistory } = ReactRouterDOM; // v5 (v6 は script タグ未対応)
 
 const Detail = () => {
 	
@@ -8,26 +8,36 @@ const Detail = () => {
 	const [companySelect, setCompanySelect] = useState([]);
 	const [message, setMessage] = useState();
 	const id = useParams().id;
-	useEffect(() => {handleGet()}, []);
+	const history = useHistory();
+	useEffect(() => {handleInit()}, []);
 
 	/* 初期表示 → 取得 API 呼び出し */   
-	const handleGet = async() => {
-		const res = (await axios.get('detail?id=' + id)).data;
-		if (res.form) {
-			setForm(res.form);
-			setCompanyId(res.form.companyId);
-			setCompanySelect(res.companySelect);
-			setMessage("");
-		} else {
-			setMessage(res);
+	const handleInit = async() => {
+		if (id != 0) {
+			const res = (await axios.get('detail?id=' + id)).data;
+			if (typeof res === 'string') {
+				setMessage(res);
+			} else {
+				setForm(res);
+				setCompanyId(res.companyId);
+			}
 		}
+		setCompanySelect((await axios.get('companySelect')).data);
   	};
   	
   	/* フォーム Enter → 登録・更新 API 呼び出し */
 	const handleSubmit = async(e) => {
 		e.preventDefault(); // デフォルトサブミット抑止
 		_submitButton.disabled = true;
-		// TODO 登録 or 更新
+		const id0 = id == 0;
+		const error = (await axios.post(id0 ? 'insert' : 'update', new URLSearchParams(new FormData(_form)))).data;
+		if (error) {
+			setMessage(error);
+			_submitButton.disabled = false;
+			return;
+		}
+		AppState.message = id0 ? 'ℹ️ 登録しました。' : 'ℹ️ 更新しました。';
+		history.goBack();
   	};
 
 	/* 変更イベント → 入力チェック API 呼び出し */   
@@ -43,7 +53,7 @@ const Detail = () => {
 		<input type="hidden" name="id" defaultValue={form.id}/>
 		<div className="mb-3">
 			<label className="form-label">製品名</label> <span className="badge bg-danger">必須</span>
-			<input className="form-control" type="text" name="name" defaultValue={form.name} size="40"
+			<input className="form-control" type="text" name="name" id="_name" defaultValue={form.name} size="40"
 				onChange={handleChange} required autoFocus/>
 		</div>
 		<div className="mb-3">
@@ -67,7 +77,7 @@ const Detail = () => {
 		</div>
 		<Link to="/" className="btn btn-secondary px-5 me-1">戻る</Link>
 		<input id="_submitButton" type="submit" className="btn btn-warning px-5" value=
-			{form.id == 0 ? '登録' : '更新'}/>
+			{id == 0 ? '登録' : '更新'}/>
 	</form>
 </HashRouter>
 	);
