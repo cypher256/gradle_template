@@ -42,8 +42,8 @@ const Detail = () => {
 
 	/* 変更イベント → 入力チェック API 呼び出し */   
 	const handleChange = async() => {
-		const res = (await axios.post('validate', new URLSearchParams(new FormData(_form)))).data;
-		setMessage(res);
+		const error = (await axios.post('validate', new URLSearchParams(new FormData(_form)))).data;
+		setMessage(error);
   	};
 
 	return (
