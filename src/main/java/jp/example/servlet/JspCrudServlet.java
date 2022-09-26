@@ -15,7 +15,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Servlet JSP CRUD Servlet 定義クラスです。
+ * JSP CRUD Servlet 定義クラスです。
  * <pre>
  * 検索一覧、登録、修正、削除のシンプルな Servlet パターンサンプル。
  * 以下のフィルタークラスの static メソッドを static インポート (Ctrl/Cmd + Shift + m) して使用できます。

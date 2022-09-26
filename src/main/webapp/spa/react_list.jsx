@@ -69,7 +69,7 @@ const List = () => {
 	<p className="text-end mt-4 me-1 mb-2">検索結果 {formList.length} 件</p>
 	<table className="table table-striped table-dark">
 		<thead>
-			<tr className={formList.length == 0 ? 'd-none' : ''}>
+			<tr className={formList.length == 0 && 'd-none'}>
 				<th>製品名</th>
 				<th>発売日</th>
 				<th className="text-center">顔認証</th>
@@ -82,7 +82,7 @@ const List = () => {
 			<tr key={form.id}>
 				<td>{form.name}</td>
 				<td>{form.releaseDate}</td>
-				<td className="text-center">{form.faceAuth ? '○' : ''}</td>
+				<td className="text-center">{form.faceAuth && '○'}</td>
 				<td>{form.companyName}</td>
 				<td className="text-center">
 					<Link to={'/detail/' + form.id} className="btn btn-secondary me-1">変更</Link>
