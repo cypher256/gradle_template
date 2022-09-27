@@ -19,8 +19,9 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 /** 
- * アイテムフォームモデルです。
+ * JSP や SPA などの違いに依存しないアイテムフォームモデルです。
  * <pre>
+ * AutoTransactionFilter の static メソッド dao を static インポート (Ctrl/Cmd + Shift + m) して使用できます。
  * アプリでスローした例外は AutoFlashFilter で下記の処理が行われ、JSP では ${MESSAGE} で例外メッセージを取得できます。
  * 
  *   IllegalStateException の場合: 入力画面にフォワード
@@ -53,30 +54,10 @@ public class ItemForm {
 	}
 	
 	/**
-	 * エンティティからフォームを構築します。
-	 * @param sourceEntity コピー元となるエンティティ
-	 */
-	@SneakyThrows
-	public ItemForm(Item sourceEntity) {
-		BeanUtils.copyProperties(this, sourceEntity);
-	}
-	
-	/**
-	 * このフォームの値を指定したエンティティに上書きコピーします。
-	 * @param targetEntity コピー先となるエンティティ
-	 * @return 引数のエンティティ
-	 */
-	@SneakyThrows
-	public Item copyTo(Item targetEntity) {
-		BeanUtils.copyProperties(targetEntity, this);
-		return targetEntity;
-	}
-	
-	/**
-	 * 入力値を検証します。 <br>
-	 * 登録、変更画面共通の入力チェックを行い、不正な場合はアプリエラーを表す IllegalStateException をスローします。 
+	 * 登録、変更画面共通の入力値を検証します。 
 	 * @param req HTTP サーブレットリクエスト
 	 * @return このインスタンス
+	 * @throws IllegalStateException 入力チェックエラーが発生した場合
 	 */
 	public ItemForm validate(HttpServletRequest req) {
 		
@@ -98,19 +79,56 @@ public class ItemForm {
 	}
 	
 	/**
+	 * このフォームのデータを DB に登録します。
+	 */
+	public void insert() {
+		dao().insert(copyTo(new Item()));
+	}
+	
+	/**
+	 * このフォームのデータを DB から取得して更新します。
+	 * @throws Error DB に存在しない場合
+	 */
+	public void update() {
+		dao().update(copyTo(findEntityById()));
+	}
+	
+	/**
+	 * このフォームの id を持つデータを DB から削除します。
+	 */
+	public void delete() {
+		dao().delete(copyTo(new Item()));
+	}
+	
+	/**
+	 * このフォームの値を指定したエンティティに上書きコピーします。
+	 * @param targetEntity コピー先となるエンティティ
+	 * @return 引数のエンティティ
+	 */
+	@SneakyThrows
+	private Item copyTo(Item targetEntity) {
+		BeanUtils.copyProperties(targetEntity, this);
+		return targetEntity;
+	}
+	
+	/**
 	 * このフォームの id を条件にエンティティを取得します。
 	 * @return アイテムエンティティ
+	 * @throws Error DB に存在しない場合
 	 */
-	public Item findEntityById() {
+	private Item findEntityById() {
 		return dao().find(Item.class, id).orElseThrow(() -> new Error("指定された製品は、すでに削除されています。"));
 	}
 	
 	/**
-	 * このフォームの id を条件にエンティティを取得し、フォームに変換して返します。
-	 * @return アイテムフォーム
+	 * このフォームの id を条件にエンティティを取得し、このフォームにコピーします。
+	 * @return このフォーム
+	 * @throws Error DB に存在しない場合
 	 */
+	@SneakyThrows
 	public ItemForm findFormById() {
-		return new ItemForm(findEntityById());
+		BeanUtils.copyProperties(this, findEntityById());
+		return this;
 	}
 	
 	/**
@@ -156,7 +174,7 @@ public class ItemForm {
 	}
 	
 	/**
-	 * 会社 select タグ選択肢を取得します (JSP から呼び出し)。
+	 * 会社 select タグ選択肢を取得します (JSP の場合は EL から呼び出し)。
 	 * @return 会社 select タグ選択肢
 	 */
 	public List<Company> getCompanySelectOptions() {

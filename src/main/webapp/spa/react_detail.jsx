@@ -16,7 +16,7 @@ const Detail = () => {
 	// 初期表示 → 取得 API 呼び出し   
 	const handleInit = async() => {
 		if (!isInsert) {
-			const resData = (await axios.get('detail?id=' + id)).data;
+			const resData = (await axios.get('select?id=' + id)).data;
 			if (typeof resData === 'string') {
 				AppState.message = resData; // エラーメッセージ String
 				history.push('/');
@@ -26,7 +26,7 @@ const Detail = () => {
 				setCompanyId(resData.companyId);
 			}
 		}
-		setCompanySelect((await axios.get('companySelect')).data);
+		setCompanySelect((await axios.get('selectCompany')).data);
   	};
   	
   	// フォーム Enter → 登録・更新 API 呼び出し

@@ -1,7 +1,6 @@
 package jp.example.servlet;
 
 import static jp.example.filter.AutoFlashFilter.*;
-import static jp.example.filter.AutoTransactionFilter.*;
 
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -9,29 +8,22 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import jodd.servlet.DispatcherUtil;
-import jp.example.entity.Item;
 import jp.example.form.ItemForm;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * JSP CRUD Servlet 定義クラスです。
+ * JSP CRUD コントローラー Servlet です。
  * <pre>
- * 検索一覧、登録、修正、削除のシンプルな Servlet パターンサンプル。
- * 以下のフィルタークラスの static メソッドを static インポート (Ctrl/Cmd + Shift + m) して使用できます。
+ * 検索一覧、登録、修正、削除の Servlet パターンサンプル。
+ * 以下の AutoFlashFilter クラスの static メソッドを static インポート (Ctrl/Cmd + Shift + m) して使用できます。
  * forward、redirect、returns は条件分岐で呼び分ける場合でも、Servlet 内の処理はそこで終了するため、return 不要です。
  * 
- * AutoFlashFilter
- *  
  *   forward(jsp)   フォワードのショートカット (入力エラー時の戻り先として保存、CSRF 兼同期トークン自動埋め込み)
  *   redirect(url)  リダイレクトのショートカット (自動フラッシュにより、リダイレクト先でリクエスト属性がそのまま使用可能)
  *   returns(obj)   REST API などの戻り値として Java オブジェクトを JSON 文字列などに変換してクライアントに返却
  *   valid(〜)      条件とエラーメッセージを指定して、pplicationException をスローするためのショートカットメソッド
  *   $("name")      JSP EL のようにリクエスト、セッションなどのスコープから、最初に見つかった属性値を取得 (キャスト不要)
- * 
- * AutoTransactionFilter
- *  
- *   dao()          汎用 DAO トランザクションマネージャー取得 (正常時は自動コミット、ロールバックしたい場合は例外スロー)
  *   
  * </pre>
  * @author New Gradle Project Wizard (c) Pleiades MIT
@@ -64,8 +56,7 @@ public class JspCrudServlet {
 		
 		/** 登録画面の登録ボタン → 一覧画面へリダイレクト (PRG パターン: リロードによる多重送信抑止) */
 		protected void doPost(HttpServletRequest req, HttpServletResponse res) {
-			ItemForm form = new ItemForm(req).validate(req);
-			dao().insert(form.copyTo(new Item()));
+			new ItemForm(req).validate(req).insert();
 			redirect($("lastQueryUrl"), "ℹ️ 登録しました。");
 		}
 	}
@@ -82,8 +73,7 @@ public class JspCrudServlet {
 		
 		/** 変更画面の更新ボタン → 一覧画面へリダイレクト (PRG パターン: リロードによる多重送信抑止) */
 		protected void doPost(HttpServletRequest req, HttpServletResponse res) {
-			ItemForm form = new ItemForm(req).validate(req);
-			dao().update(form.copyTo(form.findEntityById()));
+			new ItemForm(req).validate(req).update();
 			redirect($("lastQueryUrl"), "ℹ️ 更新しました。");
 		}
 	}
@@ -94,7 +84,7 @@ public class JspCrudServlet {
 		
 		/** 一覧画面の削除ボタン → 一覧画面へリダイレクト (PRG パターン: リロードによる多重送信抑止) */
 		protected void doPost(HttpServletRequest req, HttpServletResponse res) {
-			dao().delete(new ItemForm(req).copyTo(new Item()));
+			new ItemForm(req).delete();
 			redirect($("lastQueryUrl"), "️ℹ️ 削除しました。");
 		}
 	}
