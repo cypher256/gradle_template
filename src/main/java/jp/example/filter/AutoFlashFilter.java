@@ -31,13 +31,17 @@ import lombok.extern.slf4j.Slf4j;
  * また、例外がスローされた場合は、このフィルターで例外の種類によりフォワードまたはリダイレクトされます。
  * 以下に、Servlet で例外をスローした場合の動作を示します。
  * 
- * 1. AJAX リクエストの場合、例外メッセージ文字列をレスポンスに書き込んで終了。
+ * 1. AJAX リクエストの場合、以下の HTTP ステータスをセットし、例外メッセージ文字列をレスポンスに書き込んで終了。
+ *
+ *    (1) IllegalStateException とそのサブクラス: アプリエラー (入力エラーなど) → HTTP 200 (OK)
+ *    (2) その他の例外: システムエラー → HTTP 205 (Reset Content)
+ * 
  * 2. 例外メッセージを JSP 表示用にリクエスト属性 MESSAGE にセット (リダイレクトの場合は自動フラッシュ)。
  * 3. 例外の種類によりフォワードまたはリダイレクト。
  * 
- *    (1) アプリエラー (入力エラーなど): IllegalStateException とそのサブクラス → フォワード
- *    (2) アプリのシステムエラー (あるべきデータが無いなど): java.lang.Error (サブクラス除く) → リダイレクト
- *    (3) 致命的なシステムエラー (SQL 構文エラーなど): 上記以外 → スタックトレースログを出力してリダイレクト
+ *    (1) IllegalStateException とそのサブクラス: アプリエラー (入力エラーなど) → フォワード
+ *    (2) java.lang.Error (サブクラス除く): アプリのシステムエラー (あるべきデータが無いなど) → リダイレクト
+ *    (3) その他の例外: 致命的なシステムエラー (SQL 構文エラーなど) → スタックトレースログを出力してリダイレクト
  * 
  *    フォワード先: セッション属性 APP_ERROR_FORWARD_PATH (デフォルトは直近のフォワード先、通常は表示元)
  *    リダイレクト先: セッション属性 SYS_ERROR_REDIRECT_URL (デフォルトは直近のリダイレクト先)
@@ -74,7 +78,7 @@ public class AutoFlashFilter extends HttpFilter {
 	 *  ・引数が絶対パス (先頭がスラッシュ　　) の場合: /WEB-INF/jsp + 引数 (ルートが固定のため分かりやすい)
 	 *  ・引数が相対パス (先頭がスラッシュ以外) の場合: /WEB-INF/jsp + getServletPath + 引数 (より短い記述)
 	 * 
-	 *    getRequestURI       引数の jspPath     RequestDispatcher#forward に渡されるパス
+	 *    getRequestURI       引数の jspPath    RequestDispatcher#forward に渡されるパス
 	 *    "/{ctx}/item/abc"   /item/list.jsp    /WEB-INF/jsp/item/list.jsp
 	 *    "/{ctx}/item"       /item/list.jsp    /WEB-INF/jsp/item/list.jsp
 	 *    "/{ctx}/item/abc"   /index.jsp        /WEB-INF/jsp/index.jsp
@@ -283,6 +287,8 @@ public class AutoFlashFilter extends HttpFilter {
 		
 		// AJAX リクエスト時のエラー (アプリエラー、システムエラー両方) → メッセージ文字列を返す
 		if (isAjax(req)) {
+			//if (!isAppErrorFoward) res.setStatus(HttpServletResponse.SC_RESET_CONTENT); // システムエラー判別用
+			// TODO 200 以外だと下記が取れない...
 			res.getWriter().print(message);
 			return;
 		}

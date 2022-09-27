@@ -14,7 +14,9 @@ import jp.example.form.ItemForm;
 /**
  * SPA CRUD Servlet 定義クラスです。
  * <pre>
- * JSP 版と同じ機能を React、Vue 向けの API として実装した Servlet です。
+ * JSP 版と同じ機能を SPA (React や Vue などのシングルページアプリケーション) 向けの API として実装した Servlet です。
+ * レスポンスに書き込み無し (returns していない) かつ例外無しの場合は、レスポンス body は空で HTTP 200 になります。
+ * Servlet でスローされた例外は AutoFlashFilter で例外メッセージがレスポンスに書き込まれ HTTP 20x になります。
  * </pre>
  * @author New Gradle Project Wizard (c) Pleiades MIT
  */
@@ -37,7 +39,7 @@ public class SpaCrudServlet {
 	@WebServlet("/spa/delete")
 	public static class DeleteServlet extends HttpServlet {
 		protected void doPost(HttpServletRequest req, HttpServletResponse res) {
-			dao().delete(new ItemForm(req).toEntity(new Item())); // レスポンス: 正常時なし、異常時エラー String
+			dao().delete(new ItemForm(req).toEntity(new Item()));
 		}
 	}
 	
@@ -58,7 +60,7 @@ public class SpaCrudServlet {
 	@WebServlet("/spa/validate")
 	public static class ValidateServlet extends HttpServlet {
 		protected void doPost(HttpServletRequest req, HttpServletResponse res) {
-			new ItemForm(req).validate(req); // レスポンス: 正常時なし、異常時エラー String
+			new ItemForm(req).validate(req);
 		}
 	}
 	
@@ -66,7 +68,7 @@ public class SpaCrudServlet {
 	public static class InsertServlet extends HttpServlet {
 		protected void doPost(HttpServletRequest req, HttpServletResponse res) {
 			ItemForm form = new ItemForm(req).validate(req);
-			dao().insert(form.toEntity(new Item())); // レスポンス: 正常時なし、異常時エラー String
+			dao().insert(form.toEntity(new Item()));
 		}
 	}
 	
@@ -74,7 +76,7 @@ public class SpaCrudServlet {
 	public static class UpdateServlet extends HttpServlet {
 		protected void doPost(HttpServletRequest req, HttpServletResponse res) {
 			ItemForm form = new ItemForm(req).validate(req);
-			dao().update(form.toEntity(form.findEntityById())); // レスポンス: 正常時なし、異常時エラー String
+			dao().update(form.toEntity(form.findEntityById()));
 		}
 	}
 }

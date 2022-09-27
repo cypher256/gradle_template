@@ -17,7 +17,7 @@ const Detail = () => {
 			const res = (await axios.get('detail?id=' + id)).data;
 			if (typeof res === 'string') {
 				AppState.message = res;
-				history.goBack();
+				history.push('/');
 				return;
 			} else {
 				setForm(res);
@@ -39,7 +39,7 @@ const Detail = () => {
 			return;
 		}
 		AppState.message = id0 ? 'ℹ️ 登録しました。' : 'ℹ️ 更新しました。';
-		history.goBack();
+		history.push('/');
   	};
 
 	/* 変更イベント → 入力チェック API 呼び出し */   
