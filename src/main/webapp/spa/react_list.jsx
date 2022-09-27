@@ -47,8 +47,8 @@ const List = () => {
 	// 製品名・発売日変更イベント → 件数取得 API 呼び出し   
 	const handleChange = async(target) => {
 		form[target.name] = target.value;
-		const res = (await axios.get('count?' + new URLSearchParams(new FormData(_form)))).data;
-		setMessage(res);
+		const infoMessage = (await axios.get('count?' + new URLSearchParams(new FormData(_form)))).data;
+		setMessage(infoMessage);
   	};
 	
 	// 削除ボタンクリック → 削除 API 呼び出し (削除は状態変更操作のため post、axios により CSRF ヘッダが自動追加)
@@ -86,7 +86,7 @@ const List = () => {
 			</tr>
 		</thead>
 		<tbody>
-			{formList.map(form => (
+	{formList.map(form => (
 			<tr key={form.id}>
 				<td>{form.name}</td>
 				<td>{form.releaseDate}</td>
@@ -97,7 +97,7 @@ const List = () => {
 					<button type="button" onClick={() => handleDelete(form.id)} className="btn btn-warning">削除</button>
 				</td>
 			</tr>
-			))}
+	))}
 		</tbody>
 	</table>
 </HashRouter>

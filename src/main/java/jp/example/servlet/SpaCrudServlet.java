@@ -39,7 +39,7 @@ public class SpaCrudServlet {
 	@WebServlet("/spa/delete")
 	public static class DeleteServlet extends HttpServlet {
 		protected void doPost(HttpServletRequest req, HttpServletResponse res) {
-			dao().delete(new ItemForm(req).toEntity(new Item()));
+			dao().delete(new ItemForm(req).copyTo(new Item()));
 		}
 	}
 	
@@ -68,7 +68,7 @@ public class SpaCrudServlet {
 	public static class InsertServlet extends HttpServlet {
 		protected void doPost(HttpServletRequest req, HttpServletResponse res) {
 			ItemForm form = new ItemForm(req).validate(req);
-			dao().insert(form.toEntity(new Item()));
+			dao().insert(form.copyTo(new Item()));
 		}
 	}
 	
@@ -76,7 +76,7 @@ public class SpaCrudServlet {
 	public static class UpdateServlet extends HttpServlet {
 		protected void doPost(HttpServletRequest req, HttpServletResponse res) {
 			ItemForm form = new ItemForm(req).validate(req);
-			dao().update(form.toEntity(form.findEntityById()));
+			dao().update(form.copyTo(form.findEntityById()));
 		}
 	}
 }

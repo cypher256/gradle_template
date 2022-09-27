@@ -67,7 +67,7 @@ public class ItemForm {
 	 * @return 引数のエンティティ
 	 */
 	@SneakyThrows
-	public Item toEntity(Item targetEntity) {
+	public Item copyTo(Item targetEntity) {
 		BeanUtils.copyProperties(targetEntity, this);
 		return targetEntity;
 	}
