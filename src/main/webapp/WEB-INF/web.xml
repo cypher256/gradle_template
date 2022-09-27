@@ -27,7 +27,7 @@
 	Tomcat 公式フィルター: リバースプロキシのヘッダ属性を引き継いて isSecure などで正しく判定できるようにする
 	https://tomcat.apache.org/tomcat-9.0-doc/config/filter.html#HTTP_Header_Security_Filter
 	-->
-<!-- 	<filter>
+	<filter>
 		<filter-name>RemoteIpFilter</filter-name>
 		<filter-class>org.apache.catalina.filters.RemoteIpFilter</filter-class>
 		<init-param>
@@ -42,48 +42,48 @@
 	<filter-mapping>
 		<filter-name>RemoteIpFilter</filter-name>
 		<url-pattern>/*</url-pattern>
-	</filter-mapping> -->
+	</filter-mapping>
    
 	<!--
 	Tomcat 公式フィルター: レスポンスセキュリティヘッダーのセット
 	https://tomcat.apache.org/tomcat-9.0-doc/config/filter.html#HTTP_Header_Security_Filter
 	-->
-<!-- 	<filter>
+	<filter>
 		<filter-name>SecurityFilter</filter-name>
 		<filter-class>org.apache.catalina.filters.HttpHeaderSecurityFilter</filter-class>
 	</filter>
 	<filter-mapping>
 		<filter-name>SecurityFilter</filter-name>
 		<url-pattern>/*</url-pattern>
-	</filter-mapping> -->
+	</filter-mapping>
 	
 	<!-- 
 	Tomcat 公式フィルター: CORS フィルター
 	https://tomcat.apache.org/tomcat-9.0-doc/config/filter.html#CORS_Filter
 	-->
-<!-- 	<filter>
+	<filter>
 		<filter-name>CorsFilter</filter-name>
 		<filter-class>org.apache.catalina.filters.CorsFilter</filter-class>
 	</filter>
 	<filter-mapping>
 		<filter-name>CorsFilter</filter-name>
 		<url-pattern>/*</url-pattern>
-	</filter-mapping> -->
+	</filter-mapping>
 
 	<!--
 	自動 CSRF フィルター
 	ログインフォーム post もチェックするため ShiroFilter より先
 	-->
-<!-- 	<filter>
+	<filter>
 		<filter-name>AutoCsrfFilter</filter-name>
 		<filter-class>jp.example.filter.AutoCsrfFilter</filter-class>
 	</filter>
 	<filter-mapping>
 		<filter-name>AutoCsrfFilter</filter-name>
 		<url-pattern>/*</url-pattern>
-		<dispatcher>REQUEST</dispatcher>html リクエスト時のトークン埋め込み
-		<dispatcher>FORWARD</dispatcher> jsp フォワード時のトークン埋め込み
-	</filter-mapping> -->
+		<dispatcher>REQUEST</dispatcher><!-- html リクエスト時のトークン埋め込み -->
+		<dispatcher>FORWARD</dispatcher><!--  jsp フォワード時のトークン埋め込み -->
+	</filter-mapping>
 
 	<!-- 
 	Apache Shiro ログイン認証フィルター (設定は /WEB-INF/shiro.ini)
@@ -91,7 +91,7 @@
 	https://shiro.apache.org/webapp-tutorial.html
 	https://shiro.apache.org/web.html
 	-->
-<!-- 	<filter>
+	<filter>
 		<filter-name>ShiroFilter</filter-name>
 		<filter-class>org.apache.shiro.web.servlet.ShiroFilter</filter-class>
 	</filter>
@@ -106,7 +106,7 @@
 	</filter-mapping>
 	<listener>
 		<listener-class>org.apache.shiro.web.env.EnvironmentLoaderListener</listener-class>
-	</listener> -->
+	</listener>
 
 	<!--
 	自動トランザクションフィルター
