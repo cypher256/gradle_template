@@ -1,6 +1,7 @@
 const { useState, useEffect } = React;
-const { HashRouter, Route, Link, useParams, useHistory } = ReactRouterDOM; // v5 (v6 は script タグ未対応)
+const { HashRouter, Route, Link, useParams, useHistory } = ReactRouterDOM;
 
+/* 詳細コンポーネント */
 const Detail = () => {
 	
 	const [form, setForm] = useState({});
@@ -11,12 +12,12 @@ const Detail = () => {
 	const history = useHistory();
 	useEffect(() => {handleInit()}, []);
 
-	/* 初期表示 → 取得 API 呼び出し */   
+	// 初期表示 → 取得 API 呼び出し   
 	const handleInit = async() => {
 		if (id != 0) {
 			const resData = (await axios.get('detail?id=' + id)).data;
 			if (typeof resData === 'string') {
-				AppState.message = resData;
+				AppState.message = resData; // 取得エラー時はエラーメッセージ
 				history.push('/');
 				return;
 			} else {
@@ -27,7 +28,7 @@ const Detail = () => {
 		setCompanySelect((await axios.get('companySelect')).data);
   	};
   	
-  	/* フォーム Enter → 登録・更新 API 呼び出し */
+  	// フォーム Enter → 登録・更新 API 呼び出し
 	const handleSubmit = async(e) => {
 		e.preventDefault(); // デフォルトサブミット抑止
 		_submitButton.disabled = true;
@@ -36,10 +37,10 @@ const Detail = () => {
 		const error = res.data;
 		if (error) {
 			if (res.status == 200) {
-				setMessage(error); // アプリエラー
+				setMessage(error); // 復旧可能なアプリエラー (入力エラー)
 				_submitButton.disabled = false;
 			} else {
-				AppState.message = error; // システムエラー
+				AppState.message = error; // 復旧不可のシステムエラー (削除済みなど)
 				history.push('/');
 			}
 		} else {
@@ -49,10 +50,10 @@ const Detail = () => {
 		
   	};
 
-	/* 変更イベント → 入力チェック API 呼び出し */   
+	// 変更イベント → 入力チェック API 呼び出し   
 	const handleChange = async() => {
 		const error = (await axios.post('validate', new URLSearchParams(new FormData(_form)))).data;
-		setMessage(error);
+		setMessage(error); // エラーが無い場合は空
   	};
 
 	return (
@@ -85,8 +86,7 @@ const Detail = () => {
 			</select>
 		</div>
 		<Link to="/" className="btn btn-secondary px-5 me-1">戻る</Link>
-		<input id="_submitButton" type="submit" className="btn btn-warning px-5" value=
-			{id == 0 ? '登録' : '更新'}/>
+		<input id="_submitButton" type="submit" className="btn btn-warning px-5" value={id == 0 ? '登録' : '更新'}/>
 	</form>
 </HashRouter>
 	);

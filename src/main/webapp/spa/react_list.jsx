@@ -6,7 +6,12 @@ const AppState = {
 	searchForm: {name:'', releaseDate:''},
 };
 
+/* ルーター定義 */
 const App = () => {
+	
+	// React Router は以下の 2 種類がある
+	// * BrowserRouter : URL が切り替わるため、サーバ側で URL マッピングが必要 (同じページを返すようにする)
+	// * HashRouter    : URL ハッシュで切り替えるため、サーバ側で URL マッピング不要 (だが引数で state を渡せない)
 	return (
 		<HashRouter>
 			<Route path="/" exact component={List} />
@@ -15,6 +20,9 @@ const App = () => {
 	);
 };
 
+ReactDOM.createRoot(_root).render(<App />); // React 18 以降は createRoot 推奨
+
+/* 一覧コンポーネント */
 const List = () => {
    
 	const form = AppState.searchForm;
@@ -22,7 +30,7 @@ const List = () => {
 	const [message, setMessage] = useState();
 	useEffect(() => {handleSearch()}, []);
 
-	/* 検索ボタンクリック → 検索 API 呼び出し */   
+	// 検索ボタンクリック → 検索 API 呼び出し   
 	const handleSearch = async() => {
 		const res = (await axios.get('search?' + new URLSearchParams(new FormData(_form)))).data;
 		typeof res === 'string' ? AppState.message = res : setFormList(res);
@@ -30,20 +38,20 @@ const List = () => {
 		AppState.message = null;
   	};
   	
-  	/* フォーム Enter → 検索 API 呼び出し */
+  	// フォーム Enter → 検索 API 呼び出し
 	const handleSubmit = async(e) => {
 		e.preventDefault(); // デフォルトサブミット抑止
 		handleSearch();
   	};
 
-	/* 製品名・発売日変更イベント → 件数取得 API 呼び出し */   
+	// 製品名・発売日変更イベント → 件数取得 API 呼び出し   
 	const handleChange = async(target) => {
 		form[target.name] = target.value;
 		const res = (await axios.get('count?' + new URLSearchParams(new FormData(_form)))).data;
 		setMessage(res);
   	};
 	
-	/* 削除ボタンクリック → 削除 API 呼び出し (削除は状態変更操作のため post、axios により CSRF ヘッダが自動追加) */
+	// 削除ボタンクリック → 削除 API 呼び出し (削除は状態変更操作のため post、axios により CSRF ヘッダが自動追加)
 	const handleDelete = async(id) => {
 		AppState.message = (await axios.post('delete?id=' + id)).data || 'ℹ️ 削除しました。';
 		handleSearch();
@@ -95,5 +103,3 @@ const List = () => {
 </HashRouter>
 	);
 }
-
-ReactDOM.createRoot(_root).render(<App />); // v18 以降の推奨の書き方
