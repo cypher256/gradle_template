@@ -34,7 +34,7 @@ import lombok.extern.slf4j.Slf4j;
  * 1. AJAX リクエストの場合、以下の HTTP ステータスをセットし、例外メッセージ文字列をレスポンスに書き込んで終了。
  *
  *    (1) IllegalStateException とそのサブクラス: アプリエラー (入力エラーなど) → HTTP 200 (OK)
- *    (2) その他の例外: システムエラー → HTTP 205 (Reset Content)
+ *    (2) その他の例外: システムエラー (あるべきデータが無いなど) → HTTP 202 (Accepted)
  * 
  * 2. 例外メッセージを JSP 表示用にリクエスト属性 MESSAGE にセット (リダイレクトの場合は自動フラッシュ)。
  * 3. 例外の種類によりフォワードまたはリダイレクト。
@@ -287,8 +287,8 @@ public class AutoFlashFilter extends HttpFilter {
 		
 		// AJAX リクエスト時のエラー (アプリエラー、システムエラー両方) → メッセージ文字列を返す
 		if (isAjax(req)) {
-			//if (!isAppErrorFoward) res.setStatus(HttpServletResponse.SC_RESET_CONTENT); // システムエラー判別用
-			// TODO 200 以外だと下記が取れない...
+			// アプリエラー以外はクライアント判別用に 202 Accepted をセット (200-203 以外の 2xx はレスポンス書き込み不可)
+			if (!isAppErrorFoward) res.setStatus(HttpServletResponse.SC_ACCEPTED);
 			res.getWriter().print(message);
 			return;
 		}

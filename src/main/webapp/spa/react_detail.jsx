@@ -14,14 +14,14 @@ const Detail = () => {
 	/* 初期表示 → 取得 API 呼び出し */   
 	const handleInit = async() => {
 		if (id != 0) {
-			const res = (await axios.get('detail?id=' + id)).data;
-			if (typeof res === 'string') {
-				AppState.message = res;
+			const resData = (await axios.get('detail?id=' + id)).data;
+			if (typeof resData === 'string') {
+				AppState.message = resData;
 				history.push('/');
 				return;
 			} else {
-				setForm(res);
-				setCompanyId(res.companyId);
+				setForm(resData);
+				setCompanyId(resData.companyId);
 			}
 		}
 		setCompanySelect((await axios.get('companySelect')).data);
@@ -32,14 +32,21 @@ const Detail = () => {
 		e.preventDefault(); // デフォルトサブミット抑止
 		_submitButton.disabled = true;
 		const id0 = id == 0;
-		const error = (await axios.post(id0 ? 'insert' : 'update', new URLSearchParams(new FormData(_form)))).data;
+		const res = (await axios.post(id0 ? 'insert' : 'update', new URLSearchParams(new FormData(_form))));
+		const error = res.data;
 		if (error) {
-			setMessage(error);
-			_submitButton.disabled = false;
-			return;
+			if (res.status == 200) {
+				setMessage(error); // アプリエラー
+				_submitButton.disabled = false;
+			} else {
+				AppState.message = error; // システムエラー
+				history.push('/');
+			}
+		} else {
+			AppState.message = id0 ? 'ℹ️ 登録しました。' : 'ℹ️ 更新しました。';
+			history.push('/');
 		}
-		AppState.message = id0 ? 'ℹ️ 登録しました。' : 'ℹ️ 更新しました。';
-		history.push('/');
+		
   	};
 
 	/* 変更イベント → 入力チェック API 呼び出し */   
