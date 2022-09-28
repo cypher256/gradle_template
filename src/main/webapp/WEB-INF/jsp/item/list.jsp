@@ -17,7 +17,7 @@
 			<ul class="navbar-nav me-auto mb-2 mb-lg-0">
 				<li class="nav-item"><a class="nav-link active" href="${ctx}/item/list">JSP</a></li>
 				<li class="nav-item"><a class="nav-link" href="${ctx}/spa/react.html">React</a></li>
-				<li class="nav-item"><a class="nav-link" href="#">Vue</a></li>
+				<li class="nav-item"><a class="nav-link" href="${ctx}/spa/vue.html">Vue</a></li>
 			</ul>
 			<div class="navbar-text d-flex ${empty request.remoteUser ? 'd-none' : ''}">
 				<span class="me-3">${fn:escapeXml(request.remoteUser)}</span>

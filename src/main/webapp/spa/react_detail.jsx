@@ -11,6 +11,7 @@ const Detail = () => {
 	const history = useHistory();
 	const id = useParams().id;
 	const isInsert = id == 0;
+	const getForm = () => new URLSearchParams(new FormData(_form));
 	useEffect(() => {handleInit()}, []);
 
 	// 初期表示 → 取得 API 呼び出し   
@@ -26,21 +27,21 @@ const Detail = () => {
 				setCompanyId(resData.companyId);
 			}
 		}
-		setCompanySelect((await axios.get('selectCompany')).data);
+		setCompanySelect((await axios.get('select-company')).data);
   	};
   	
   	// フォーム Enter → 登録・更新 API 呼び出し
 	const handleSubmit = async(e) => {
 		e.preventDefault(); // デフォルトサブミット抑止
 		_submitButton.disabled = true;
-		const res = (await axios.post(isInsert ? 'insert' : 'update', new URLSearchParams(new FormData(_form))));
+		const res = (await axios.post(isInsert ? 'insert' : 'update', getForm()));
 		const errorMessage = res.data;
 		if (errorMessage) {
 			if (res.status == 200) {
-				setMessage(errorMessage); // 復旧可能なアプリエラー (入力エラー)
+				setMessage(errorMessage); // 入力エラーなどのアプリエラー
 				_submitButton.disabled = false;
 			} else {
-				AppState.message = errorMessage; // 復旧不可のシステムエラー (削除済みなど)
+				AppState.message = errorMessage; // 削除済みなどの 2xx システムエラー (2xx 以外は axios interceptors)
 				history.push('/');
 			}
 		} else {
@@ -51,13 +52,13 @@ const Detail = () => {
 
 	// 変更イベント → 入力チェック API 呼び出し   
 	const handleChange = async() => {
-		const errorMessage = (await axios.post('validate', new URLSearchParams(new FormData(_form)))).data;
+		const errorMessage = (await axios.post('validate', getForm())).data;
 		setMessage(errorMessage); // エラーが無い場合は空
   	};
 
 	return (
 <HashRouter>
- 	<div className="alert mb-0" style={{minHeight:'4rem'}}>{message}</div>
+ 	<div className="alert mb-0" style={{minHeight:'4rem'}} id="_message">{message}</div>
 	<form id="_form" method="post" onSubmit={handleSubmit}>
 		<input type="hidden" name="id" defaultValue={form.id}/>
 		<div className="mb-3">

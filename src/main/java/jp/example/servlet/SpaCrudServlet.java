@@ -13,7 +13,8 @@ import jp.example.form.ItemForm;
  * サンプルテーブル item の SPA CRUD API Servlet です。
  * <pre>
  * JSP 版と同じ機能を SPA (React や Vue などのシングルページアプリケーション) 向けの API として実装した Servlet です。
- * データを返す API のみで構成され、フロント側の React Router や Vue Router などがコントローラーとなります。
+ * REST API のみで構成され、フロント側の React Router や Vue Router などがコントローラーとなります。
+ * put や delete はリクエストボディ受け取りに設定が必要などがあるため、サーバ非依存の get と post のみで構成しています。
  * レスポンスに書き込み無し (returns していない) かつ例外無しの場合は、レスポンス body は空で HTTP 200 になります。
  * Servlet でスローされた例外は AutoFlashFilter で例外メッセージがレスポンスに書き込まれ HTTP 200 または 202 になります。
  * </pre>
@@ -49,7 +50,7 @@ public class SpaCrudServlet {
 		}
 	}
 	
-	@WebServlet("/spa/selectCompany")
+	@WebServlet("/spa/select-company")
 	public static class SelectCompanyServlet extends HttpServlet {
 		protected void doGet(HttpServletRequest req, HttpServletResponse res) {
 			returns(new ItemForm().getCompanySelectOptions());

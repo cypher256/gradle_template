@@ -6,6 +6,11 @@ const AppState = {
 	searchForm: {name:'', releaseDate:''},
 };
 
+axios.interceptors.response.use(
+	response => response,
+	error => {_message.textContent = `❌ 処理できませんでした。 ${error.message} - ${error.config.url}`}
+);
+
 /* ルーター定義 */
 const App = () => {
 	
@@ -28,11 +33,12 @@ const List = () => {
 	const form = AppState.searchForm;
 	const [formList, setFormList] = useState([]);
 	const [message, setMessage] = useState();
+	const getForm = () => new URLSearchParams(new FormData(_form));
 	useEffect(() => {handleSearch()}, []);
 
 	// 検索ボタンクリック → 検索 API 呼び出し   
 	const handleSearch = async() => {
-		const res = (await axios.get('search?' + new URLSearchParams(new FormData(_form)))).data;
+		const res = (await axios.get('search?' + getForm())).data;
 		typeof res === 'string' ? AppState.message = res : setFormList(res);
 		setMessage(AppState.message);
 		AppState.message = null;
@@ -47,7 +53,7 @@ const List = () => {
 	// 製品名・発売日変更イベント → 件数取得 API 呼び出し   
 	const handleChange = async(target) => {
 		form[target.name] = target.value;
-		const infoMessage = (await axios.get('count?' + new URLSearchParams(new FormData(_form)))).data;
+		const infoMessage = (await axios.get('count?' + getForm())).data;
 		setMessage(infoMessage);
   	};
 	
@@ -59,7 +65,7 @@ const List = () => {
   	
 	return (
 <HashRouter>
- 	<div className="alert mb-0" style={{minHeight:'4rem'}}>{message}</div>
+ 	<div className="alert mb-0" style={{minHeight:'4rem'}} id="_message">{message}</div>
 	<form id="_form" method="get" className="d-sm-flex flex-wrap align-items-end" onSubmit={handleSubmit}>
 		<label className="form-label me-sm-3">製品名</label>
 		<div className="me-sm-4">

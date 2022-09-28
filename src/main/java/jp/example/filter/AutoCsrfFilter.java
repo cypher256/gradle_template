@@ -75,7 +75,7 @@ public class AutoCsrfFilter extends HttpFilter {
 		}
 		
 		// [REQUEST] POST サブミット時のトークンチェック (Servlet を介さない html へのサブミット時も対象)
-		if (req.getDispatcherType() == DispatcherType.REQUEST && notMatchPostToken(req, res)) {
+		if (req.getDispatcherType() == DispatcherType.REQUEST && notMatchToken(req, res)) {
 			if (isAjax(req)) {
 				res.sendError(HttpServletResponse.SC_FORBIDDEN);
 			} else {
@@ -114,14 +114,14 @@ public class AutoCsrfFilter extends HttpFilter {
 	}
 
 	/**
-	 * post 時のトークンをチェックします (ある程度並行リクエストに対応するため synchronized)。
+	 * POST PUT DELETE PATCH 時のトークンをチェックします (ある程度並行リクエストに対応するため synchronized)。
 	 * @return トークンが一致しない場合は true
 	 */
-	synchronized protected boolean notMatchPostToken(HttpServletRequest req, HttpServletResponse res) throws IOException {
+	synchronized protected boolean notMatchToken(HttpServletRequest req, HttpServletResponse res) throws IOException {
 		
 		// トークンチェック (リクエスト、ヘッダー、Cookie は標準的な名前を使用)
 		HttpSession session = req.getSession();
-		if ("POST".equals(req.getMethod())) {
+		if (req.getMethod().matches("(POST|PUT|DELETE|PATCH)")) {
 			String sesCsrf = (String) session.getAttribute(_csrf);
 			String reqCsrf = StringUtils.firstNonEmpty(
 				req.getParameter(_csrf), 		// form hidden "_csrf" → フォームサブミットやフォームベースの AJAX
