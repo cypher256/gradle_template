@@ -22,7 +22,6 @@ import lombok.extern.slf4j.Slf4j;
  * 自動トランザクションフィルターです。
  * <pre>
  * スレッドローカルを使用した一般的なデータベーストランザクションのテンプレート実装です。
- * Servlet の処理が正常に終了した場合はコミット、例外が発生した場合は自動的にロールバックされます。
  * このフィルターでは uroboroSQL を使用して、データベースの初期データロード、トランザクションを制御します。
  * </pre>
  * @author New Gradle Project Wizard (c) Pleiades MIT
@@ -36,7 +35,8 @@ public class AutoTransactionFilter extends HttpFilter {
 
 	/**
 	 * 汎用 DAO トランザクションマネージャーを取得します。<br>
-	 * SLF4J の simplelogger.properties で SQL のログレベルを設定できます。
+	 * サンプルでは SLF4J の simplelogger.properties で SQL のログレベルを設定できます。
+	 * (Logback を依存性に追加して使用する場合は logback.xml)
 	 * <pre>
 	 * SqlAgent の仕様 (uroboroSQL)
 	 * 
@@ -47,10 +47,10 @@ public class AutoTransactionFilter extends HttpFilter {
 	 * 
 	 * AutoTransactionFilter の制御
 	 * 
-	 * ・JTA や Spring のデフォルトと異なり、単純にどんな例外でもロールバックします。
-	 * ・ロールバックしたい場合は、例外をスローしてください。
-	 * ・手動で制御しなければならない場合は、dao().commit() や dao().setRollbackOnly() が可能です。
-	 * ・トランザクション境界内に JSP も含まれているため、JSP EL から参照するフォームのメソッド内でも利用可能です。 
+	 * ・Servlet の処理が正常に終了した場合はコミット、例外が発生した場合はロールバックされます。
+	 * ・ロールバックは、JTA や Spring のデフォルトと異なり単純にすべての例外が対象です。
+	 * ・必要に応じて dao().commit() や dao().rollback() でマニュアル制御できます。
+	 * ・トランザクション境界内に JSP も含まれているため、JSP EL から参照するフォームモデル内でも利用可能です。 
 	 *   (分散モデルが不要な Web 単一層アーキテクチャ向け)
 	 * 
 	 * </pre>
@@ -71,13 +71,13 @@ public class AutoTransactionFilter extends HttpFilter {
 	@Override @SneakyThrows
 	public void init() {
 		try {
-			DataSource dataSource = (DataSource) new InitialContext().lookup("java:comp/env/jdbc/main");
+			DataSource dataSource = (DataSource) new InitialContext().lookup("java:comp/env/jdbc/main"); // context.xml
 			daoConfig = UroboroSQL.builder(dataSource).build();
 			try (SqlAgent dao = daoConfig.agent()) {
 				dao.update("create_table").count(); // ファイル実行 src/main/resources/sql/create_table.sql
 			}
 		} catch (Exception e) {
-			log.error("AutoTransactionFilter 初期化エラー", e);
+			log.error("{} 初期化エラー", getClass().getSimpleName(), e);
 			throw e;
 		}
 	}

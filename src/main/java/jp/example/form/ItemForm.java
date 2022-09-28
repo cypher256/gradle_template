@@ -19,14 +19,9 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 /** 
- * JSP や SPA などの違いに依存しないアイテムフォームモデルです。
+ * JSP や SPA などの違いに依存しないアイテム CRUD 共通のフォームモデルです。
  * <pre>
  * AutoTransactionFilter の static メソッド dao を static インポート (Ctrl/Cmd + Shift + m) して使用できます。
- * アプリでスローした例外は AutoFlashFilter で下記の処理が行われ、JSP では ${MESSAGE} で例外メッセージを取得できます。
- * 
- *   IllegalStateException の場合: 入力画面にフォワード
- *   java.lang.Error の場合: 直近のリダイレクト先またはトップへリダイレクト
- *   
  * </pre>
  * @author New Gradle Project Wizard (c) Pleiades MIT
  */
@@ -174,7 +169,7 @@ public class ItemForm {
 	}
 	
 	/**
-	 * 会社 select タグ選択肢を取得します (JSP の場合は EL から呼び出し)。
+	 * 会社 select タグ選択肢を取得します (JSP EL から使用するため get プレフィックス)。
 	 * @return 会社 select タグ選択肢
 	 */
 	public List<Company> getCompanySelectOptions() {

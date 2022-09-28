@@ -25,6 +25,11 @@ import lombok.extern.slf4j.Slf4j;
  *   valid(〜)      条件とエラーメッセージを指定して、pplicationException をスローするためのショートカットメソッド
  *   $("name")      JSP EL のようにリクエスト、セッションなどのスコープから、最初に見つかった属性値を取得 (キャスト不要)
  *   
+ * アプリでスローした例外は AutoFlashFilter で下記の処理が行われ、JSP では ${MESSAGE} で例外メッセージを取得できます。
+ * 
+ *   IllegalStateException の場合: 入力画面にフォワード
+ *   java.lang.Error の場合: 直近のリダイレクト先またはトップへリダイレクト
+ *   
  * </pre>
  * @author New Gradle Project Wizard (c) Pleiades MIT
  */

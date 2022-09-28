@@ -6,13 +6,13 @@
 	==================================================================================
 	 
 	AutoTransactionFilter.java と shiro.ini から、この定義を参照
-	起動時に AutoTransactionFilter で create_table.sql を読み込んでテーブル作成
+	起動時に AutoTransactionFilter で create_table.sql を読み込んでインメモリ DB H2 にテーブル作成
 	web.xml の JNDI 参照定義 <resource-ref> は定義不要
 	
-	設定デフォルト値 (maxWaitMillis のデフォルトは -1 無制限)
+	設定デフォルト値 (maxWaitMillis のデフォルトは -1 で無制限のため通常は設定が必要)
 	https://tomcat.apache.org/tomcat-9.0-doc/jndi-resources-howto.html#JDBC_Data_Sources
 	
-	デプロイ実行時は $CATALINA_BASE/conf の設定優先
+	本番などのデプロイ実行時は $CATALINA_BASE/conf の設定を優先できる
 	https://tomcat.apache.org/tomcat-9.0-doc/config/context.html#Defining_a_context
 	-->
 	<Resource 
