@@ -26,7 +26,53 @@
 		</div>
 	</div>
 </nav>
-<div class="container" id="_root"></div>
+
+
+<div class="container" id="_container">
+ 	<div class="alert mb-0" id="_message" style="min-height:4rem">{{message}}</div>
+	<form id="_form" method="get" class="d-sm-flex flex-wrap align-items-end">
+		<label class="form-label me-sm-3">製品名</label>
+		<div class="me-sm-4">
+			<input class="form-control" type="search" name="name" value=""
+				onkeyup="" autofocus onfocus="this.setSelectionRange(99,99)">
+		</div>
+		<label class="form-label me-sm-3">発売日</label>
+		<div class="me-sm-4">
+			<input class="form-control w-auto mb-3 mb-sm-0" type="date" name="releaseDate"
+				value="" onchange="">
+		</div>
+		<button type="submit" class="btn btn-secondary px-5">検索</button>
+		<button class="btn btn-secondary px-5 ms-auto">新規登録</button>
+	</form>
+	<p class="text-end mt-4 me-1 mb-2">検索結果 {{formList.length}} 件</p>
+	<table class="table table-striped table-dark">
+		<thead>
+			<tr class="{{formList.length == 0 ? 'd-none' : ''}}">
+				<th>製品名</th>
+				<th>発売日</th>
+				<th class="text-center">顔認証</th>
+				<th>メーカー</th>
+				<th class="text-center">操作</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr v-for="form in formList">
+				<td>{{form.name}}</td>
+				<td>{{form.releaseDate}}</td>
+				<td class="text-center">{{form.faceAuth ? '○' : ''}}</td>
+				<td>{{form.companyName}}</td>
+				<td class="text-center">
+					<a href="update?id={{form.id}}" class="btn btn-secondary">変更</a>
+					<form method="post" action="delete?id=${form.id}" class="d-inline">
+						<button class="btn btn-warning">削除</button>
+					</form>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+</div>
+
+
 <footer class="footer fixed-bottom py-3 text-center bg-dark">
 	<div class="container">
 		<span class="text-muted">New Gradle Project Wizard (c) Pleiades MIT</span>
@@ -34,6 +80,7 @@
 </footer>
 </body>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+<script src="https://unpkg.com/vue@3"></script>
 <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script src="vue_list.js"></script>
 </html>
