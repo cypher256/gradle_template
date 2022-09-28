@@ -19,8 +19,9 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 /** 
- * JSP や SPA などの違いに依存しないアイテム CRUD 共通のフォームモデルです。
+ * JSP や SPA などの違いに依存しない item CRUD 共通のフォームモデルです。
  * <pre>
+ * フォームとエンティティの変換や、それに関連する永続レイヤーと連携するモデルの実装です。
  * AutoTransactionFilter の static メソッド dao を static インポート (Ctrl/Cmd + Shift + m) して使用できます。
  * </pre>
  * @author New Gradle Project Wizard (c) Pleiades MIT
@@ -74,14 +75,14 @@ public class ItemForm {
 	}
 	
 	/**
-	 * このフォームのデータを DB に登録します。
+	 * このフォームのデータを DB に新規登録します。
 	 */
 	public void insert() {
 		dao().insert(copyTo(new Item()));
 	}
 	
 	/**
-	 * このフォームのデータを DB から取得して更新します。
+	 * このフォームの id を持つデータを DB から取得して、フォームの値をセットして更新します。
 	 * @throws Error DB に存在しない場合
 	 */
 	public void update() {
@@ -169,7 +170,8 @@ public class ItemForm {
 	}
 	
 	/**
-	 * 会社 select タグ選択肢を取得します (JSP EL から使用するため get プレフィックス)。
+	 * 会社 select タグ選択肢を取得します。
+	 * JSP EL からも ${form.companySelectOptions} で参照できるように get プレフィックスを使用しています。
 	 * @return 会社 select タグ選択肢
 	 */
 	public List<Company> getCompanySelectOptions() {

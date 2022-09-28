@@ -13,9 +13,9 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * JSP CRUD コントローラー Servlet です。
+ * サンプルテーブル item の JSP CRUD コントローラー Servlet です。
  * <pre>
- * 検索一覧、登録、修正、削除の Servlet パターンサンプル。
+ * 一般的な検索一覧、登録、修正、削除画面の Servlet JSP CRUD パターン実装です。
  * 以下の AutoFlashFilter クラスの static メソッドを static インポート (Ctrl/Cmd + Shift + m) して使用できます。
  * forward、redirect、returns は条件分岐で呼び分ける場合でも、Servlet 内の処理はそこで終了するため、return 不要です。
  * 
