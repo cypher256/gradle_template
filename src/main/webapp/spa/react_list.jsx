@@ -6,11 +6,6 @@ const AppState = {
 	searchForm: {name:'', releaseDate:''},
 };
 
-axios.interceptors.response.use(
-	response => response,
-	error => {_message.textContent = `❌ 処理できませんでした。 ${error.message} - ${error.config.url}`}
-);
-
 /* ルーター定義 */
 const App = () => {
 	

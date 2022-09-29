@@ -276,7 +276,7 @@ public class AutoFlashFilter extends HttpFilter {
 		Throwable cause = ExceptionUtils.getRootCause(e);
 		boolean isAppErrorFoward = cause instanceof IllegalStateException;
 		boolean isAppErrorRedirect = cause.getClass() == Error.class;
-		String message = "❌ " + cause.getMessage();
+		String message = "❌ " + StringUtils.firstNonEmpty(cause.getMessage(), cause.toString());
 		if (!isAppErrorFoward && !isAppErrorRedirect) {
 			log.warn("致命的システムエラー", cause);
 			if (req.isSecure()) {
