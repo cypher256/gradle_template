@@ -152,7 +152,7 @@
 		<tracking-mode>COOKIE</tracking-mode>
 		<session-timeout>30</session-timeout><!-- 単位:分 (デフォルト 30) -->
 	</session-config>
-	
+
 	<!-- JSP 共通設定 (文字エンコーディング、共通ヘッダ) -->
 	<jsp-config>
 		<jsp-property-group>

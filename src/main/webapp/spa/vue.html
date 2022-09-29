@@ -26,7 +26,7 @@
 		</div>
 	</div>
 </nav>
-<div class="container" id="app">
+<div class="container" id="app_">
 	<router-view></router-view>
 </div>
 <footer class="footer fixed-bottom py-3 text-center bg-dark">
@@ -39,23 +39,44 @@
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/vue@3"></script>
 <script src="https://cdn.jsdelivr.net/npm/vue-router@4"></script>
-<script src="vue_list.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue3-sfc-loader/dist/vue3-sfc-loader.js"></script>
+<!-- <script src="vue_list.js"></script> -->
 <script src="vue_detail.js"></script>
 <script>
+const { createApp, ref, onMounted } = Vue;
+const { createRouter, createWebHashHistory } = VueRouter;
+
+// npm を使用せず CDN で Vue SFC (単一ファイルコンポーネント .vue ファイル) を使えるようにする
+const { loadModule } = window["vue3-sfc-loader"];
+const options = {
+	moduleCache: {vue: Vue,},
+	async getFile(url) {
+		const res = await fetch(url);
+		if (!res.ok) throw Object.assign(new Error(res.statusText + " " + url), { res });
+		return {getContentData: (asBinary) => asBinary ? res.arrayBuffer() : res.text(),};
+	},
+	addStyle(textContent) {
+		const style = Object.assign(document.createElement("style"), {textContent,});
+		const ref = document.head.getElementsByTagName("style")[0] || null;
+		document.head.insertBefore(style, ref);
+	},
+};
+
 // Vue ルーター定義とマウント
-const router = VueRouter.createRouter({
-	history: VueRouter.createWebHashHistory(),
+const router = createRouter({
+	history: createWebHashHistory(),
 	routes: [
-		{ path: "/", component: List },
+//		{ path: "/", component: List },
+		{ path: "/", component: () => loadModule('./vue_list.vue', options) },
 		{ path: "/detail/:id", component: Detail },
 	],
 });
-Vue.createApp({}).use(router).mount("#app");
+createApp({}).use(router).mount("#app_");
 
 // axios 2xx 以外の共通エラー設定
 axios.interceptors.response.use(
 	response => response,
-	error => {_message.textContent = `❌ 処理できませんでした。 ${error.message} - ${error.config.url}`}
+	error => {message_.textContent = `❌ 処理できませんでした。 ${error.message} - ${error.config.url}`}
 );
 </script>
 </html>
