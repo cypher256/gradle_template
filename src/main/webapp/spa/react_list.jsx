@@ -1,8 +1,4 @@
-const { useState, useEffect } = React;
-const { HashRouter, Route, Link } = ReactRouterDOM; // v5 (v6 は script タグ未対応)
-
 const AppState = {
-	message: null,
 	searchForm: {name:'', releaseDate:''},
 };
 
@@ -27,40 +23,37 @@ const List = () => {
    
 	const form = AppState.searchForm;
 	const [formList, setFormList] = useState([]);
-	const [message, setMessage] = useState();
-	const getForm = () => new URLSearchParams(new FormData(_form));
+	const getFormParams = () => new URLSearchParams(new FormData(_form));
 	useEffect(() => {handleSearch()}, []);
 
 	// 検索ボタンクリック → 検索 API 呼び出し   
 	const handleSearch = async() => {
-		const res = (await axios.get('search?' + getForm())).data;
-		typeof res === 'string' ? AppState.message = res : setFormList(res);
-		setMessage(AppState.message);
-		AppState.message = null;
+		const res = (await axios.get('search?' + getFormParams())).data;
+		typeof res === 'string' ? id_message.textContent = res : setFormList(res);
   	};
   	
   	// フォーム Enter → 検索 API 呼び出し
 	const handleSubmit = async(e) => {
 		e.preventDefault(); // デフォルトサブミット抑止
+		id_message.textContent = null;
 		handleSearch();
   	};
 
 	// 製品名・発売日変更イベント → 件数取得 API 呼び出し   
 	const handleChange = async(target) => {
 		form[target.name] = target.value;
-		const infoMessage = (await axios.get('count?' + getForm())).data;
-		setMessage(infoMessage);
+		const infoMessage = (await axios.get('count?' + getFormParams())).data;
+		id_message.textContent = infoMessage;
   	};
 	
 	// 削除ボタンクリック → 削除 API 呼び出し (削除は状態変更操作のため post、axios により CSRF ヘッダが自動追加)
 	const handleDelete = async(id) => {
-		AppState.message = (await axios.post('delete?id=' + id)).data || 'ℹ️ 削除しました。';
+		id_message.textContent = (await axios.post('delete?id=' + id)).data || 'ℹ️ 削除しました。';
 		handleSearch();
   	};
   	
 	return (
 <HashRouter>
- 	<div className="alert mb-0" style={{minHeight:'4rem'}} id="_message">{message}</div>
 	<form id="_form" method="get" className="d-sm-flex flex-wrap align-items-end" onSubmit={handleSubmit}>
 		<label className="form-label me-sm-3">製品名</label>
 		<div className="me-sm-4">

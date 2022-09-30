@@ -26,8 +26,12 @@
 		</div>
 	</div>
 </nav>
-<div class="container" id="app_">
-	<router-view></router-view>
+<div class="container">
+	<div class="alert mb-0" id="id_message" style="min-height:4rem"></div>
+	<div id="id_app">
+		<!-- ========== Vue Router 画面遷移部分 ========== -->
+		<router-view></router-view>
+	</div>
 </div>
 <footer class="footer fixed-bottom py-3 text-center bg-dark">
 	<div class="container">
@@ -40,9 +44,9 @@
 <script src="https://cdn.jsdelivr.net/npm/vue@3"></script>
 <script src="https://cdn.jsdelivr.net/npm/vue-router@4"></script>
 <script src="https://cdn.jsdelivr.net/npm/vue3-sfc-loader/dist/vue3-sfc-loader.js"></script>
-<!-- <script src="vue_list.js"></script> -->
 <script src="vue_detail.js"></script>
 <script>
+// ES6 import と同じように書けるようにしておく
 const { createApp, ref, onMounted } = Vue;
 const { createRouter, createWebHashHistory } = VueRouter;
 
@@ -64,19 +68,21 @@ const options = {
 
 // Vue ルーター定義とマウント
 const router = createRouter({
-	history: createWebHashHistory(),
+	history: createWebHashHistory(), // サーバ側でマッピング不要なハッシュルーター
 	routes: [
 //		{ path: "/", component: List },
 		{ path: "/", component: () => loadModule('./vue_list.vue', options) },
 		{ path: "/detail/:id", component: Detail },
 	],
 });
-createApp({}).use(router).mount("#app_");
+createApp({}).use(router).mount("#id_app");
 
 // axios 2xx 以外の共通エラー設定
 axios.interceptors.response.use(
 	response => response,
-	error => {message_.textContent = `❌ 処理できませんでした。 ${error.message} - ${error.config.url}`}
+	error => {
+		id_message.textContent = `❌ 処理できませんでした。 \${error.message} - \${error.config.url}`;
+	}
 );
 </script>
 </html>

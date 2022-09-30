@@ -26,7 +26,12 @@
 		</div>
 	</div>
 </nav>
-<div class="container" id="_root"></div>
+<div class="container">
+	<div class="alert mb-0" style="min-height:4rem" id="id_message"></div>
+	<!-- ========== React Router 画面遷移部分 ========== -->
+	<div id="_root"></div>
+</div>
+
 <footer class="footer fixed-bottom py-3 text-center bg-dark">
 	<div class="container">
 		<span class="text-muted">New Gradle Project Wizard (c) Pleiades MIT</span>
@@ -38,15 +43,19 @@
 <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
 <script src='https://unpkg.com/react-router-dom@5/umd/react-router-dom.min.js'></script>
-<!-- npm を使用せず CDN で JSX を使えるように babel を組み込み .jsx を text/babel でロード -->
+<!-- npm を使用せず CDN で JSX を使えるように babel を組み込み、.jsx を text/babel でロード -->
 <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
 <script type="text/babel" src="react_detail.jsx"></script>
 <script type="text/babel" src="react_list.jsx"></script>
 <script>
+// ES6 import と同じように書けるようにしておく
+const { useState, useEffect } = React;
+const { HashRouter, Route, Link, useParams, useHistory } = ReactRouterDOM; // v5 (v6 は script タグ未対応)
+
 // axios 2xx 以外の共通エラー設定
 axios.interceptors.response.use(
 	response => response,
-	error => {_message.textContent = `❌ 処理できませんでした。 ${error.message} - ${error.config.url}`}
+	error => {id_message.textContent = `❌ 処理できませんでした。 \${error.message} - \${error.config.url}`}
 );
 </script>
 </html>

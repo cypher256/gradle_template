@@ -1,16 +1,14 @@
 <script setup>
-	const message = ref();
 	const formList = ref([]);
-	const getForm = () => {return new URLSearchParams(new FormData(form_))}; // Vue では id="_form" 先頭 _ は参照できない
+	const getFormParams = () => {return new URLSearchParams(new FormData(id_form))};
 
 	onMounted(async() => {
-		const res = (await axios.get('search?' + getForm())).data;
-		typeof res === 'string' ? message.value = res : formList.value = res;
+		const res = (await axios.get('search?' + getFormParams())).data;
+		typeof res === 'string' ? id_message.textContent = res : formList.value = res;
 	});
 </script>
 <template>
-	<div class="alert mb-0" id="message_" style="min-height:4rem">{{message}}</div>
-	<form id="form_" method="get" class="d-sm-flex flex-wrap align-items-end">
+	<form id="id_form" method="get" class="d-sm-flex flex-wrap align-items-end">
 		<label class="form-label me-sm-3">製品名</label>
 		<div class="me-sm-4">
 			<input class="form-control" type="search" name="name" value=""
