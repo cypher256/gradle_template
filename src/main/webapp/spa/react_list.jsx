@@ -1,7 +1,7 @@
 /* 一覧コンポーネント */
 window._List = () => {
    
-	const form = window._ListForm ??= {name:'', releaseDate:''};
+	const form = window._ReactListForm ??= {name:'', releaseDate:''};
 	const [formList, setFormList] = useState([]);
 	const getFormParams = () => new URLSearchParams(new FormData(id_form));
 	useEffect(() => {handleSearch()}, []);
@@ -21,7 +21,7 @@ window._List = () => {
 
 	// 製品名・発売日変更イベント → 件数取得 API 呼び出し   
 	const handleChange = async(target) => {
-		window._ListForm[target.name] = target.value;
+		window._ReactListForm[target.name] = target.value;
 		const infoMessage = (await axios.get('count?' + getFormParams())).data;
 		id_message.textContent = infoMessage;
   	};
