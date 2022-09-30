@@ -1,5 +1,5 @@
 /* 詳細コンポーネント */
-const Detail = () => {
+window._Edit = () => {
 	
 	const [form, setForm] = useState({});
 	const [companyId, setCompanyId] = useState();

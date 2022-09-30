@@ -42,7 +42,6 @@
 <script src="https://cdn.jsdelivr.net/npm/vue@3"></script>
 <script src="https://cdn.jsdelivr.net/npm/vue-router@4"></script>
 <script src="https://cdn.jsdelivr.net/npm/vue3-sfc-loader/dist/vue3-sfc-loader.js"></script>
-<script src="vue_detail.js"></script>
 <script>
 // ES6 import 使用時と同じように書けるようにしておく
 const { createApp, ref, onMounted } = Vue;
@@ -63,12 +62,12 @@ const loadVueFile = path => {return window["vue3-sfc-loader"].loadModule(path, {
 	},
 })};
 
-// Vue ルーター定義とマウント
+// Vue ルーター定義とマウント (.vue では ES6 使用可能)
 const router = createRouter({
 	history: createWebHashHistory(), // サーバ側でマッピング不要なハッシュルーター
 	routes: [
 		{ path: "/", component: () => loadVueFile('./vue_list.vue') },
-		{ path: "/detail/:id", component: Detail },
+		{ path: "/edit/:id", component: () => loadVueFile('./vue_edit.vue') },
 	],
 });
 createApp({}).use(router).mount("#id_app");

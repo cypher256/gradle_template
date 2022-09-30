@@ -22,8 +22,8 @@
 	</div>
 </nav>
 <div class="container">
- 	<div class="alert mb-0" id="_message" style="min-height:4rem">${fn:escapeXml(MESSAGE)}</div>
-	<form id="_form" method="post" onsubmit="_submitButton.disabled = true"><%-- 二度押し防止 --%>
+ 	<div class="alert mb-0" id="id_message" style="min-height:4rem">${fn:escapeXml(MESSAGE)}</div>
+	<form id="id_form" method="post" onsubmit="_submitButton.disabled = true"><%-- 二度押し防止 --%>
 		<input type="hidden" name="id" value="${form.id}"/>
 		<div class="mb-3">
 			<label class="form-label">製品名</label> <span class="badge bg-danger">必須</span>
@@ -68,7 +68,7 @@
 <script>
 <%-- axios で post (_csrf 有り、入力中のリアルタイム API チェック結果を文字列で取得) --%>
 const validate = async() => {
-	_message.textContent = (await axios.post('api', new URLSearchParams(new FormData(_form)))).data;
+	id_message.textContent = (await axios.post('api', new URLSearchParams(new FormData(id_form)))).data;
 };
 </script>
 </html>

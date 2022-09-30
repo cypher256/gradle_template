@@ -42,7 +42,7 @@
 				<td class="text-center">{{form.faceAuth ? '○' : ''}}</td>
 				<td>{{form.companyName}}</td>
 				<td class="text-center">
-					<router-link :to='"/detail/" + form.id' class="btn btn-secondary me-1">変更</router-link>
+					<router-link :to='"/edit/" + form.id' class="btn btn-secondary me-1">変更</router-link>
 					<button type="button" class="btn btn-warning">削除</button>
 				</td>
 			</tr>

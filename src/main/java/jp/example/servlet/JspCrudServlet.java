@@ -56,7 +56,7 @@ public class JspCrudServlet {
 		/** 一覧画面の新規登録ボタン → 登録画面の表示 */
 		protected void doGet(HttpServletRequest req, HttpServletResponse res) {
 			req.setAttribute("form", new ItemForm());
-			forward("detail.jsp");
+			forward("edit.jsp");
 		}
 		
 		/** 登録画面の登録ボタン → 一覧画面へリダイレクト (PRG パターン: リロードによる多重送信抑止) */
@@ -73,7 +73,7 @@ public class JspCrudServlet {
 		/** 一覧画面の変更ボタン → 変更画面の表示 */
 		protected void doGet(HttpServletRequest req, HttpServletResponse res) {
 			req.setAttribute("form", new ItemForm(req).findFormById());
-			forward("detail.jsp");
+			forward("edit.jsp");
 		}
 		
 		/** 変更画面の更新ボタン → 一覧画面へリダイレクト (PRG パターン: リロードによる多重送信抑止) */

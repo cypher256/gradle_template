@@ -27,8 +27,8 @@
 	</div>
 </nav>
 <div class="container">
- 	<div class="alert mb-0" id="_message" style="min-height:4rem">${fn:escapeXml(MESSAGE)}</div>
-	<form id="_form" method="get" class="d-sm-flex flex-wrap align-items-end">
+ 	<div class="alert mb-0" id="id_message" style="min-height:4rem">${fn:escapeXml(MESSAGE)}</div>
+	<form id="id_form" method="get" class="d-sm-flex flex-wrap align-items-end">
 		<label class="form-label me-sm-3">製品名</label>
 		<div class="me-sm-4">
 			<input class="form-control" type="search" name="name" value="${fn:escapeXml(param.name)}"
@@ -83,8 +83,8 @@
 <script>
 <%-- axios で get (_csrf 無し、検索条件入力中のリアルタイム API 件数 JSON 取得) --%>
 const count = async() => {
-	const res = (await axios.get('api?' + new URLSearchParams(new FormData(_form)))).data;
-	_message.textContent = res.count != null ? '結果予想件数: ' + res.count + ' 件' : res;
+	const res = (await axios.get('api?' + new URLSearchParams(new FormData(id_form)))).data;
+	id_message.textContent = res.count != null ? '結果予想件数: ' + res.count + ' 件' : res;
 };
 </script>
 </html>
