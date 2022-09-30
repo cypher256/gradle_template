@@ -157,7 +157,7 @@
 	<jsp-config>
 		<jsp-property-group>
 			<url-pattern>*.jsp</url-pattern>
-			<url-pattern>*.html</url-pattern><!-- login.html も JSP 構文を使用可能にする -->
+			<url-pattern>*.html</url-pattern><!-- WEB-INF 外の html を jsp として扱えるようにする -->
 			<page-encoding>UTF-8</page-encoding>
 			<include-prelude>/WEB-INF/jsp/taglib.jspf</include-prelude>
 			<trim-directive-whitespaces>true</trim-directive-whitespaces>

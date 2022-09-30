@@ -44,8 +44,8 @@
 <script src="https://cdn.jsdelivr.net/npm/vue3-sfc-loader/dist/vue3-sfc-loader.js"></script>
 <script>
 // ES6 import 使用時と同じように書けるようにしておく
-const { createApp, ref, onMounted } = Vue;
-const { createRouter, createWebHashHistory } = VueRouter;
+const { createApp, ref, reactive, onMounted } = Vue;
+const { createRouter, createWebHashHistory, useRoute, useRouter } = VueRouter;
 
 // npm を使用せず CDN で Vue SFC (単一ファイルコンポーネント .vue ファイル) を使えるようにする
 const loadVueFile = path => {return window["vue3-sfc-loader"].loadModule(path, {

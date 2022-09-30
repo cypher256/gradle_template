@@ -1,19 +1,3 @@
-/* 
-React Router 定義 (HashRouter 使用)
-・BrowserRouter : URL が切り替わるため、サーバ側で URL マッピングが必要 (同じページを返すようにする)
-・HashRouter    : URL ハッシュで切り替えるため、サーバ側で URL マッピング不要 (だが引数で state を渡せない)
-*/
-const App = () => {
-	return (
-		<HashRouter>
-			<Route path="/" exact component={window._List} />
-			<Route path="/edit/:id" component={window._Edit} />
-		</HashRouter>
-	);
-};
-ReactDOM.createRoot(id_root).render(<App />); // React 18 以降は createRoot 推奨
-// TODO html に移動
-
 /* 一覧コンポーネント */
 window._List = () => {
    
@@ -22,14 +6,13 @@ window._List = () => {
 	const getFormParams = () => new URLSearchParams(new FormData(id_form));
 	useEffect(() => {handleSearch()}, []);
 
-	// 検索ボタンクリック → 検索 API 呼び出し   
+	// 検索 API 呼び出し   
 	const handleSearch = async() => {
 		const res = (await axios.get('search?' + getFormParams())).data;
 		typeof res === 'string' ? id_message.textContent = res : setFormList(res);
-		//TODO json 判定 axios 機能？
   	};
   	
-  	// フォーム Enter → 検索 API 呼び出し
+  	// 検索ボタンクリック、フォーム Enter → 検索 API 呼び出し
 	const handleSubmit = async(e) => {
 		e.preventDefault(); // デフォルトサブミット抑止
 		id_message.textContent = null;
@@ -38,7 +21,6 @@ window._List = () => {
 
 	// 製品名・発売日変更イベント → 件数取得 API 呼び出し   
 	const handleChange = async(target) => {
-		//form[target.name] = target.value;
 		window._ListForm[target.name] = target.value;
 		const infoMessage = (await axios.get('count?' + getFormParams())).data;
 		id_message.textContent = infoMessage;

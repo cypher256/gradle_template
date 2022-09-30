@@ -23,7 +23,7 @@
 </nav>
 <div class="container">
  	<div class="alert mb-0" id="id_message" style="min-height:4rem">${fn:escapeXml(MESSAGE)}</div>
-	<form id="id_form" method="post" onsubmit="_submitButton.disabled = true"><%-- 二度押し防止 --%>
+	<form id="id_form" method="post" onsubmit="id_submit_button.disabled = true"><%-- 二度押し防止 --%>
 		<input type="hidden" name="id" value="${form.id}"/>
 		<div class="mb-3">
 			<label class="form-label">製品名</label> <span class="badge bg-danger">必須</span>
@@ -50,7 +50,7 @@
 			</select>
 		</div>
 		<a href="${lastQueryUrl == null ? 'list' : lastQueryUrl}" class="btn btn-secondary px-5">戻る</a>
-		<input id="_submitButton" type="submit" class="btn btn-warning px-5" value=
+		<input id="id_submit_button" type="submit" class="btn btn-warning px-5" value=
 			${form.id == 0
 				? '"登録" formaction="create"' 
 				: '"更新" formaction="update"'

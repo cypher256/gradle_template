@@ -61,4 +61,20 @@ axios.interceptors.response.use(
 	error => {id_message.textContent = `❌ 処理できませんでした。 \${error.message} - \${error.config.url}`}
 );
 </script>
+<!-- 
+React Router 定義 (HashRouter 使用)
+・BrowserRouter : URL が切り替わるため、サーバ側で URL マッピングが必要 (同じページを返すようにする)
+・HashRouter    : URL ハッシュで切り替えるため、サーバ側で URL マッピング不要 (だが引数で state を渡せない)
+-->
+<script type="text/babel" data-type="module">
+const App = () => {
+	return (
+		<HashRouter>
+			<Route path="/" exact component={window._List} />
+			<Route path="/edit/:id" component={window._Edit} />
+		</HashRouter>
+	);
+};
+ReactDOM.createRoot(id_root).render(<App />); // React 18 以降は createRoot 推奨
+</script>
 </html>

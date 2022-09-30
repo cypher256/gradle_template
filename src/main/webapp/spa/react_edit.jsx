@@ -1,17 +1,18 @@
-/* 詳細コンポーネント */
+/* 編集コンポーネント */
 window._Edit = () => {
 	
-	const [form, setForm] = useState({});
-	const [companyId, setCompanyId] = useState();
-	const [companySelect, setCompanySelect] = useState([]);
 	const history = useHistory();
 	const id = useParams().id;
 	const isInsert = id == 0;
-	const getFormParams = () => new URLSearchParams(new FormData(_form));
+	const [form, setForm] = useState({});
+	const [companyId, setCompanyId] = useState(); // select デフォルト値警告対応
+	const [companySelect, setCompanySelect] = useState([]);
+	const getFormParams = () => new URLSearchParams(new FormData(id_form));
 	useEffect(() => {handleInit()}, []);
 
 	// 初期表示 → 取得 API 呼び出し   
 	const handleInit = async() => {
+		id_message.textContent = null;
 		if (!isInsert) {
 			const resData = (await axios.get('select?id=' + id)).data;
 			if (typeof resData === 'string') {
@@ -29,13 +30,13 @@ window._Edit = () => {
   	// フォーム Enter → 登録・更新 API 呼び出し
 	const handleSubmit = async(e) => {
 		e.preventDefault(); // デフォルトサブミット抑止
-		_submitButton.disabled = true;
+		id_submit_button.disabled = true;
 		const res = (await axios.post(isInsert ? 'insert' : 'update', getFormParams()));
 		const errorMessage = res.data;
 		if (errorMessage) {
 			if (res.status == 200) {
 				id_message.textContent = errorMessage; // 入力エラーなどのアプリエラー
-				_submitButton.disabled = false;
+				id_submit_button.disabled = false;
 			} else {
 				id_message.textContent = errorMessage; // 削除済みなどの 2xx システムエラー (2xx 以外は axios interceptors)
 				history.push('/');
@@ -54,7 +55,7 @@ window._Edit = () => {
 
 	return (
 <HashRouter>
-	<form id="_form" method="post" onSubmit={handleSubmit}>
+	<form id="id_form" method="post" onSubmit={handleSubmit}>
 		<input type="hidden" name="id" defaultValue={form.id}/>
 		<div className="mb-3">
 			<label className="form-label">製品名</label> <span className="badge bg-danger">必須</span>
@@ -81,7 +82,7 @@ window._Edit = () => {
 			</select>
 		</div>
 		<Link to="/" className="btn btn-secondary px-5 me-1">戻る</Link>
-		<input id="_submitButton" type="submit" className="btn btn-warning px-5" value={isInsert ? '登録' : '更新'}/>
+		<input id="id_submit_button" type="submit" className="btn btn-warning px-5" value={isInsert ? '登録' : '更新'}/>
 	</form>
 </HashRouter>
 	);

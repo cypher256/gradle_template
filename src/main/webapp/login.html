@@ -7,26 +7,31 @@
 </head>
 <body class="bg-dark bg-gradient vh-100">
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-	<div class="container-fluid">
+	<div class="container">
 		<a class="navbar-brand" href="${ctx}">Servlet CRUD サンプル</a>
 	</div>
 </nav>
-<div class="container-fluid text-center d-flex align-items-center justify-content-center h-50">
-	<form method="post">
-		<div class="form-floating">
-			<input type="text" class="form-control" name="username" required autofocus
-				value="${empty param.username ? 'demouser' : param.username}">
-			<label for="floatingInput">ユーザー名</label>
+<div class="container text-center d-flex align-items-center justify-content-center h-50">
+	<div class="">
+		<div class="alert mb-0 text-light" style="min-height:4rem" id="id_message">
+			${empty shiroLoginFailure ? '' : 'ログイン情報に誤りがあります。'}
 		</div>
-		<div class="form-floating">
-			<input type="password" class="form-control" name="password" required value="demo1234@">
-			<label for="floatingPassword">パスワード</label>
-		</div>
-		<button class="w-100 btn btn-lg btn-secondary" type="submit">ログイン</button>
-	</form>
+		<form method="post" class="d-inline-block">
+			<div class="form-floating">
+				<input type="text" class="form-control" name="username" required autofocus
+					value="${empty param.username ? 'demouser' : param.username}">
+				<label for="floatingInput">ユーザー名</label>
+			</div>
+			<div class="form-floating">
+				<input type="password" class="form-control" name="password" required value="demo1234@">
+				<label for="floatingPassword">パスワード</label>
+			</div>
+			<button class="w-100 btn btn-lg btn-secondary" type="submit">ログイン</button>
+		</form>
+	</div>
 </div>
 <footer class="footer fixed-bottom py-3 text-center bg-dark">
-	<div class="container-fluid">
+	<div class="container">
 		<span class="text-muted">New Gradle Project Wizard (c) Pleiades MIT</span>
 	</div>
 </footer>

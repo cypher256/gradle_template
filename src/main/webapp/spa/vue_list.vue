@@ -1,12 +1,14 @@
+<!-- 一覧コンポーネント -->
 <script setup>
+
 	const formList = ref([]);
 	const getFormParams = () => {return new URLSearchParams(new FormData(id_form))};
 	onMounted(() => handleSearch());
 
-	// 検索ボタンクリック → 検索 API 呼び出し   
+	// 検索 API 呼び出し   
 	const handleSearch = async() => {
-		const res = (await axios.get('search?' + getFormParams())).data;
-		typeof res === 'string' ? id_message.textContent = res : formList.value = res;
+		const resData = (await axios.get('search?' + getFormParams())).data;
+		typeof resData === 'string' ? id_message.textContent = resData : formList.value = resData;
   	};
 </script>
 <template>
