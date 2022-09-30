@@ -4,7 +4,6 @@ const AppState = {
 
 /* ルーター定義 */
 const App = () => {
-	
 	// React Router は以下の 2 種類がある
 	// * BrowserRouter : URL が切り替わるため、サーバ側で URL マッピングが必要 (同じページを返すようにする)
 	// * HashRouter    : URL ハッシュで切り替えるため、サーバ側で URL マッピング不要 (だが引数で state を渡せない)
@@ -15,7 +14,6 @@ const App = () => {
 		</HashRouter>
 	);
 };
-
 ReactDOM.createRoot(_root).render(<App />); // React 18 以降は createRoot 推奨
 
 /* 一覧コンポーネント */
@@ -23,7 +21,7 @@ const List = () => {
    
 	const form = AppState.searchForm;
 	const [formList, setFormList] = useState([]);
-	const getFormParams = () => new URLSearchParams(new FormData(_form));
+	const getFormParams = () => new URLSearchParams(new FormData(id_form));
 	useEffect(() => {handleSearch()}, []);
 
 	// 検索ボタンクリック → 検索 API 呼び出し   
@@ -54,7 +52,7 @@ const List = () => {
   	
 	return (
 <HashRouter>
-	<form id="_form" method="get" className="d-sm-flex flex-wrap align-items-end" onSubmit={handleSubmit}>
+	<form id="id_form" method="get" className="d-sm-flex flex-wrap align-items-end" onSubmit={handleSubmit}>
 		<label className="form-label me-sm-3">製品名</label>
 		<div className="me-sm-4">
 			<input className="form-control" type="search" name="name" autoFocus 

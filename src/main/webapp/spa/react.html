@@ -48,8 +48,8 @@
 <script type="text/babel" src="react_detail.jsx"></script>
 <script type="text/babel" src="react_list.jsx"></script>
 <script>
-// ES6 import と同じように書けるようにしておく
-const { useState, useEffect } = React;
+// ES6 import 使用時と同じように書けるようにしておく
+const { useState, useEffect, createContext } = React;
 const { HashRouter, Route, Link, useParams, useHistory } = ReactRouterDOM; // v5 (v6 は script タグ未対応)
 
 // axios 2xx 以外の共通エラー設定

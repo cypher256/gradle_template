@@ -28,10 +28,8 @@
 </nav>
 <div class="container">
 	<div class="alert mb-0" id="id_message" style="min-height:4rem"></div>
-	<div id="id_app">
-		<!-- ========== Vue Router 画面遷移部分 ========== -->
-		<router-view></router-view>
-	</div>
+	<!-- ========== Vue Router 画面遷移部分 ========== -->
+	<div id="id_app"><router-view></router-view></div>
 </div>
 <footer class="footer fixed-bottom py-3 text-center bg-dark">
 	<div class="container">
@@ -46,13 +44,12 @@
 <script src="https://cdn.jsdelivr.net/npm/vue3-sfc-loader/dist/vue3-sfc-loader.js"></script>
 <script src="vue_detail.js"></script>
 <script>
-// ES6 import と同じように書けるようにしておく
+// ES6 import 使用時と同じように書けるようにしておく
 const { createApp, ref, onMounted } = Vue;
 const { createRouter, createWebHashHistory } = VueRouter;
 
 // npm を使用せず CDN で Vue SFC (単一ファイルコンポーネント .vue ファイル) を使えるようにする
-const { loadModule } = window["vue3-sfc-loader"];
-const options = {
+const loadVueFile = path => {return window["vue3-sfc-loader"].loadModule(path, {
 	moduleCache: {vue: Vue,},
 	async getFile(url) {
 		const res = await fetch(url);
@@ -64,14 +61,13 @@ const options = {
 		const ref = document.head.getElementsByTagName("style")[0] || null;
 		document.head.insertBefore(style, ref);
 	},
-};
+})};
 
 // Vue ルーター定義とマウント
 const router = createRouter({
 	history: createWebHashHistory(), // サーバ側でマッピング不要なハッシュルーター
 	routes: [
-//		{ path: "/", component: List },
-		{ path: "/", component: () => loadModule('./vue_list.vue', options) },
+		{ path: "/", component: () => loadVueFile('./vue_list.vue') },
 		{ path: "/detail/:id", component: Detail },
 	],
 });
