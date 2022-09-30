@@ -6,7 +6,7 @@
 	const isInsert = id == 0;
 	const form = ref({});
 	const companySelect = ref([]);
-	const getFormParams = () => {return new URLSearchParams(new FormData(id_form))};
+	const getFormParams = () => new URLSearchParams(new FormData(id_form));
 	onMounted(() => {handleInit()});
 
 	// 初期表示 → 取得 API 呼び出し   

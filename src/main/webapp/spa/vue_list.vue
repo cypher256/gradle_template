@@ -2,7 +2,7 @@
 <script setup>
 
 	const formList = ref([]);
-	const getFormParams = () => {return new URLSearchParams(new FormData(id_form))};
+	const getFormParams = () => new URLSearchParams(new FormData(id_form));
 	onMounted(() => handleSearch());
 
 	// 検索 API 呼び出し   
