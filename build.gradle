@@ -1,20 +1,24 @@
 /*
 ---------------------------------------------------------------------------------------------------
-Servlet JSP CRUD プロジェクトサンプルビルド定義
+CRUD プロジェクト React Vue JSP サンプルビルド定義
 ---------------------------------------------------------------------------------------------------
 
 プロジェクト概要
 
-	Java 17, Tomcat 9 (javax)、Servlet JSP を使用したログイン、DB アクセス、REST API のサンプルです。
-	
-		サンプル CRUD Servlet		src/main/java/jp/example/servlet/ItemCrudServlet.java
-		サンプル REST API Servlet	src/main/java/jp/example/servlet/ItemRestServlet.java
-		データベース初期データ		src/main/resources/sql/create_table.sql
+	同じ機能 (DB 検索、登録・修正・削除) を React、Vue、JSP の 3 種類で同一プロジェクト内に実装したサンプルです。
+	Java 17, Tomcat 9 (javax) で動作し、ログイン機能も含まれています。
+
+		React			src/main/webapp/spa/react* (.html と .jsx)
+		Vue				src/main/webapp/spa/vue* (.html と .vue)
+		JSP				src/main/webapp/WEB-INF/jsp/item/* (.jsp)
+		
+		React, Vue 共通	src/main/java/jp/example/servlet/SpaCrudServlet.java
+		JSP				src/main/java/jp/example/servlet/JspCrudServlet.java
 
 実行方法
 	
 	Eclipse > プロジェクト右クリック > デバッグ > サーバーでデバッグ
-		(実行ではなくデバッグ実行することで、再起動なしで Java コードの変更反映)
+		(実行ではなくデバッグ実行することで、再起動なしで Java コードの変更が反映される)
 		> サーバー > ツリーの localhost 開く > Tomcat9_Java17
 		> このプロジェクトを実行するときは常にこのサーバーを使用 ON
 		> 完了

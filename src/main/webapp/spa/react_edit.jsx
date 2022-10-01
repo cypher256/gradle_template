@@ -1,4 +1,4 @@
-/* 編集コンポーネント */
+/* React 編集コンポーネント */
 window._Edit = () => {
 	
 	const router = useHistory(); // v5 (v6 では useNavigate)
@@ -28,7 +28,7 @@ window._Edit = () => {
 		id_name.focus(); // autofocus はテンプレートで使用できないためセット
   	};
   	
-  	// フォーム Enter → 登録・更新 API 呼び出し
+  	// フォーム Enter → 登録・更新 API 呼び出し (axios により CSRF ヘッダ自動追加)
 	const handleSubmit = async(e) => {
 		e.preventDefault(); // デフォルトサブミット抑止
 		id_submit_button.disabled = true;

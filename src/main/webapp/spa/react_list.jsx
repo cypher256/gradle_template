@@ -1,7 +1,7 @@
-/* 一覧コンポーネント */
+/* React 一覧コンポーネント */
 window._List = () => {
    
-	const form = window._ReactListForm ??= {name:'', releaseDate:''};
+	const form = window._ReactSearchForm ??= {name:'', releaseDate:''};
 	const [formList, setFormList] = useState([]);
 	const getFormParams = () => new URLSearchParams(new FormData(id_form));
 	useEffect(() => {handleSearch()}, []);
@@ -21,14 +21,14 @@ window._List = () => {
 
 	// 製品名・発売日変更イベント → 件数取得 API 呼び出し   
 	const handleChange = async(e) => {
-		window._ReactListForm[e.target.name] = e.target.value;
+		window._ReactSearchForm[e.target.name] = e.target.value;
 		const infoMessage = (await axios.get('count?' + getFormParams())).data;
 		id_message.textContent = infoMessage;
   	};
 	
-	// 削除ボタンクリック → 削除 API 呼び出し (削除は状態変更操作のため post、axios により CSRF ヘッダが自動追加)
+	// 削除ボタンクリック → 削除 API 呼び出し (削除は状態変更操作のため post、axios により CSRF ヘッダ自動追加)
 	const handleDelete = async(id) => {
-		id_message.textContent = (await axios.post('delete?id=' + id)).data || 'ℹ️ 削除しました。';
+		id_message.textContent = (await axios.post('delete', 'id=' + id)).data || 'ℹ️ 削除しました。';
 		handleSearch();
   	};
   	

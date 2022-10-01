@@ -1,7 +1,7 @@
-<!-- 一覧コンポーネント -->
+<!-- Vue 一覧コンポーネント (script setup は Vue 3.2 以降) -->
 <script setup>
 
-	const form = window._VueListForm ??= {name:'', releaseDate:''};
+	const form = window._VueSearchForm ??= {name:'', releaseDate:''};
 	const formList = ref([]);
 	const getFormParams = () => new URLSearchParams(new FormData(id_form));
 	onMounted(() => handleSearch());
@@ -20,14 +20,14 @@
 
 	// 製品名・発売日変更イベント → 件数取得 API 呼び出し   
 	const handleChange = async(e) => {
-		window._VueListForm[e.target.name] = e.target.value;
+		window._VueSearchForm[e.target.name] = e.target.value;
 		const infoMessage = (await axios.get('count?' + getFormParams())).data;
 		id_message.textContent = infoMessage;
   	};
 	
-	// 削除ボタンクリック → 削除 API 呼び出し (削除は状態変更操作のため post、axios により CSRF ヘッダが自動追加)
+	// 削除ボタンクリック → 削除 API 呼び出し (削除は状態変更操作のため post、axios により CSRF ヘッダ自動追加)
 	const handleDelete = async(id) => {
-		id_message.textContent = (await axios.post('delete?id=' + id)).data || 'ℹ️ 削除しました。';
+		id_message.textContent = (await axios.post('delete', 'id=' + id)).data || 'ℹ️ 削除しました。';
 		handleSearch();
   	};
 </script>
@@ -35,7 +35,7 @@
 	<form id="id_form" method="get" class="d-sm-flex flex-wrap align-items-end" @submit.prevent="handleSubmit">
 		<label class="form-label me-sm-3">製品名</label>
 		<div class="me-sm-4">
-			<input class="form-control" type="search" name="name" autofocus onfocus="this.setSelectionRange(99,99)"
+			<input class="form-control" type="search" name="name" autofocus
 				@keyup="e => {if (e.keyCode != 13) handleChange(e)}" :value="form.name"><!-- @change が動作しない -->
 		</div>
 		<label class="form-label me-sm-3">発売日</label>

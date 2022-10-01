@@ -13,7 +13,7 @@ import jp.example.form.ItemForm;
  * サンプルテーブル item の SPA CRUD API Servlet です。
  * <pre>
  * JSP 版と同じ機能を SPA (React や Vue などのシングルページアプリケーション) 向けの API として実装した Servlet です。
- * REST API のみで構成され、フロント側の React Router や Vue Router などがコントローラーとなります。
+ * サーバは jsp 無しの REST API のみで構成され、クライアントの React Router や Vue Router がコントローラーとなります。
  * put や delete はリクエストボディ受け取りに設定が必要などがあるため、サーバ非依存の get と post のみで構成しています。
  * レスポンスに書き込み無し (returns していない) かつ例外無しの場合は、レスポンス body は空で HTTP 200 になります。
  * Servlet でスローされた例外は AutoFlashFilter で例外メッセージがレスポンスに書き込まれ HTTP 200 または 202 になります。
@@ -21,6 +21,13 @@ import jp.example.form.ItemForm;
  * @author New Gradle Project Wizard (c) Pleiades MIT
  */
 public class SpaCrudServlet {
+
+	@WebServlet("/spa/user-name")
+	public static class UserNameServlet extends HttpServlet {
+		protected void doGet(HttpServletRequest req, HttpServletResponse res) {
+			returns(req.getRemoteUser()); // Apache Shiro ログインユーザー名 (web.xml で無効化した場合は null)
+		}
+	}
 
 	@WebServlet("/spa/search")
 	public static class SearchServlet extends HttpServlet {
@@ -32,7 +39,7 @@ public class SpaCrudServlet {
 	@WebServlet("/spa/count")
 	public static class CountServlet extends HttpServlet {
 		protected void doGet(HttpServletRequest req, HttpServletResponse res) {
-			returns("結果予想件数: " + new ItemForm(req).count() + " 件");
+			returns("結果予想件数: " + new ItemForm(req).count() + " 件 (Enter または検索ボタンを押してください)");
 		}
 	}
 	

@@ -3,12 +3,13 @@
 <head>
 <meta name="viewport" content="width=device-width">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5/dist/css/bootstrap.min.css">
-<title>JSP の場合</title>
+<title>JSP の場合 (一覧画面)</title>
 </head>
 <body class="bg-dark bg-gradient text-light vh-100">
+<%-- ========== ヘッダー ========== --%>
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-1">
 	<div class="container">
-		<a class="navbar-brand" href="${ctx}">Servlet CRUD サンプル</a>
+		<a class="navbar-brand" href="${ctx}">CRUD サンプル</a>
 		<button class="navbar-toggler" type="button"
 			data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
 			<span class="navbar-toggler-icon"></span>
@@ -26,6 +27,7 @@
 		</div>
 	</div>
 </nav>
+<%-- ========== メイン ========== --%>
 <div class="container">
  	<div class="alert mb-0" id="id_message" style="min-height:4rem">${fn:escapeXml(MESSAGE)}</div>
 	<form id="id_form" method="get" class="d-sm-flex flex-wrap align-items-end">
@@ -72,6 +74,7 @@
 		</tbody>
 	</table>
 </div>
+<%-- ========== フッター ========== --%>
 <footer class="footer fixed-bottom py-3 text-center bg-dark">
 	<div class="container">
 		<span class="text-muted">New Gradle Project Wizard (c) Pleiades MIT</span>
@@ -84,7 +87,7 @@
 <%-- axios で get (_csrf 無し、検索条件入力中のリアルタイム API 件数 JSON 取得) --%>
 const count = async() => {
 	const res = (await axios.get('api?' + new URLSearchParams(new FormData(id_form)))).data;
-	id_message.textContent = res.count != null ? '結果予想件数: ' + res.count + ' 件' : res;
+	id_message.textContent = res.count == null ? res : `結果予想件数: \${res.count} 件 (Enter または検索ボタンを押してください)`;
 };
 </script>
 </html>

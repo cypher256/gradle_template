@@ -1,4 +1,4 @@
-<!-- 編集コンポーネント -->
+<!-- Vue 編集コンポーネント -->
 <script setup>
 
 	const router = useRouter();
@@ -26,7 +26,7 @@
 		id_name.focus(); // autofocus はテンプレートで使用できないためセット
   	};
   	
-  	// フォーム Enter → 登録・更新 API 呼び出し
+  	// フォーム Enter → 登録・更新 API 呼び出し (axios により CSRF ヘッダ自動追加)
 	const handleSubmit = async(e) => {
 		id_submit_button.disabled = true;
 		const res = (await axios.post(isInsert ? 'insert' : 'update', getFormParams()));

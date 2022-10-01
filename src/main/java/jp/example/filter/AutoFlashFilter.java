@@ -152,6 +152,7 @@ public class AutoFlashFilter extends HttpFilter {
 	 */
 	@SneakyThrows
 	public static void returns(Object resObject) {
+		if (resObject == null) throw SUCCESS_RESPONSE_COMMITTED;
 		HttpServletResponse res = requestContextThreadLocal.get().res;
 		if (!(resObject instanceof CharSequence)) {
 			res.setContentType("application/json");
