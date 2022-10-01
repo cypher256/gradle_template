@@ -21,7 +21,7 @@
 			</ul>
 			<div class="navbar-text d-flex ${empty request.remoteUser ? 'd-none' : ''}">
 				<span class="me-3">${fn:escapeXml(request.remoteUser)}</span>
-				<a class="nav-link active" href="${ctx}/logout">ログアウト</a>
+				<a class="nav-link active" href="${ctx}/logout">ログアウト111</a>
 			</div>
 		</div>
 	</div>
@@ -47,7 +47,13 @@
 const { createApp, ref, reactive, onMounted } = Vue;
 const { createRouter, createWebHashHistory, useRoute, useRouter } = VueRouter;
 
-// npm を使用せず CDN で Vue SFC (単一ファイルコンポーネント .vue ファイル) を使えるようにする
+// axios 2xx 以外の共通エラー設定
+axios.interceptors.response.use(
+	response => response,
+	error => {id_message.textContent = `❌ 処理できませんでした。 \${error.message} - \${error.config.url}`}
+);
+
+// npm を使用せず CDN で Vue SFC (ES6 単一ファイルコンポーネント .vue ファイル) を使えるようにする
 const loadVueFile = path => {return window["vue3-sfc-loader"].loadModule(path, {
 	moduleCache: {vue: Vue,},
 	async getFile(url) {
@@ -62,22 +68,16 @@ const loadVueFile = path => {return window["vue3-sfc-loader"].loadModule(path, {
 	},
 })};
 
-// Vue ルーター定義とマウント (.vue では ES6 使用可能)
+// Vue Router 定義 (createWebHashHistory 使用)
+// ・createWebHistory     : URL が切り替わるため、サーバ側で URL マッピングが必要 (同じページを返すようにする)
+// ・createWebHashHistory : URL ハッシュで切り替えるため、サーバ側で URL マッピング不要 (だが引数で state を渡せない)
 const router = createRouter({
-	history: createWebHashHistory(), // サーバ側でマッピング不要なハッシュルーター
+	history: createWebHashHistory(),
 	routes: [
 		{ path: "/", component: () => loadVueFile('./vue_list.vue') },
 		{ path: "/edit/:id", component: () => loadVueFile('./vue_edit.vue') },
 	],
 });
 createApp({}).use(router).mount("#id_app");
-
-// axios 2xx 以外の共通エラー設定
-axios.interceptors.response.use(
-	response => response,
-	error => {
-		id_message.textContent = `❌ 処理できませんでした。 \${error.message} - \${error.config.url}`;
-	}
-);
 </script>
 </html>
