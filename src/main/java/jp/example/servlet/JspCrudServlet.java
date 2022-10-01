@@ -98,11 +98,11 @@ public class JspCrudServlet {
 	@WebServlet("/item/api")
 	public static class RestServlet extends HttpServlet {
 		
-		/** 検索画面の検索文字列 onkeyup 時の検索結果件数取得 API */
+		/** 検索画面の検索文字列 onkeyup 時の検索結果件数取得 API (ローカルクラス json 返却サンプル) */
 		protected void doGet(HttpServletRequest req, HttpServletResponse res) {
 			@Data class SearchResult {
 				ItemForm condition = new ItemForm(req); // クライアントで件数以外は使用しないが json 返却例としてセット
-				long count = condition.count();
+				String countMessage = "結果予想件数: " + condition.count() + " 件 (Enter または検索ボタンを押してください)";
 			}
 			returns(new SearchResult()); // レスポンス: json 結果件数情報 (例外発生時は text エラーメッセージ文字列)
 		}

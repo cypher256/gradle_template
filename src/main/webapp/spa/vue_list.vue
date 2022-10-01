@@ -8,8 +8,8 @@
 
 	// 検索 API 呼び出し   
 	const handleSearch = async() => {
-		const resData = (await axios.get('search?' + getFormParams())).data;
-		typeof resData === 'string' ? id_message.textContent = resData : formList.value = resData;
+		const data = (await axios.get('search?' + getFormParams())).data;
+		typeof data === 'string' ? id_message.textContent = data : formList.value = data;
   	};
   	
   	// 検索ボタンクリック、フォーム Enter → 検索 API 呼び出し

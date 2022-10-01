@@ -87,7 +87,7 @@
 <%-- axios で get (_csrf 無し、検索条件入力中のリアルタイム API 件数 JSON 取得) --%>
 const count = async() => {
 	const res = (await axios.get('api?' + new URLSearchParams(new FormData(id_form)))).data;
-	id_message.textContent = res.count == null ? res : `結果予想件数: \${res.count} 件 (Enter または検索ボタンを押してください)`;
+	id_message.textContent = res.countMessage || res; <%-- システムエラーの場合は json ではなく文字列 --%>
 };
 </script>
 </html>

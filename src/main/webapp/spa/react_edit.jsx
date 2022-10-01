@@ -14,18 +14,18 @@ window._Edit = () => {
 	const handleInit = async() => {
 		id_message.textContent = null;
 		if (!isInsert) {
-			const resData = (await axios.get('select?id=' + id)).data;
-			if (typeof resData === 'string') {
-				id_message.textContent = resData; // エラーメッセージ String
+			const data = (await axios.get('select?id=' + id)).data;
+			if (typeof data === 'string') {
+				id_message.textContent = data; // エラーメッセージ String
 				router.push('/');
 				return;
 			} else {
-				setForm(resData); // ItemForm json
-				setCompanyId(resData.companyId);
+				setForm(data); // ItemForm json
+				setCompanyId(data.companyId);
 			}
 		}
 		setCompanySelect((await axios.get('select-company')).data);
-		id_name.focus(); // autofocus はテンプレートで使用できないためセット
+		id_name.focus(); // autofocus はテンプレートで使用できないため
   	};
   	
   	// フォーム Enter → 登録・更新 API 呼び出し (axios により CSRF ヘッダ自動追加)

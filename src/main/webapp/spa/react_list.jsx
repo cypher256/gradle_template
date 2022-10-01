@@ -8,8 +8,8 @@ window._List = () => {
 
 	// 検索 API 呼び出し   
 	const handleSearch = async() => {
-		const res = (await axios.get('search?' + getFormParams())).data;
-		typeof res === 'string' ? id_message.textContent = res : setFormList(res);
+		const data = (await axios.get('search?' + getFormParams())).data;
+		typeof data === 'string' ? id_message.textContent = data : setFormList(data);
   	};
   	
   	// 検索ボタンクリック、フォーム Enter → 検索 API 呼び出し
