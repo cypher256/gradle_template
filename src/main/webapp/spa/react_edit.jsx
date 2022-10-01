@@ -1,7 +1,7 @@
 /* 編集コンポーネント */
 window._Edit = () => {
 	
-	const history = useHistory();
+	const router = useHistory(); // v5 (v6 では useNavigate)
 	const id = useParams().id;
 	const isInsert = id == 0;
 	const [form, setForm] = useState({});
@@ -17,7 +17,7 @@ window._Edit = () => {
 			const resData = (await axios.get('select?id=' + id)).data;
 			if (typeof resData === 'string') {
 				id_message.textContent = resData; // エラーメッセージ String
-				history.push('/');
+				router.push('/');
 				return;
 			} else {
 				setForm(resData); // ItemForm json
@@ -25,6 +25,7 @@ window._Edit = () => {
 			}
 		}
 		setCompanySelect((await axios.get('select-company')).data);
+		id_name.focus(); // autofocus はテンプレートで使用できないためセット
   	};
   	
   	// フォーム Enter → 登録・更新 API 呼び出し
@@ -39,11 +40,11 @@ window._Edit = () => {
 				id_submit_button.disabled = false;
 			} else {
 				id_message.textContent = errorMessage; // 削除済みなどの 2xx システムエラー (2xx 以外は axios interceptors)
-				history.push('/');
+				router.push('/');
 			}
 		} else {
 			id_message.textContent = `ℹ️ ${isInsert ? '登録' : '更新'}しました。`;
-			history.push('/');
+			router.push('/');
 		}
   	};
 
@@ -59,8 +60,9 @@ window._Edit = () => {
 		<input type="hidden" name="id" defaultValue={form.id}/>
 		<div className="mb-3">
 			<label className="form-label">製品名</label> <span className="badge bg-danger">必須</span>
-			<input className="form-control" type="text" name="name" defaultValue={form.name} size="40"
-				onChange={handleChange} required autoFocus/>
+			<input className="form-control" type="text" name="name" defaultValue={form.name} id="id_name"
+				onFocus={e => e.target.setSelectionRange(99,99)}
+				onChange={handleChange} required/>
 		</div>
 		<div className="mb-3">
 			<label className="form-label">発売日</label> <span className="badge bg-danger">必須</span>

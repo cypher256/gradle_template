@@ -23,24 +23,51 @@
 			}
 		}
 		companySelect.value = (await axios.get('select-company')).data;
+		id_name.focus(); // autofocus はテンプレートで使用できないためセット
+  	};
+  	
+  	// フォーム Enter → 登録・更新 API 呼び出し
+	const handleSubmit = async(e) => {
+		id_submit_button.disabled = true;
+		const res = (await axios.post(isInsert ? 'insert' : 'update', getFormParams()));
+		const errorMessage = res.data;
+		if (errorMessage) {
+			if (res.status == 200) {
+				id_message.textContent = errorMessage; // 入力エラーなどのアプリエラー
+				id_submit_button.disabled = false;
+			} else {
+				id_message.textContent = errorMessage; // 削除済みなどの 2xx システムエラー (2xx 以外は axios interceptors)
+				router.push('/');
+			}
+		} else {
+			id_message.textContent = `ℹ️ ${isInsert ? '登録' : '更新'}しました。`;
+			router.push('/');
+		}
+  	};
+
+	// 変更イベント → 入力チェック API 呼び出し   
+	const handleChange = async() => {
+		const errorMessage = (await axios.post('validate', getFormParams())).data;
+		id_message.textContent = errorMessage; // エラーが無い場合は空
   	};
 </script>
 <template>
-	<form id="id_form" method="post" onsubmit="id_submit_button.disabled = true">
+	<form id="id_form" method="post" @submit.prevent="handleSubmit">
 		<input type="hidden" name="id" :value="form.id"/>
 		<div class="mb-3">
 			<label class="form-label">製品名</label> <span class="badge bg-danger">必須</span>
-			<input class="form-control" type="text" name="name" :value="form.name"
-				onkeyup="validate()" required autofocus onfocus="this.setSelectionRange(99,99)" size="40">
+			<input class="form-control" type="text" name="name" required id="id_name"
+				onfocus="this.setSelectionRange(99,99)" 
+				@keyup="e => {if (e.keyCode != 13) handleChange()}" :value="form.name"><!-- @change が動作しない -->
 		</div>
 		<div class="mb-3">
 			<label class="form-label">発売日</label> <span class="badge bg-danger">必須</span>
 			<input class="form-control w-auto" type="date" name="releaseDate" :value="form.releaseDate"
-				onchange="validate()" required>
+				@change="handleChange" required>
 		</div>
 		<div class="mb-3 form-check">
 			<input type="checkbox" name="faceAuth" id="faceAuth" class="form-check-input"
-				onchange="validate()" :checked="form.faceAuth">
+				@change="handleChange" :checked="form.faceAuth">
 			<label class="form-check-label" for="faceAuth">顔認証</label>
 		</div>
 		<div class="mb-5">
