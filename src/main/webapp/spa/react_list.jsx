@@ -2,9 +2,9 @@
 window._List = () => {
    
 	const form = window._ReactSearchForm ??= {name:'', releaseDate:''};
-	const [formList, setFormList] = useState([]);
+	const [formList, setFormList] = useState([]); // ステートフックで jsx で使用する値を定義 (set は setter 必須)
 	const getFormParams = () => new URLSearchParams(new FormData(id_form));
-	useEffect(() => {handleSearch()}, []);
+	useEffect(() => {handleSearch()}, []); // レンダー後の処理 (第2引数は検知対象で空配列の場合はこのコンポーネント本体のみ)
 
 	// 検索 API 呼び出し   
 	const handleSearch = async() => {
@@ -14,7 +14,7 @@ window._List = () => {
   	
   	// 検索ボタンクリック、フォーム Enter → 検索 API 呼び出し
 	const handleSubmit = async(e) => {
-		e.preventDefault(); // デフォルトサブミット抑止
+		e.preventDefault(); // React では明示的にデフォルトサブミット抑止 (Vue は @submit.prevent)
 		id_message.textContent = null;
 		handleSearch();
   	};
