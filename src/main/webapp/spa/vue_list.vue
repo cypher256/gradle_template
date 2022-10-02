@@ -35,13 +35,13 @@
 	<form id="id_form" method="get" class="d-sm-flex flex-wrap align-items-end" @submit.prevent="handleSubmit">
 		<label class="form-label me-sm-3">製品名</label>
 		<div class="me-sm-4">
-			<input class="form-control" type="search" name="name" autofocus
-				@keyup="e => {if (e.keyCode != 13) handleChange(e)}" :value="form.name"><!-- @change が動作しない -->
+			<input class="form-control" type="search" name="name" :value="form.name" autofocus
+				@keyup="e => {if (e.keyCode != 13) handleChange(e)}">
 		</div>
 		<label class="form-label me-sm-3">発売日</label>
 		<div class="me-sm-4">
-			<input class="form-control w-auto mb-3 mb-sm-0" type="date" name="releaseDate"
-				@change="handleChange" :value="form.releaseDate">
+			<input class="form-control w-auto mb-3 mb-sm-0" type="date" name="releaseDate" :value="form.releaseDate"
+				@change="handleChange">
 		</div>
 		<button type="submit" class="btn btn-secondary px-5">検索</button>
 		<router-link to="/edit/0" class="btn btn-secondary px-5 ms-auto">新規登録</router-link>

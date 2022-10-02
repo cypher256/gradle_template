@@ -5,7 +5,6 @@ window._Edit = () => {
 	const id = useParams().id;
 	const isInsert = id == 0;
 	const [form, setForm] = useState({});
-	const [companyId, setCompanyId] = useState(); // select デフォルト値警告対応
 	const [companySelect, setCompanySelect] = useState([]);
 	const getFormParams = () => new URLSearchParams(new FormData(id_form));
 	useEffect(() => {handleInit()}, []);
@@ -21,7 +20,6 @@ window._Edit = () => {
 				return;
 			} else {
 				setForm(data); // ItemForm json
-				setCompanyId(data.companyId);
 			}
 		}
 		setCompanySelect((await axios.get('select-company')).data);
@@ -76,8 +74,8 @@ window._Edit = () => {
 		</div>
 		<div className="mb-5">
 			<label className="form-label">メーカー</label>
-			<select name="companyId" className="form-select w-auto" value={companyId}
-				onChange={e => setCompanyId(e.target.value)}>
+			<select name="companyId" className="form-select w-auto" value={form.companyId}
+				onChange={e => setForm({...form, companyId: e.target.value})}>
 	{companySelect.map(com => (
 				<option key={com.id} value={com.id}>{com.companyName}</option>
 	))}

@@ -46,7 +46,7 @@
   	};
 
 	// 変更イベント → 入力チェック API 呼び出し   
-	const handleChange = async() => {
+	const handleChange = async(e) => {
 		const errorMessage = (await axios.post('validate', getFormParams())).data;
 		id_message.textContent = errorMessage; // エラーが無い場合は空
   	};
@@ -56,9 +56,9 @@
 		<input type="hidden" name="id" :value="form.id"/>
 		<div class="mb-3">
 			<label class="form-label">製品名</label> <span class="badge bg-danger">必須</span>
-			<input class="form-control" type="text" name="name" required id="id_name"
-				onfocus="this.setSelectionRange(99,99)" 
-				@keyup="e => {if (e.keyCode != 13) handleChange()}" :value="form.name"><!-- @change が動作しない -->
+			<input class="form-control" type="text" name="name" required id="id_name" :value="form.name"
+				onfocus="this.setSelectionRange(99,99)"
+				@keyup="e => {if (e.keyCode != 13) handleChange(e)}">
 		</div>
 		<div class="mb-3">
 			<label class="form-label">発売日</label> <span class="badge bg-danger">必須</span>
