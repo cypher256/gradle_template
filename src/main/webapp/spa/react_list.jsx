@@ -22,8 +22,8 @@ window._List = () => {
 	// 製品名・発売日変更イベント → 件数取得 API 呼び出し   
 	const handleChange = async(e) => {
 		window._ReactSearchForm[e.target.name] = e.target.value;
-		const infoMessage = (await axios.get('count?' + getFormParams())).data;
-		id_message.textContent = infoMessage;
+		const countMessage = (await axios.get('count?' + getFormParams())).data;
+		id_message.textContent = countMessage;
   	};
 	
 	// 削除ボタンクリック → 削除 API 呼び出し (削除は状態変更操作のため post、axios により CSRF ヘッダ自動追加)
