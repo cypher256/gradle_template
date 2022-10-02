@@ -10,8 +10,7 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-1">
 	<div class="container">
 		<a class="navbar-brand" href="${ctx}">CRUD サンプル</a>
-		<button class="navbar-toggler" type="button"
-			data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
+		<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
 			<span class="navbar-toggler-icon"></span>
 		</button>
 		<div class="collapse navbar-collapse" id="navbarSupportedContent">
@@ -84,10 +83,10 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 <script>
-<%-- axios で get (_csrf 無し、検索条件入力中のリアルタイム API 件数 JSON 取得) --%>
+<%-- 検索結果件数取得 API get (_csrf 無し、検索条件入力中の結果件数 JSON 取得) --%>
 const count = async() => {
 	const res = (await axios.get('api?' + new URLSearchParams(new FormData(id_form)))).data;
-	id_message.textContent = res.countMessage || res; <%-- システムエラーの場合は json ではなく文字列 --%>
+	id_message.textContent = res.countMessage || res; <%-- 正常時は json、例外時は文字列 --%>
 };
 </script>
 </html>

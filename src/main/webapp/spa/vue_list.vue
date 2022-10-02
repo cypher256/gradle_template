@@ -8,6 +8,7 @@
 
 	// 検索 API 呼び出し   
 	const handleSearch = async() => {
+		id_loading.classList.add('d-none');
 		const data = (await axios.get('search?' + getFormParams())).data;
 		typeof data === 'string' ? id_message.textContent = data : formList.value = data;
   	};

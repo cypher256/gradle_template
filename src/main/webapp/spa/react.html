@@ -10,8 +10,7 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-1">
 	<div class="container">
 		<a class="navbar-brand" href="..">CRUD サンプル</a>
-		<button class="navbar-toggler" type="button"
-			data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
+		<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
 			<span class="navbar-toggler-icon"></span>
 		</button>
 		<div class="collapse navbar-collapse" id="navbarSupportedContent">
@@ -29,8 +28,12 @@
 </nav>
 <!-- ========== メイン (React Router 画面遷移部分) ========== -->
 <div class="container">
-	<div class="alert mb-0" style="min-height:4rem" id="id_message"></div>
-	<div id="id_root"></div>
+	<div class="alert mb-0" id="id_message" style="min-height:4rem"></div>
+	<div id="id_root">
+		<div class="d-flex justify-content-center">
+			<div class="spinner-border text-secondary"></div>
+		</div>
+	</div>
 </div>
 <!-- ========== フッター ========== -->
 <footer class="footer fixed-bottom py-3 text-center bg-dark">

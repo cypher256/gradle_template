@@ -10,8 +10,7 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-1">
 	<div class="container">
 		<a class="navbar-brand" href="${ctx}">CRUD サンプル</a>
-		<button class="navbar-toggler" type="button"
-			data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
+		<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
 			<span class="navbar-toggler-icon"></span>
 		</button>
 		<div class="collapse navbar-collapse" id="navbarSupportedContent">
@@ -69,7 +68,7 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 <script>
-<%-- axios で post (_csrf 有り、入力中のリアルタイム API チェック結果を文字列で取得) --%>
+<%-- 入力チェック API post (_csrf 有り、入力中のチェック結果を文字列で取得) --%>
 const validate = async() => {
 	id_message.textContent = (await axios.post('api', new URLSearchParams(new FormData(id_form)))).data;
 };
