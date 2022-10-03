@@ -8,7 +8,6 @@
 
 	// 検索 API 呼び出し   
 	const handleSearch = async() => {
-		id_loading.classList.add('d-none'); // Vue ではここで消去 (React ではルーター要素内が表示前プレースホルダー)
 		const data = (await axios.get('search?' + getFormParams())).data;
 		typeof data === 'string' ? id_message.textContent = data : formList.value = data;
   	};

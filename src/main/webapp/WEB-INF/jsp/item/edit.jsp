@@ -14,6 +14,11 @@
 			<span class="navbar-toggler-icon"></span>
 		</button>
 		<div class="collapse navbar-collapse" id="navbarSupportedContent">
+			<ul class="navbar-nav me-auto mb-2 mb-lg-0">
+				<li class="nav-item"><a class="nav-link active" href="${ctx}/item/update?id=${form.id}">JSP</a></li>
+				<li class="nav-item"><a class="nav-link" href="${ctx}/spa/react.html#/edit/${form.id}">React</a></li>
+				<li class="nav-item"><a class="nav-link" href="${ctx}/spa/vue.html#/edit/${form.id}">Vue</a></li>
+			</ul>
 			<div class="navbar-text d-flex ms-auto ${empty request.remoteUser ? 'd-none' : ''}">
 				<span class="me-3">${fn:escapeXml(request.remoteUser)}</span>
 				<a class="nav-link active" href="${ctx}/logout">ログアウト</a>
