@@ -11,6 +11,10 @@
 
 	// 初期表示 → 取得 API 呼び出し   
 	const handleInit = async() => {
+		document.title = 'Vue の場合 (編集コンポーネント)';
+		id_head_link_jsp.href   = '../item/update?id=' + id;
+		id_head_link_react.href = '../spa/react.html#/edit/' + id;
+		id_head_link_vue.href   = '../spa/vue.html#/edit/' + id;
 		id_message.textContent = null;
 		if (!isInsert) {
 			const data = (await axios.get('select?id=' + id)).data;

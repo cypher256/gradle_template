@@ -4,7 +4,16 @@ window._List = () => {
 	const form = window._ReactSearchForm ??= {name:'', releaseDate:''};
 	const [formList, setFormList] = useState([]); // ステートフックで jsx で使用する値を定義 (set は setter 必須)
 	const getFormParams = () => new URLSearchParams(new FormData(id_form));
-	useEffect(() => {handleSearch()}, []); // レンダー後の処理 (第2引数は検知対象で空配列の場合はこのコンポーネント本体のみ)
+	useEffect(() => {handleInit()}, []); // レンダー後の処理 (第2引数は検知対象で空配列の場合はこのコンポーネント本体のみ)
+
+	// 初期表示 → 検索 API 呼び出し   
+	const handleInit = async() => {
+		document.title = 'React の場合 (一覧コンポーネント)';
+		id_head_link_jsp.href   = '../item/list';
+		id_head_link_react.href = '../spa/react.html';
+		id_head_link_vue.href   = '../spa/vue.html';
+		handleSearch();
+  	};
 
 	// 検索 API 呼び出し   
 	const handleSearch = async() => {
