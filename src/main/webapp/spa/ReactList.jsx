@@ -1,5 +1,5 @@
 /* React 一覧コンポーネント */
-window._List = () => {
+const ReactList = () => {
    
 	const form = window._ReactSearchForm ??= {name:'', releaseDate:''};
 	const [formList, setFormList] = useState([]); // ステートフックで jsx で使用する値を定義 (set は setter 必須)

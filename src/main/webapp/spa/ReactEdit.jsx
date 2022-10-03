@@ -1,5 +1,5 @@
 /* React 編集コンポーネント */
-window._Edit = () => {
+const ReactEdit = () => {
 	
 	const router = useHistory(); // v5 (v6 では useNavigate)
 	const id = useParams().id;
@@ -27,7 +27,7 @@ window._Edit = () => {
 			}
 		}
 		setCompanySelect((await axios.get('select-company')).data);
-		id_name.focus(); // autofocus はテンプレートで使用できないため
+		id_name.focus(); // jsx での autoFocus={true} だと値セットで onFocus が動作しないため
   	};
   	
   	// フォーム Enter → 登録・更新 API 呼び出し (axios により CSRF ヘッダ自動追加)

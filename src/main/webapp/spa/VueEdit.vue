@@ -27,7 +27,7 @@
 			}
 		}
 		companySelect.value = (await axios.get('select-company')).data;
-		id_name.focus(); // autofocus はテンプレートで使用できないため
+		id_name.focus(); // テンプレートでの autofocus だと値セットで onfocus が動作しないため
   	};
   	
   	// フォーム Enter → 登録・更新 API 呼び出し (axios により CSRF ヘッダ自動追加)

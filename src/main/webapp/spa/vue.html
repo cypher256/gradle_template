@@ -81,8 +81,8 @@ const loadVueFile = path => {return window["vue3-sfc-loader"].loadModule(path, {
 const router = createRouter({
 	history: createWebHashHistory(),
 	routes: [
-		{ path: "/", component: () => loadVueFile('./vue_list.vue') },
-		{ path: "/edit/:id", component: () => loadVueFile('./vue_edit.vue') },
+		{ path: "/", component: () => loadVueFile('./VueList.vue') },
+		{ path: "/edit/:id", component: () => loadVueFile('./VueEdit.vue') },
 	],
 });
 router.beforeEach((to, from, next) => {
