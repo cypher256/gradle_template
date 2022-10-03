@@ -23,6 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * 自動 CSRF フィルターです。
  * <pre>
+ * このフィルターはセキュリティに関するもので、必須ではありません。web.xml からコメントアウトしても動作します。
  * web.xml の dispatcher 要素に REQUEST, FORWARD を指定する必要があります。
  * 一般的な CSRF 攻撃への対策実装と比較して以下が自動化されているため、通常はフロントエンドで何もする必要はありません。
  * 

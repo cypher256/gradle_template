@@ -43,10 +43,11 @@
 </footer>
 </body>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.development.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.development.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/react-router-dom@5/umd/react-router-dom.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="../static/axios-common-interceptor.js"></script>
 <!-- npm を使用せず CDN で JSX を使えるように babel を組み込み、.jsx を text/babel でロード -->
 <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7/babel.min.js"></script>
 <script type="text/babel" src="ReactEdit.jsx"></script>
@@ -56,12 +57,7 @@
 const { useState, useEffect, createContext } = React;
 const { HashRouter, Route, Link, useParams, useHistory } = ReactRouterDOM; // v5 (v6 は script タグ未対応)
 
-// axios 2xx 以外の共通エラー設定 (html へのリダイレクト検出時は何らかのエラーのためリロードして画面表示)
-axios.interceptors.response.use(
-	res => {return res.headers['content-type']?.startsWith('text/html') ? location.reload() : res},
-	error => {id_message.textContent = `❌ 処理できませんでした。 ${error.message} - ${error.config?.url}`}
-);
-axios.defaults.maxRedirects = 0;
+// ログインユーザー名取得
 (async() => {
 	id_uesr_name.textContent = (await axios.get('user-name')).data;
 	if (id_uesr_name.textContent) id_logout.classList.remove('d-none');

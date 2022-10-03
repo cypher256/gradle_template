@@ -42,20 +42,17 @@
 </footer>
 </body>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/vue@3"></script>
 <script src="https://cdn.jsdelivr.net/npm/vue-router@4"></script>
 <script src="https://cdn.jsdelivr.net/npm/vue3-sfc-loader"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="../static/axios-common-interceptor.js"></script>
 <script>
 // ES2015 import 使用時と同じように書けるようにしておく
 const { createApp, ref, reactive, onMounted } = Vue;
 const { createRouter, createWebHashHistory, useRoute, useRouter } = VueRouter;
 
-// axios 2xx 以外の共通エラー設定 (html へのリダイレクト検出時は何らかのエラーのためリロードして画面表示)
-axios.interceptors.response.use(
-	res => {return res.headers['content-type']?.startsWith('text/html') ? location.reload() : res},
-	error => {id_message.textContent = `❌ 処理できませんでした。 ${error.message} - ${error.config?.url}`}
-);
+// ログインユーザー名取得
 (async() => {
 	id_uesr_name.textContent = (await axios.get('user-name')).data;
 	if (id_uesr_name.textContent) id_logout.classList.remove('d-none');

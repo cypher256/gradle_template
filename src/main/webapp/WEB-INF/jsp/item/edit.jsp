@@ -72,6 +72,7 @@
 </body>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="${ctx}/static/axios-common-interceptor.js"></script>
 <script>
 <%-- 入力チェック API post (_csrf 有り、入力中のチェック結果を文字列で取得) --%>
 const handleChange = async() => {

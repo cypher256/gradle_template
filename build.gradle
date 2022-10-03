@@ -8,8 +8,8 @@ CRUD プロジェクト React Vue JSP サンプルビルド定義
 	同じ機能 (DB 検索、登録・修正・削除) を React、Vue、JSP の 3 種類で同一プロジェクト内に実装したサンプルです。
 	Java 17, Tomcat 9 (javax) で動作し、ログイン機能も含まれています。
 
-		React			src/main/webapp/spa/react* (.html と .jsx)
-		Vue				src/main/webapp/spa/vue* (.html と .vue)
+		React			src/main/webapp/spa/React* (.html と .jsx)
+		Vue				src/main/webapp/spa/Vue* (.html と .vue)
 		JSP				src/main/webapp/WEB-INF/jsp/item/* (.jsp)
 		
 		React, Vue 共通	src/main/java/jp/example/servlet/SpaCrudServlet.java
