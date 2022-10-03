@@ -33,12 +33,12 @@
 		<label class="form-label me-sm-3">製品名</label>
 		<div class="me-sm-4">
 			<input class="form-control" type="search" name="name" value="${fn:escapeXml(param.name)}"
-				onkeyup="count()" autofocus onfocus="this.setSelectionRange(99,99)">
+				oninput="handleChange()" autofocus onfocus="this.setSelectionRange(99,99)">
 		</div>
 		<label class="form-label me-sm-3">発売日</label>
 		<div class="me-sm-4">
 			<input class="form-control w-auto mb-3 mb-sm-0" type="date" name="releaseDate"
-				value="${fn:escapeXml(param.releaseDate)}" onchange="count()">
+				onchange="handleChange()" value="${fn:escapeXml(param.releaseDate)}">
 		</div>
 		<button formaction="list" class="btn btn-secondary px-5">検索</button>
 		<button formaction="create" class="btn btn-secondary px-5 ms-auto">新規登録</button>
@@ -81,10 +81,10 @@
 </footer>
 </body>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script>
 <%-- 検索結果件数取得 API get (_csrf 無し、検索条件入力中の結果件数 JSON 取得) --%>
-const count = async() => {
+const handleChange = async() => {
 	const res = (await axios.get('api?' + new URLSearchParams(new FormData(id_form)))).data;
 	id_message.textContent = res.countMessage || res; <%-- 正常時は json、例外時は文字列 --%>
 };

@@ -1,7 +1,7 @@
 <!-- Vue 編集コンポーネント -->
 <script setup>
 
-	const router = useRouter();
+	const router = useRouter(); // Vue Router
 	const id = useRoute().params.id;
 	const isInsert = id == 0;
 	const form = ref({});
@@ -27,13 +27,13 @@
 			}
 		}
 		companySelect.value = (await axios.get('select-company')).data;
-		id_name.focus(); // テンプレートでの autofocus だと値セットで onfocus が動作しないため
+		id_name.focus(); // テンプレートでの autofocus だと初期値セットで onfocus が動作しないため
   	};
   	
-  	// フォーム Enter → 登録・更新 API 呼び出し (axios により CSRF ヘッダ自動追加)
+  	// フォーム Enter → 登録・更新 API 呼び出し
 	const handleSubmit = async(e) => {
 		id_submit_button.disabled = true;
-		const res = (await axios.post(isInsert ? 'insert' : 'update', getFormParams()));
+		const res = (await axios.post(isInsert ? 'insert' : 'update', getFormParams())); // axios が CSRF ヘッダ自動追加
 		const errorMessage = res.data;
 		if (errorMessage) {
 			if (res.status == 200) {
@@ -62,7 +62,7 @@
 			<label class="form-label">製品名</label> <span class="badge bg-danger">必須</span>
 			<input class="form-control" type="text" name="name" required id="id_name" :value="form.name"
 				onfocus="this.setSelectionRange(99,99)"
-				@keyup="e => {if (e.keyCode != 13) handleChange(e)}">
+				@input="handleChange">
 		</div>
 		<div class="mb-3">
 			<label class="form-label">発売日</label> <span class="badge bg-danger">必須</span>

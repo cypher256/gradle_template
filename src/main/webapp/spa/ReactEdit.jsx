@@ -1,7 +1,7 @@
 /* React 編集コンポーネント */
 const ReactEdit = () => {
 	
-	const router = useHistory(); // v5 (v6 では useNavigate)
+	const router = useHistory(); // React Router v5 (v6 では useNavigate)
 	const id = useParams().id;
 	const isInsert = id == 0;
 	const [form, setForm] = useState({});
@@ -27,14 +27,14 @@ const ReactEdit = () => {
 			}
 		}
 		setCompanySelect((await axios.get('select-company')).data);
-		id_name.focus(); // jsx での autoFocus={true} だと値セットで onFocus が動作しないため
+		id_name.focus(); // jsx での autoFocus={true} だと初期値セットで onFocus が動作しないため
   	};
   	
-  	// フォーム Enter → 登録・更新 API 呼び出し (axios により CSRF ヘッダ自動追加)
+  	// フォーム Enter → 登録・更新 API 呼び出し
 	const handleSubmit = async(e) => {
-		e.preventDefault(); // デフォルトサブミット抑止
+		e.preventDefault(); // デフォルトサブミット抑止 (Vue は @submit.prevent)
 		id_submit_button.disabled = true;
-		const res = (await axios.post(isInsert ? 'insert' : 'update', getFormParams()));
+		const res = (await axios.post(isInsert ? 'insert' : 'update', getFormParams())); // axios が CSRF ヘッダ自動追加
 		const errorMessage = res.data;
 		if (errorMessage) {
 			if (res.status == 200) {
@@ -78,6 +78,7 @@ const ReactEdit = () => {
 		</div>
 		<div className="mb-5">
 			<label className="form-label">メーカー</label>
+			{/* select は制御コンポーネントでないと警告が出るため value と onChange 使用 (... はスプレッド構文) */}
 			<select name="companyId" className="form-select w-auto" value={form.companyId}
 				onChange={e => setForm({...form, companyId: e.target.value})}>
 	{companySelect.map(com => (

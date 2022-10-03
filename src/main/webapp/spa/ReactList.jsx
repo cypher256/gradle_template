@@ -1,9 +1,9 @@
 /* React 一覧コンポーネント */
 const ReactList = () => {
    
-	const form = window._ReactSearchForm ??= {name:'', releaseDate:''};
-	const [formList, setFormList] = useState([]); // ステートフックで jsx で使用する値を定義 (set は setter 必須)
-	const getFormParams = () => new URLSearchParams(new FormData(id_form));
+	const form = window._ReactSearchForm ??= {name:'', releaseDate:''}; // 一覧に戻ってきたときの条件保存 (null 合体代入)
+	const [formList, setFormList] = useState([]); // ステートフックで jsx で使用する値を定義 (set は setter を使う)
+	const getFormParams = () => new URLSearchParams(new FormData(id_form)); // get でも post でも使えるフォームデータ
 	useEffect(() => {handleInit()}, []); // レンダー後の処理 (第2引数は検知対象で空配列の場合はこのコンポーネント本体のみ)
 
 	// 初期表示 → 検索 API 呼び出し   
@@ -23,12 +23,12 @@ const ReactList = () => {
   	
   	// 検索ボタンクリック、フォーム Enter → 検索 API 呼び出し
 	const handleSubmit = async(e) => {
-		e.preventDefault(); // React では明示的にデフォルトサブミット抑止 (Vue は @submit.prevent)
+		e.preventDefault(); // デフォルトサブミット抑止 (Vue は @submit.prevent)
 		id_message.textContent = null;
 		handleSearch();
   	};
 
-	// 製品名・発売日変更イベント → 件数取得 API 呼び出し   
+	// 検索条件変更イベント → 件数取得 API 呼び出し   
 	const handleChange = async(e) => {
 		window._ReactSearchForm[e.target.name] = e.target.value;
 		const countMessage = (await axios.get('count?' + getFormParams())).data;

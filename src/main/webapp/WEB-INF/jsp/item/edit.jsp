@@ -34,16 +34,16 @@
 		<div class="mb-3">
 			<label class="form-label">製品名</label> <span class="badge bg-danger">必須</span>
 			<input class="form-control" type="text" name="name" value="${fn:escapeXml(form.name)}"
-				onkeyup="validate()" required autofocus onfocus="this.setSelectionRange(99,99)" size="40">
+				oninput="handleChange()" required autofocus onfocus="this.setSelectionRange(99,99)" size="40">
 		</div>
 		<div class="mb-3">
 			<label class="form-label">発売日</label> <span class="badge bg-danger">必須</span>
 			<input class="form-control w-auto" type="date" name="releaseDate" value="${fn:escapeXml(form.releaseDate)}"
-				onchange="validate()" required>
+				onchange="handleChange()" required>
 		</div>
 		<div class="mb-3 form-check">
 			<input type="checkbox" name="faceAuth" id="faceAuth" class="form-check-input"
-				onchange="validate()" ${form.faceAuth ? 'checked' : ''}>
+				onchange="handleChange()" ${form.faceAuth ? 'checked' : ''}>
 			<label class="form-check-label" for="faceAuth">顔認証</label>
 		</div>
 		<div class="mb-5">
@@ -71,10 +71,10 @@
 </footer>
 </body>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script>
 <%-- 入力チェック API post (_csrf 有り、入力中のチェック結果を文字列で取得) --%>
-const validate = async() => {
+const handleChange = async() => {
 	id_message.textContent = (await axios.post('api', new URLSearchParams(new FormData(id_form)))).data;
 };
 </script>

@@ -44,23 +44,24 @@
 </body>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-<script src='https://unpkg.com/react-router-dom@5/umd/react-router-dom.min.js'></script>
+<script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.development.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/react-router-dom@5/umd/react-router-dom.min.js"></script>
 <!-- npm を使用せず CDN で JSX を使えるように babel を組み込み、.jsx を text/babel でロード -->
-<script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7/babel.min.js"></script>
 <script type="text/babel" src="ReactEdit.jsx"></script>
 <script type="text/babel" src="ReactList.jsx"></script>
 <script>
-// ES6 import 使用時と同じように書けるようにしておく
+// ES2015 import 使用時と同じように書けるようにしておく
 const { useState, useEffect, createContext } = React;
 const { HashRouter, Route, Link, useParams, useHistory } = ReactRouterDOM; // v5 (v6 は script タグ未対応)
 
 // axios 2xx 以外の共通エラー設定
 axios.interceptors.response.use(
-	response => response,
+	res => {return res.headers['content-type']?.startsWith('text/html') ? location.reload() : res}, // エラーリダイレクト
 	error => {id_message.textContent = `❌ 処理できませんでした。 ${error.message} - ${error.config?.url}`}
 );
+axios.defaults.maxRedirects = 0;
 (async() => {
 	id_uesr_name.textContent = (await axios.get('user-name')).data;
 	if (id_uesr_name.textContent) id_logout.classList.remove('d-none');

@@ -45,15 +45,15 @@
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/vue@3"></script>
 <script src="https://cdn.jsdelivr.net/npm/vue-router@4"></script>
-<script src="https://cdn.jsdelivr.net/npm/vue3-sfc-loader/dist/vue3-sfc-loader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue3-sfc-loader"></script>
 <script>
-// ES6 import 使用時と同じように書けるようにしておく
+// ES2015 import 使用時と同じように書けるようにしておく
 const { createApp, ref, reactive, onMounted } = Vue;
 const { createRouter, createWebHashHistory, useRoute, useRouter } = VueRouter;
 
 // axios 2xx 以外の共通エラー設定
 axios.interceptors.response.use(
-	response => response,
+	res => {return res.headers['content-type']?.startsWith('text/html') ? location.reload() : res}, // エラーリダイレクト
 	error => {id_message.textContent = `❌ 処理できませんでした。 ${error.message} - ${error.config?.url}`}
 );
 (async() => {
@@ -61,13 +61,10 @@ axios.interceptors.response.use(
 	if (id_uesr_name.textContent) id_logout.classList.remove('d-none');
 })();
 
-// npm を使用せず CDN で Vue SFC (ES6 単一ファイルコンポーネント .vue ファイル) を使えるようにする
+// npm を使用せず CDN で Vue SFC (単一ファイルコンポーネント .vue ファイル) を使えるようにする
 const loadVueFile = path => {return window["vue3-sfc-loader"].loadModule(path, {
 	moduleCache: {vue: Vue,},
-	async getFile(url) {
-		const res = await fetch(url);
-		return {getContentData: asBinary => asBinary ? res.arrayBuffer() : res.text(),};
-	},
+	async getFile(url) {return (await fetch(url)).text()},
 	addStyle(textContent) {
 		const style = Object.assign(document.createElement("style"), {textContent,});
 		const ref = document.head.getElementsByTagName("style")[0] || null;

@@ -1,9 +1,9 @@
 <!-- Vue 一覧コンポーネント (script setup は Vue 3.2 以降) -->
 <script setup>
 
-	const form = window._VueSearchForm ??= {name:'', releaseDate:''};
+	const form = window._VueSearchForm ??= {name:'', releaseDate:''}; //一覧に戻ってきたときの条件保存 (null 合体代入)
 	const formList = ref([]); // ref で template で使用する値を定義 (コードでは .value でアクセス)
-	const getFormParams = () => new URLSearchParams(new FormData(id_form));
+	const getFormParams = () => new URLSearchParams(new FormData(id_form)); // get でも post でも使えるフォームデータ
 	onMounted(() => handleInit()); // コンポーネントのマウント時の処理 
 
 	// 初期表示 → 検索 API 呼び出し
@@ -27,7 +27,7 @@
 		handleSearch();
   	};
 
-	// 製品名・発売日変更イベント → 件数取得 API 呼び出し   
+	// 検索条件変更イベント → 件数取得 API 呼び出し   
 	const handleChange = async(e) => {
 		window._VueSearchForm[e.target.name] = e.target.value;
 		const countMessage = (await axios.get('count?' + getFormParams())).data;
@@ -45,7 +45,7 @@
 		<label class="form-label me-sm-3">製品名</label>
 		<div class="me-sm-4">
 			<input class="form-control" type="search" name="name" :value="form.name" autofocus
-				@keyup="e => {if (e.keyCode != 13) handleChange(e)}">
+				@input="handleChange">
 		</div>
 		<label class="form-label me-sm-3">発売日</label>
 		<div class="me-sm-4">
