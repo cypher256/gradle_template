@@ -41,7 +41,7 @@ public class AuthFilter extends HttpFilter {
 		
 		// 認証済み or 認証除外 URL
 		Object user = session.getAttribute(USER);
-		if (user != null || path.matches("/(index.html|static)")) {
+		if (user != null || path.matches("/(index.html|static)")) { // TODO index.html 条件不要？
 			super.doFilter(req, res, chain);
 			return;
 		}
@@ -74,6 +74,7 @@ public class AuthFilter extends HttpFilter {
 		
 		// ログイン成功
 		if (user != null) {
+			// TODO セッション ID 変更
 			HttpSession session = req.getSession();
 			session.setAttribute(USER, user);
 			res.sendRedirect(defaultIfEmpty((String) session.getAttribute(LOGIN_SUCCESS_URL), req.getContextPath()));
