@@ -18,8 +18,8 @@
 		Tomcat 公式 CorsFilter			
 		ローカル AutoCsrfFilter
 		ローカル AutoTransactionFilter	[必須]
-		ローカル AuthFilter
 		ローカル AutoFlashFilter		[必須]
+		ローカル AuthFilter
 	===============================================================================================
 	-->
 	

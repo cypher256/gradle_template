@@ -17,8 +17,8 @@ CRUD プロジェクト React Vue JSP サンプルビルド定義
 		
 	サーバーサイド
 	
-		SPA		src/main/java/jp/example/servlet/SpaCrudServlet.java (React、Vue 共通 - フロント技術非依存)
-		JSP		src/main/java/jp/example/servlet/JspCrudServlet.java
+		SPA	用	src/main/java/jp/example/servlet/SpaCrudServlet.java (React、Vue 共通 - フロント技術非依存)
+		JSP	用	src/main/java/jp/example/servlet/JspCrudServlet.java
 
 実行方法
 	
