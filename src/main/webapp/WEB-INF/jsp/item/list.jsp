@@ -19,8 +19,8 @@
 				<li class="nav-item"><a class="nav-link" href="${ctx}/spa/react.html">React</a></li>
 				<li class="nav-item"><a class="nav-link" href="${ctx}/spa/vue.html">Vue</a></li>
 			</ul>
-			<div class="navbar-text d-flex ${empty request.remoteUser ? 'd-none' : ''}">
-				<span class="me-3">${fn:escapeXml(request.remoteUser)}</span>
+			<div class="navbar-text d-flex ${empty USER.username ? 'd-none' : ''}">
+				<span class="me-3">${fn:escapeXml(USER.username)}</span>
 				<a class="nav-link active" href="${ctx}/logout">ログアウト</a>
 			</div>
 		</div>

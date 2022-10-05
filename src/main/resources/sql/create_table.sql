@@ -3,16 +3,16 @@
 -- ============================================================================
 
 -- ----------------------------------------------------------------------------
--- ユーザー (ログイン認証: shiro.ini 参照)
+-- ユーザー (ログイン認証)
 -- ----------------------------------------------------------------------------
-CREATE TABLE users (
+CREATE TABLE login_user (
 	id BIGINT AUTO_INCREMENT,
 	username VARCHAR(128),
 	password VARCHAR(128),
 	PRIMARY KEY (id)
 );
-CREATE INDEX ix__users__username ON users (username);
-INSERT INTO users (username, password) VALUES 
+CREATE INDEX ix__login_user__username ON login_user (username);
+INSERT INTO login_user (username, password) VALUES 
 	('demouser','demo1234@')
 ;
 

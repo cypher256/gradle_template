@@ -6,14 +6,19 @@ CRUD プロジェクト React Vue JSP サンプルビルド定義
 プロジェクト概要
 
 	同じ機能 (DB 検索、登録・修正・削除) を React、Vue、JSP の 3 種類で同一プロジェクト内に実装したサンプルです。
-	Java 17, Tomcat 9 (javax) で動作し、ログイン機能も含まれています。
+	サーバ側は Java 17, Tomcat 9 (javax.servlet) で動作し、ログイン機能も含まれています。
+	サンプルの React と Vue は純粋な HTML と API 呼び出しのみなので、サーバ側の技術や言語に依存しません。
 
-		React			src/main/webapp/spa/React* (.html と .jsx)
-		Vue				src/main/webapp/spa/Vue* (.html と .vue)
-		JSP				src/main/webapp/WEB-INF/jsp/item/* (.jsp)
+	フロントエンド
+
+		React	src/main/webapp/spa/React* (.html と .jsx)
+		Vue		src/main/webapp/spa/Vue* (.html と .vue)
+		JSP		src/main/webapp/WEB-INF/jsp/item/* (.jsp - サーバ側だけど)
 		
-		React, Vue 共通	src/main/java/jp/example/servlet/SpaCrudServlet.java
-		JSP				src/main/java/jp/example/servlet/JspCrudServlet.java
+	サーバーサイド
+	
+		SPA		src/main/java/jp/example/servlet/SpaCrudServlet.java (React、Vue 共通 - フロント技術非依存)
+		JSP		src/main/java/jp/example/servlet/JspCrudServlet.java
 
 実行方法
 	
@@ -33,7 +38,6 @@ war ファイル作成
 	DB 接続プール	JNDI Tomcat		src/main/webapp/META-INF/context.xml
 	DB アクセス		uroboroSQL		src/main/java/jp/example/filter/AutoTransactionFilter.java
 	ログ管理		SLF4J			src/main/resources/simplelogger.properties
-	認証制御		Apache Shiro	src/main/webapp/WEB-INF/shiro.ini
 	セキュリティ	CSRF, CORS,,,	src/main/webapp/WEB-INF/web.xml
 	
 ---------------------------------------------------------------------------------------------------
@@ -53,16 +57,15 @@ dependencies {
 	compileOnly 'jakarta.servlet.jsp:jakarta.servlet.jsp-api:2.3.+'
 	runtimeOnly 'jakarta.servlet.jsp.jstl:jakarta.servlet.jsp.jstl-api:1.2.+'
 	runtimeOnly 'org.apache.taglibs:taglibs-standard-impl:1.2.+'
-	implementation 'org.apache.shiro:shiro-web:1.9.+'
 	implementation 'org.jodd:jodd-servlet:6.0.+'
 	
-	// Tomcat 10.0 (jakarta) - Apache Shiro, Jodd Servlet 未リリース
+	// Tomcat 10.0 (jakarta) - Jodd Servlet 未リリース
 	//compileOnly 'jakarta.servlet:jakarta.servlet-api:5.0.+'
 	//compileOnly 'jakarta.servlet.jsp:jakarta.servlet.jsp-api:3.0.+'
 	//runtimeOnly 'jakarta.servlet.jsp.jstl:jakarta.servlet.jsp.jstl-api:2.0.+'
 	//runtimeOnly 'org.glassfish.web:jakarta.servlet.jsp.jstl:2.0.+'
 	
-	// Tomcat 10.1 (jakarta) - Apache Shiro, Jodd Servlet 未リリース
+	// Tomcat 10.1 (jakarta) - Jodd Servlet 未リリース
 	//compileOnly 'jakarta.servlet:jakarta.servlet-api:6.0.+'
 	//compileOnly 'jakarta.servlet.jsp:jakarta.servlet.jsp-api:3.1.+'
 	//runtimeOnly 'jakarta.servlet.jsp.jstl:jakarta.servlet.jsp.jstl-api:3.0.+'

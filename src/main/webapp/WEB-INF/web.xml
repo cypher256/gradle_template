@@ -16,9 +16,9 @@
 		Tomcat 公式 RemoteIpFilter		
 		Tomcat 公式 SecurityFilter		
 		Tomcat 公式 CorsFilter			
-		Tomcat 公式 ShiroFilter			ログイン画面を使用する場合は必要
-		ローカル AutoCsrfFilter			
+		ローカル AutoCsrfFilter
 		ローカル AutoTransactionFilter	[必須]
+		ローカル AuthFilter
 		ローカル AutoFlashFilter		[必須]
 	===============================================================================================
 	-->
@@ -72,7 +72,7 @@
 
 	<!--
 	自動 CSRF フィルター
-	ログインフォーム post もチェックするため ShiroFilter より先
+	ログインフォーム post もチェックする
 	-->
 	<filter>
 		<filter-name>AutoCsrfFilter</filter-name>
@@ -85,32 +85,10 @@
 		<dispatcher>FORWARD</dispatcher><!--  jsp フォワード時のトークン埋め込み -->
 	</filter-mapping>
 
-	<!-- 
-	Apache Shiro ログイン認証フィルター (設定は /WEB-INF/shiro.ini)
-	login.html と設定ファイルのみで認証機構を実現
-	https://shiro.apache.org/webapp-tutorial.html
-	https://shiro.apache.org/web.html
-	-->
-	<filter>
-		<filter-name>ShiroFilter</filter-name>
-		<filter-class>org.apache.shiro.web.servlet.ShiroFilter</filter-class>
-	</filter>
-	<filter-mapping>
-		<filter-name>ShiroFilter</filter-name>
-		<url-pattern>/*</url-pattern>
-		<dispatcher>REQUEST</dispatcher>
-		<dispatcher>FORWARD</dispatcher>
-		<dispatcher>INCLUDE</dispatcher>
-		<dispatcher>ERROR</dispatcher>
-		<dispatcher>ASYNC</dispatcher>
-	</filter-mapping>
-	<listener>
-		<listener-class>org.apache.shiro.web.env.EnvironmentLoaderListener</listener-class>
-	</listener>
-
 	<!--
 	自動トランザクションフィルター
-	例外でトランザクション制御した後、再スローしない (上位に例外を伝播しない)
+	例外でトランザクション制御した後、再スローしない (上位に例外を伝播しない) しない
+	次のフィルターは必ず例外処理済みである必要がある
 	-->
 	<filter>
 		<filter-name>AutoTransactionFilter</filter-name>
@@ -132,6 +110,23 @@
 	</filter>
 	<filter-mapping>
 		<filter-name>AutoFlashFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+
+	<!--
+	ログイン認証フィルター
+	このフィルター以降で発生した例外は、上位フィルターにスルーされる
+	-->
+	<filter>
+		<filter-name>AuthFilter</filter-name>
+		<filter-class>jp.example.filter.AuthFilter</filter-class>
+		<init-param>
+			<param-name>userEntityClass</param-name>
+			<param-value>jp.example.entity.LoginUser</param-value>
+		</init-param>
+	</filter>
+	<filter-mapping>
+		<filter-name>AuthFilter</filter-name>
 		<url-pattern>/*</url-pattern>
 	</filter-mapping>
 	
@@ -157,7 +152,6 @@
 	<jsp-config>
 		<jsp-property-group>
 			<url-pattern>*.jsp</url-pattern>
-			<url-pattern>/login.html</url-pattern><!-- html を jsp として扱えるようにする -->
 			<page-encoding>UTF-8</page-encoding>
 			<include-prelude>/WEB-INF/jsp/taglib.jspf</include-prelude>
 			<trim-directive-whitespaces>true</trim-directive-whitespaces>

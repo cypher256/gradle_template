@@ -17,6 +17,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import jodd.servlet.ServletUtil;
 import jodd.servlet.filter.ByteArrayResponseWrapper;
+import jp.example.filter.AuthFilter.Servlets;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
@@ -77,7 +78,7 @@ public class AutoCsrfFilter extends HttpFilter {
 		
 		// [REQUEST] POST サブミット時のトークンチェック (Servlet を介さない html へのサブミット時も対象)
 		if (req.getDispatcherType() == DispatcherType.REQUEST && notMatchToken(req, res)) {
-			if (isAjax(req)) {
+			if (Servlets.isAjax(req)) {
 				res.sendError(HttpServletResponse.SC_FORBIDDEN);
 			} else {
 				// トップへリダイレクト (AutoFlashFilter で使えるフラッシュ属性 MESSAGE をセットしておく)
@@ -136,7 +137,7 @@ public class AutoCsrfFilter extends HttpFilter {
 		}
 		
 		// 画面遷移の場合はトークンを生成し直し
-		if (!isAjax(req) || session.getAttribute(_csrf) == null) {
+		if (!Servlets.isAjax(req) || session.getAttribute(_csrf) == null) {
 			session.setAttribute(_csrf, UUID.randomUUID().toString());
 		}
 		
@@ -156,13 +157,5 @@ public class AutoCsrfFilter extends HttpFilter {
 		// * 戻るボタン後のサブミットをエラーにしたい場合は、下記の bfcache を無効化しないようにする
 		ServletUtil.preventCaching(res);
 		return false; // 正常
-	}
-
-	/**
-	 * @return AJAX リクエストの場合は true
-	 */
-	protected boolean isAjax(HttpServletRequest req) {
-		return "XMLHttpRequest".equals(req.getHeader("X-Requested-With")) ||
-				StringUtils.contains(req.getHeader("Accept"), "/json");
 	}
 }

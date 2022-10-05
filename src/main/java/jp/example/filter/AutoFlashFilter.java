@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jodd.servlet.DispatcherUtil;
 import jodd.servlet.ServletUtil;
+import jp.example.filter.AuthFilter.Servlets;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
@@ -229,7 +230,7 @@ public class AutoFlashFilter extends HttpFilter {
 			requestContextThreadLocal.set(new RequestContext(req, res));
 			
 			// フラッシュは画面の機能のため AJAX の場合はフラッシュを復元・削除しない (例外ハンドリングは必要)
-			if (isAjax(req)) {
+			if (Servlets.isAjax(req)) {
 				super.doFilter(req, res, chain); // AJAX Servlet 呼び出し
 				return;
 			}
@@ -287,7 +288,7 @@ public class AutoFlashFilter extends HttpFilter {
 		req.setAttribute(MESSAGE, message); // jsp や html から参照可能にする (finally でも使用)
 		
 		// AJAX リクエスト時のエラー (アプリエラー、システムエラー両方) → メッセージ文字列を返す
-		if (isAjax(req)) {
+		if (Servlets.isAjax(req)) {
 			// アプリエラー以外はクライアント判別用に 202 Accepted をセット (200-203 以外の 2xx はレスポンス書き込み不可)
 			if (!isAppErrorFoward) res.setStatus(HttpServletResponse.SC_ACCEPTED);
 			res.getWriter().print(message);
@@ -313,13 +314,5 @@ public class AutoFlashFilter extends HttpFilter {
 		}
 		res.sendRedirect(redirectUrl);
 		req.getSession().setAttribute(FLASH, Map.of(MESSAGE, message));
-	}
-
-	/**
-	 * @return AJAX リクエストの場合は true
-	 */
-	protected boolean isAjax(HttpServletRequest req) {
-		return "XMLHttpRequest".equals(req.getHeader("X-Requested-With")) ||
-				StringUtils.contains(req.getHeader("Accept"), "/json");
 	}
 }

@@ -7,6 +7,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import jp.example.entity.LoginUser;
 import jp.example.form.ItemForm;
 
 /**
@@ -25,7 +26,7 @@ public class SpaCrudServlet {
 	@WebServlet("/spa/user-name")
 	public static class UserNameServlet extends HttpServlet {
 		protected void doGet(HttpServletRequest req, HttpServletResponse res) {
-			returns(req.getRemoteUser()); // Apache Shiro ログインユーザー名 (web.xml で無効化した場合は null)
+			returns($("USER", new LoginUser()).username); // ログインユーザー名 (web.xml で無効化した場合は null)
 		}
 	}
 

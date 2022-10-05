@@ -6,9 +6,6 @@ JSP HTML 共通ヘッダー (web.xml で設定)
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
 
-<%-- 認証タグ (サンプルで未使用) --%>
-<%@ taglib prefix="shiro" uri="http://shiro.apache.org/tags"%>
-
 <%--アプリ共通ページ属性 --%>
 <c:set var="request" value="${pageContext.request}"/>
 <c:set var="ctx" value="${request.contextPath}"/>
