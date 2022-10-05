@@ -70,7 +70,7 @@ public class AuthFilter extends HttpFilter {
 		Object user = dao()
 				.query(Class.forName(getInitParameter("userEntityClass")))
 				.equal("username", req.getParameter("username"))
-				.equal("password", req.getParameter("password"))
+				.equal("password", req.getParameter("password")) // ハッシュ化が必要
 				.first().orElse(null);
 		
 		// ログイン成功
