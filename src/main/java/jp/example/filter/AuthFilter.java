@@ -9,15 +9,14 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.commons.lang3.StringUtils;
-
 import jodd.servlet.DispatcherUtil;
+import jp.example.filter.AutoTransactionFilter.Servlets;
 import lombok.SneakyThrows;
 
 /**
  * ログイン認証フィルターです。
  * <pre>
- * このフィルターはセキュリティに関するもので、必須ではありません。web.xml で無効にできます。
+ * このフィルターはセキュリティに関するもので、必須ではありません。web.xml からコメントアウトすることで無効にできます。
  * AJAX の場合は HTTP ステータス 401、それ以外の場合はログイン画面にリダイレクトします。
  * </pre>
  * @author New Gradle Project Wizard (c) Pleiades MIT
@@ -83,15 +82,5 @@ public class AuthFilter extends HttpFilter {
 		// ログイン失敗
 		req.setAttribute("MESSAGE", "正しいログイン情報を入力してください。");
 		req.getRequestDispatcher("/login.html").forward(req, res);
-	}
-	
-	/** Servlet ユーティリティクラス */
-	public static class Servlets {
-		
-		/** @return AJAX リクエストの場合は true */
-		protected static boolean isAjax(HttpServletRequest req) {
-			return "XMLHttpRequest".equals(req.getHeader("X-Requested-With")) ||
-					StringUtils.contains(req.getHeader("Accept"), "/json");
-		}
 	}
 }

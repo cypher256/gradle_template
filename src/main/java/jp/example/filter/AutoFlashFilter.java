@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jodd.servlet.DispatcherUtil;
 import jodd.servlet.ServletUtil;
-import jp.example.filter.AuthFilter.Servlets;
+import jp.example.filter.AutoTransactionFilter.Servlets;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 

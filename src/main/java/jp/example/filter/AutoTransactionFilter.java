@@ -12,6 +12,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
 
+import org.apache.commons.lang3.StringUtils;
+
 import jp.co.future.uroborosql.SqlAgent;
 import jp.co.future.uroborosql.UroboroSQL;
 import jp.co.future.uroborosql.config.SqlConfig;
@@ -112,6 +114,16 @@ public class AutoTransactionFilter extends HttpFilter {
 			} finally {
 				daoThreadLocal.remove();
 			}
+		}
+	}
+	
+	/** Servlet ユーティリティクラス */
+	public static class Servlets {
+		
+		/** @return AJAX リクエストの場合は true */
+		protected static boolean isAjax(HttpServletRequest req) {
+			return "XMLHttpRequest".equals(req.getHeader("X-Requested-With")) ||
+					StringUtils.contains(req.getHeader("Accept"), "/json");
 		}
 	}
 }

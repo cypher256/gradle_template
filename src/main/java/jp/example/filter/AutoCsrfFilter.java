@@ -17,7 +17,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import jodd.servlet.ServletUtil;
 import jodd.servlet.filter.ByteArrayResponseWrapper;
-import jp.example.filter.AuthFilter.Servlets;
+import jp.example.filter.AutoTransactionFilter.Servlets;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
