@@ -1,6 +1,7 @@
 package jp.example.filter;
 
 import static jp.example.filter.AutoTransactionFilter.*;
+import static jp.example.filter.RequestContextFilter.*;
 import static org.apache.commons.lang3.StringUtils.*;
 
 import javax.servlet.FilterChain;
@@ -10,7 +11,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import jodd.servlet.DispatcherUtil;
-import jp.example.filter.AutoTransactionFilter.Servlets;
 import lombok.SneakyThrows;
 
 /**
@@ -31,29 +31,26 @@ public class AuthFilter extends HttpFilter {
 		
 		String path = req.getRequestURI().substring(req.getContextPath().length());
 		HttpSession session = req.getSession();
-		
-		// ログアウトボタンが押されたときの処理
+
 		if (path.equals("/logout")) {
 			session.invalidate();
 			res.sendRedirect(req.getContextPath());
 			return;
 		}
-		
-		// 認証済み or 認証除外 URL
-		Object user = session.getAttribute(USER);
-		if (user != null || path.matches("/(index.html|static)")) { // TODO index.html 条件不要？
-			super.doFilter(req, res, chain);
-			return;
-		}
-		
-		// ログインボタンが押されたときの処理
-		if (path.equals("/login")) {
+		if (path.equals("/login") && req.getMethod().equals("POST")) {
 			login(req, res);
 			return;
 		}
 		
+		// 認証済み or 静的コンテンツ
+		Object user = session.getAttribute(USER);
+		if (user != null || path.equals("/static")) {
+			super.doFilter(req, res, chain);
+			return;
+		}
+		
 		// 未認証 (AJAX: HTTP 401、画面: ログイン画面にフォワード)
-		if (Servlets.isAjax(req)) {
+		if (isAjax(req)) {
 			res.sendError(HttpServletResponse.SC_UNAUTHORIZED);
 		} else {
 			if (req.getMethod().equals("GET")) {
@@ -69,12 +66,12 @@ public class AuthFilter extends HttpFilter {
 		Object user = dao()
 				.query(Class.forName(getInitParameter("userEntityClass")))
 				.equal("username", req.getParameter("username"))
-				.equal("password", req.getParameter("password")) // ハッシュ化が必要
+				.equal("password", req.getParameter("password")) // TODO isSecure ハッシュ化が必要
 				.first().orElse(null);
 		
 		// ログイン成功
 		if (user != null) {
-			// TODO セッション ID 変更
+			req.changeSessionId(); // セッション固定化攻撃対策
 			HttpSession session = req.getSession();
 			session.setAttribute(USER, user);
 			res.sendRedirect(defaultIfEmpty((String) session.getAttribute(LOGIN_SUCCESS_URL), req.getContextPath()));

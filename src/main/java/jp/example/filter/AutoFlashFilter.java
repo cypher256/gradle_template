@@ -1,5 +1,7 @@
 package jp.example.filter;
 
+import static jp.example.filter.RequestContextFilter.*;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -20,7 +22,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jodd.servlet.DispatcherUtil;
 import jodd.servlet.ServletUtil;
-import jp.example.filter.AutoTransactionFilter.Servlets;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
@@ -230,7 +231,7 @@ public class AutoFlashFilter extends HttpFilter {
 			requestContextThreadLocal.set(new RequestContext(req, res));
 			
 			// フラッシュは画面の機能のため AJAX の場合はフラッシュを復元・削除しない (例外ハンドリングは必要)
-			if (Servlets.isAjax(req)) {
+			if (isAjax(req)) {
 				super.doFilter(req, res, chain); // AJAX Servlet 呼び出し
 				return;
 			}
@@ -288,7 +289,7 @@ public class AutoFlashFilter extends HttpFilter {
 		req.setAttribute(MESSAGE, message); // jsp や html から参照可能にする (finally でも使用)
 		
 		// AJAX リクエスト時のエラー (アプリエラー、システムエラー両方) → メッセージ文字列を返す
-		if (Servlets.isAjax(req)) {
+		if (isAjax(req)) {
 			// アプリエラー以外はクライアント判別用に 202 Accepted をセット (200-203 以外の 2xx はレスポンス書き込み不可)
 			if (!isAppErrorFoward) res.setStatus(HttpServletResponse.SC_ACCEPTED);
 			res.getWriter().print(message);

@@ -1,6 +1,7 @@
 package jp.example.filter;
 
 import static java.lang.String.*;
+import static jp.example.filter.RequestContextFilter.*;
 
 import java.io.IOException;
 import java.util.Map;
@@ -17,7 +18,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import jodd.servlet.ServletUtil;
 import jodd.servlet.filter.ByteArrayResponseWrapper;
-import jp.example.filter.AutoTransactionFilter.Servlets;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
@@ -78,7 +78,7 @@ public class AutoCsrfFilter extends HttpFilter {
 		
 		// [REQUEST] POST サブミット時のトークンチェック (Servlet を介さない html へのサブミット時も対象)
 		if (req.getDispatcherType() == DispatcherType.REQUEST && notMatchToken(req, res)) {
-			if (Servlets.isAjax(req)) {
+			if (isAjax(req)) {
 				res.sendError(HttpServletResponse.SC_FORBIDDEN);
 			} else {
 				// トップへリダイレクト (AutoFlashFilter で使えるフラッシュ属性 MESSAGE をセットしておく)
@@ -137,7 +137,7 @@ public class AutoCsrfFilter extends HttpFilter {
 		}
 		
 		// 画面遷移の場合はトークンを生成し直し
-		if (!Servlets.isAjax(req) || session.getAttribute(_csrf) == null) {
+		if (!isAjax(req) || session.getAttribute(_csrf) == null) {
 			session.setAttribute(_csrf, UUID.randomUUID().toString());
 		}
 		
