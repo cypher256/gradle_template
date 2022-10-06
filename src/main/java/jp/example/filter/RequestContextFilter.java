@@ -12,10 +12,13 @@ import lombok.SneakyThrows;
 /**
  * リクエストコンテキストフィルターです。
  * <pre>
+ * 各フィルターは基本的に独立していますが、このフィルターは唯一、他のフィルターから参照されています。
  * </pre>
  * @author New Gradle Project Wizard (c) Pleiades MIT
  */
 public class RequestContextFilter extends HttpFilter {
+	
+	// TODO  $  isAjax
 	
 	private static final ThreadLocal<RequestContext> requestContextThreadLocal = new ThreadLocal<>();
 	
