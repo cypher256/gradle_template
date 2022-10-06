@@ -22,7 +22,7 @@ import lombok.SneakyThrows;
  * AJAX の場合は HTTP ステータス 401、それ以外の場合はログイン画面にリダイレクトします。
  * ログインに成功した場合、web.xml に指定した userEntityClass のインスタンスがセッションに "USER" として格納されます。
  * この実装では DB のユーザーテーブルに username と password カラムが必要です。
- * このフィルターより前に AutoCsrfFilter を設定することで CSRF チェックされます。
+ * このフィルターより前に AutoCsrfFilter を設定することで、ログイン時に CSRF チェックされます。
  * </pre>
  * @author New Gradle Project Wizard (c) Pleiades MIT
  */
