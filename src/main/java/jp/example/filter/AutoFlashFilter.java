@@ -13,7 +13,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.time.StopWatch;
@@ -21,7 +20,6 @@ import org.apache.commons.lang3.time.StopWatch;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jodd.servlet.DispatcherUtil;
-import jodd.servlet.ServletUtil;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
@@ -99,12 +97,11 @@ public class AutoFlashFilter extends HttpFilter {
 	 */
 	@SneakyThrows
 	public static void forward(String jspPath) {
-		RequestContext context = requestContextThreadLocal.get();
-		HttpServletRequest req = context.req;
+		HttpServletRequest req = RequestContextFilter.request();
 		String uriDir = req.getRequestURI().replaceFirst("^/[^/]+(.*?)[^/]*$", "$1");
 		String path = "/WEB-INF/jsp" + (jspPath.startsWith("/") ? jspPath : uriDir + jspPath);
 		log.debug("フォワード {} (getRequestURI[{}] uriDir[{}] jspPath[{}])", path, req.getRequestURI(), uriDir, jspPath);
-		req.getRequestDispatcher(path).forward(req, context.res);
+		req.getRequestDispatcher(path).forward(req, RequestContextFilter.response());
 		req.getSession().setAttribute(APP_ERROR_FORWARD_PATH, path);
 		throw SUCCESS_RESPONSE_COMMITTED;
 	}
@@ -133,12 +130,11 @@ public class AutoFlashFilter extends HttpFilter {
 	 */
 	@SneakyThrows
 	public static void redirect(String redirectUrl, String flashMessage) {
-		RequestContext context = requestContextThreadLocal.get();
-		HttpServletRequest req = context.req;
+		HttpServletRequest req = RequestContextFilter.request();
 		req.setAttribute(MESSAGE, flashMessage);
 		String url = Objects.toString(redirectUrl, req.getContextPath());
 		log.debug("リダイレクト {} (引数[{}])", url, redirectUrl);
-		context.res.sendRedirect(url);
+		RequestContextFilter.response().sendRedirect(url);
 		req.getSession().setAttribute(SYS_ERROR_REDIRECT_URL, url);
 		req.getSession().setAttribute(FLASH, req.getAttribute(FLASH));
 		throw SUCCESS_RESPONSE_COMMITTED;
@@ -155,7 +151,7 @@ public class AutoFlashFilter extends HttpFilter {
 	@SneakyThrows
 	public static void returns(Object resObject) {
 		if (resObject == null) throw SUCCESS_RESPONSE_COMMITTED;
-		HttpServletResponse res = requestContextThreadLocal.get().res;
+		HttpServletResponse res = RequestContextFilter.response();
 		if (!(resObject instanceof CharSequence)) {
 			res.setContentType("application/json");
 			resObject = jsonMapper.writeValueAsString(resObject);
@@ -178,28 +174,6 @@ public class AutoFlashFilter extends HttpFilter {
 		}
 	}
 	
-	/**
-	 * JSP EL の ${name} のようにリクエスト、セッション、アプリケーションスコープから、最初に見つかった属性値を取得します。
-	 * @param <T> 戻り値の型 (代入先があればキャスト不要)
-	 * @param name 属性名
-	 * @return 属性値。見つからない場合は null。
-	 */
-	@SuppressWarnings("unchecked")
-	public static <T> T $(String name) {
-		return (T) ServletUtil.attribute(requestContextThreadLocal.get().req, name);
-	}
-	
-	/**
-	 * JSP EL の ${name} のようにリクエスト、セッション、アプリケーションスコープから、最初に見つかった属性値を取得します。
-	 * @param <T> 戻り値の型 (代入先があればキャスト不要)
-	 * @param name 属性名
-	 * @param defaultValue 値が見つからなかった場合のデフォルト値
-	 * @return 属性値。見つからない場合は defaultValue。
-	 */
-	public static <T> T $(String name, T defaultValue) {
-		return ObjectUtils.defaultIfNull($(name), defaultValue);
-	}
-	
 	//-------------------------------------------------------------------------
 	// Servlet フィルター処理
 	//-------------------------------------------------------------------------
@@ -207,29 +181,19 @@ public class AutoFlashFilter extends HttpFilter {
 	protected static final String FLASH = "FLASH";
 	protected static final RuntimeException SUCCESS_RESPONSE_COMMITTED = new RuntimeException();
 	protected static final ObjectMapper jsonMapper = new ObjectMapper();
-	protected static final ThreadLocal<RequestContext> requestContextThreadLocal = new ThreadLocal<>();
-	
-	/** ThreadLocal に保存するリクエストコンテキストレコード */
-	protected record RequestContext (
-		HttpServletRequest req,
-		HttpServletResponse res
-	) {};
 	
 	@Override @SneakyThrows
 	protected void doFilter(HttpServletRequest req, HttpServletResponse res, FilterChain chain) {
 		
-		// css js などを除外 (html は web.xml で jsp 扱いのため除外しない、ドットを含む Servlet マッピングはサポートしない)
+		// css js など拡張子があるリクエストはこのフィルター処理対象外
 		String uri = req.getRequestURI();
-		if (uri.contains(".") && !uri.endsWith(".html")) {
+		if (uri.contains(".")) {
 			super.doFilter(req, res, chain); 
 			return;
 		}
 		
-		// リクエストのスレッドローカル設定と次のフィルター呼び出し
 		StopWatch stopWatch = StopWatch.createStarted();
 		try {
-			requestContextThreadLocal.set(new RequestContext(req, res));
-			
 			// フラッシュは画面の機能のため AJAX の場合はフラッシュを復元・削除しない (例外ハンドリングは必要)
 			if (isAjax(req)) {
 				super.doFilter(req, res, chain); // AJAX Servlet 呼び出し
@@ -254,7 +218,7 @@ public class AutoFlashFilter extends HttpFilter {
 					tempFlash.remove(name);
 				}
 			};
-			requestContextThreadLocal.set(new RequestContext(flashReqWrapper, res));
+			RequestContextFilter.set(flashReqWrapper, res);
 			super.doFilter(flashReqWrapper, res, chain); // 画面 Servlet 呼び出し
 			
 		} catch (Throwable e) {
@@ -267,7 +231,6 @@ public class AutoFlashFilter extends HttpFilter {
 		} finally {
 			String fullUrl = DispatcherUtil.getFullUrl(req);
 			log.debug("処理時間 {}ms [{}] {} {}", stopWatch.getTime(), req.getMethod(), fullUrl, $(MESSAGE, ""));
-			requestContextThreadLocal.remove();
 		}
 	}
 	

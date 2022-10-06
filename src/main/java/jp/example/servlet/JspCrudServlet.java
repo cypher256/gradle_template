@@ -1,6 +1,7 @@
 package jp.example.servlet;
 
 import static jp.example.filter.AutoFlashFilter.*;
+import static jp.example.filter.RequestContextFilter.*;
 
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -16,13 +17,18 @@ import lombok.extern.slf4j.Slf4j;
  * サンプルテーブル item の JSP CRUD コントローラー Servlet です。
  * <pre>
  * 一般的な検索一覧、登録、修正、削除画面の Servlet JSP CRUD パターン実装です。
- * 以下の AutoFlashFilter クラスの static メソッドを static インポート (Ctrl/Cmd + Shift + m) して使用できます。
+ * 以下のクラスの static メソッドを static インポート (Ctrl/Cmd + Shift + m) して使用できます。
  * forward、redirect、returns は条件分岐で呼び分ける場合でも、Servlet 内の処理はそこで終了するため、return 不要です。
+ * 
+ * AutoFlashFilter
  * 
  *   forward(jsp)   フォワードのショートカット (入力エラー時の戻り先として保存、CSRF 兼同期トークン自動埋め込み)
  *   redirect(url)  リダイレクトのショートカット (自動フラッシュにより、リダイレクト先でリクエスト属性がそのまま使用可能)
  *   returns(obj)   REST API などの戻り値として Java オブジェクトを JSON 文字列などに変換してクライアントに返却
  *   valid(〜)      条件とエラーメッセージを指定して、pplicationException をスローするためのショートカットメソッド
+ *   
+ * RequestContextFilter
+ * 
  *   $("name")      JSP EL のようにリクエスト、セッションなどのスコープから、最初に見つかった属性値を取得 (キャスト不要)
  *   
  * アプリでスローした例外は AutoFlashFilter で下記の処理が行われ、JSP では ${MESSAGE} で例外メッセージを取得できます。

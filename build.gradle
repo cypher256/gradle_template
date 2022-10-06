@@ -73,6 +73,7 @@ dependencies {
 
 	implementation 'com.fasterxml.jackson.core:jackson-databind:2.13.+'
 	implementation 'commons-beanutils:commons-beanutils:1.9.+'
+	implementation 'commons-codec:commons-codec:1.+'
 	implementation 'org.apache.commons:commons-lang3:3.12.+'
 	implementation 'jp.co.future:uroborosql:0.25.+'
 	compileOnly 'org.projectlombok:lombok:1.18.+'

@@ -16,8 +16,9 @@
 		<div class="alert mb-0 text-light" style="min-height:4rem">${MESSAGE}</div>
 		<form method="post" action="${ctx}/login" class="d-inline-block">
 			<div class="form-floating">
-				<input type="text" class="form-control" name="username" required autofocus
-					value="${empty param.username ? 'demouser' : param.username}">
+				<input type="text" class="form-control" name="username" required
+					value="${empty param.username ? 'demouser' : param.username}"
+					autofocus onfocus="this.setSelectionRange(99,99)">
 				<label for="floatingInput">ユーザー名</label>
 			</div>
 			<div class="form-floating">

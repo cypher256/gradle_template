@@ -10,12 +10,13 @@
 	===============================================================================================
 	Servlet フィルター定義
 	===============================================================================================
-	以下のフィルターが設定済みですが、サンプルの実行に必須なのは 2 つだけです。
+	以下のフィルターが設定済みですが、サンプルの実行に必須なのは 3 つです。
 	他は、すべてセキュリティ関連のフィルターでコメントアウトしても動作します。
 	
-		Tomcat 公式 RemoteIpFilter		
-		Tomcat 公式 SecurityFilter		
-		Tomcat 公式 CorsFilter			
+		Tomcat 公式 RemoteIpFilter
+		Tomcat 公式 SecurityFilter
+		Tomcat 公式 CorsFilter
+		ローカル RequestContextFilter		[必須]
 		ローカル AutoCsrfFilter
 		ローカル AutoTransactionFilter	[必須]
 		ローカル AutoFlashFilter		[必須]
@@ -67,6 +68,18 @@
 	</filter>
 	<filter-mapping>
 		<filter-name>CorsFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+
+	<!--
+	リクエストコンテキストフィルター
+	-->
+	<filter>
+		<filter-name>RequestContextFilter</filter-name>
+		<filter-class>jp.example.filter.RequestContextFilter</filter-class>
+	</filter>
+	<filter-mapping>
+		<filter-name>RequestContextFilter</filter-name>
 		<url-pattern>/*</url-pattern>
 	</filter-mapping>
 

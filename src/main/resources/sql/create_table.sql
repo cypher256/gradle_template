@@ -8,7 +8,7 @@
 CREATE TABLE login_user (
 	id BIGINT AUTO_INCREMENT,
 	username VARCHAR(128),
-	password VARCHAR(128),
+	password VARCHAR(512), -- 開発環境など https 環境でない場合は平文、https ではハッシュ化
 	PRIMARY KEY (id)
 );
 CREATE INDEX ix__login_user__username ON login_user (username);

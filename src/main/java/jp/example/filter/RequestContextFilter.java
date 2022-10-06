@@ -5,8 +5,10 @@ import javax.servlet.http.HttpFilter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import jodd.servlet.ServletUtil;
 import lombok.SneakyThrows;
 
 /**
@@ -18,8 +20,36 @@ import lombok.SneakyThrows;
  */
 public class RequestContextFilter extends HttpFilter {
 	
-	// TODO  $  isAjax
+	//-------------------------------------------------------------------------
+	// Servlet から使用する public static メソッド
+	//-------------------------------------------------------------------------
 	
+	/**
+	 * JSP EL の ${name} のようにリクエスト、セッション、アプリケーションスコープから、最初に見つかった属性値を取得します。
+	 * @param <T> 戻り値の型 (代入先があればキャスト不要)
+	 * @param name 属性名
+	 * @return 属性値。見つからない場合は null。
+	 */
+	@SuppressWarnings("unchecked")
+	public static <T> T $(String name) {
+		return (T) ServletUtil.attribute(request(), name);
+	}
+	
+	/**
+	 * JSP EL の ${name} のようにリクエスト、セッション、アプリケーションスコープから、最初に見つかった属性値を取得します。
+	 * @param <T> 戻り値の型 (代入先があればキャスト不要)
+	 * @param name 属性名
+	 * @param defaultValue 値が見つからなかった場合のデフォルト値
+	 * @return 属性値。見つからない場合は defaultValue。
+	 */
+	public static <T> T $(String name, T defaultValue) {
+		return ObjectUtils.defaultIfNull($(name), defaultValue);
+	}
+	
+	//-------------------------------------------------------------------------
+	// Servlet フィルター処理
+	//-------------------------------------------------------------------------
+
 	private static final ThreadLocal<RequestContext> requestContextThreadLocal = new ThreadLocal<>();
 	
 	private record RequestContext (
@@ -29,6 +59,15 @@ public class RequestContextFilter extends HttpFilter {
 
 	@Override @SneakyThrows
 	protected void doFilter(HttpServletRequest req, HttpServletResponse res, FilterChain chain) {
+		
+		// css js など拡張子があるリクエストはこのフィルター処理対象外
+		String uri = req.getRequestURI();
+		if (uri.contains(".")) {
+			super.doFilter(req, res, chain); 
+			return;
+		}
+		
+		// Servlet 処理
 		try {
 			requestContextThreadLocal.set(new RequestContext(req, res));
 			super.doFilter(req, res, chain);

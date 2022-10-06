@@ -1,6 +1,7 @@
 package jp.example.servlet;
 
 import static jp.example.filter.AutoFlashFilter.*;
+import static jp.example.filter.RequestContextFilter.*;
 
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
