@@ -22,6 +22,7 @@ import lombok.SneakyThrows;
  * AJAX の場合は HTTP ステータス 401、それ以外の場合はログイン画面にリダイレクトします。
  * ログインに成功した場合、web.xml に指定した userEntityClass のインスタンスがセッションに "USER" として格納されます。
  * この実装では DB のユーザーテーブルに username と password カラムが必要です。
+ * このフィルターより前に AutoCsrfFilter を設定することで CSRF チェックされます。
  * </pre>
  * @author New Gradle Project Wizard (c) Pleiades MIT
  */
@@ -58,6 +59,7 @@ public class AuthFilter extends HttpFilter {
 			res.sendError(HttpServletResponse.SC_UNAUTHORIZED);
 		} else {
 			if (req.getMethod().equals("GET")) {
+				// アクセス URL 保存
 				session.setAttribute(LOGIN_SUCCESS_URL, DispatcherUtil.getFullUrl(req));
 			}
 			req.getRequestDispatcher("/WEB-INF/jsp/login.jsp").forward(req, res);
@@ -81,6 +83,7 @@ public class AuthFilter extends HttpFilter {
 			req.changeSessionId(); // セッション固定化攻撃対策
 			HttpSession session = req.getSession();
 			session.setAttribute(USER, user);
+			// アクセス URL 復元
 			res.sendRedirect(defaultIfEmpty((String) session.getAttribute(LOGIN_SUCCESS_URL), req.getContextPath()));
 			return;
 		}
