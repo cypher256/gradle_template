@@ -186,8 +186,7 @@ public class AutoFlashFilter extends HttpFilter {
 	protected void doFilter(HttpServletRequest req, HttpServletResponse res, FilterChain chain) {
 		
 		// css js など拡張子があるリクエストはこのフィルター処理対象外
-		String uri = req.getRequestURI();
-		if (uri.contains(".")) {
+		if (req.getRequestURI().contains(".")) {
 			super.doFilter(req, res, chain); 
 			return;
 		}

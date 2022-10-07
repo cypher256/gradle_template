@@ -44,9 +44,11 @@ import lombok.extern.slf4j.Slf4j;
  * 
  *     // form の hidden から取得 (method="post" の form がある画面のみ)
  *     document.forms[0]._csrf.value
+ *     
  *     // meta タグから取得する場合 (すべての画面)
  *     document.querySelector("meta[name='_csrf']").content
- *     // Cookie から取得する場合 (すべての画面)
+ *     
+ *     // Cookie から取得する場合 (すべての画面、API クライアント)
  *     document.cookie.split('; ').find(e => e.startsWith('XSRF-TOKEN')).split('=')[1]
  * 
  * また、アップロード用の multipart post form の場合は、hidden が getParameter で取得できないため、action 属性に
