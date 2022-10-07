@@ -48,14 +48,13 @@ public class AuthFilter extends HttpFilter {
 			return;
 		}
 		
-		// 認証済み or 静的コンテンツ
-		Object user = session.getAttribute(USER);
-		if (user != null || path.equals("/static")) {
+		// 静的コンテンツ or 認証済み 
+		if (path.equals("/static") || session.getAttribute(USER) != null) {
 			super.doFilter(req, res, chain);
 			return;
 		}
 		
-		// 未認証 (AJAX: HTTP 401、画面: ログイン画面にフォワード)
+		// 認証エラー (AJAX: HTTP 401、画面: ログイン画面にフォワード)
 		if (isAjax(req)) {
 			res.sendError(HttpServletResponse.SC_UNAUTHORIZED);
 		} else {

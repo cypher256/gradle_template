@@ -50,7 +50,7 @@ public class RequestContextFilter extends HttpFilter {
 	// Servlet フィルター処理
 	//-------------------------------------------------------------------------
 
-	private static final ThreadLocal<RequestContext> threadLocal = new ThreadLocal<>();
+	private static final ThreadLocal<RequestContext> contextThreadLocal = new ThreadLocal<>();
 	
 	private record RequestContext (
 		HttpServletRequest req,
@@ -59,28 +59,28 @@ public class RequestContextFilter extends HttpFilter {
 
 	@Override @SneakyThrows
 	protected void doFilter(HttpServletRequest req, HttpServletResponse res, FilterChain chain) {
-		if (req.getRequestURI().contains(".")) { // css js など拡張子がある場合はフィルター対象外
+		if (req.getRequestURI().contains(".")) { // css js など
 			super.doFilter(req, res, chain); 
 			return;
 		}
 		try {
-			threadLocal.set(new RequestContext(req, res));
+			contextThreadLocal.set(new RequestContext(req, res));
 			super.doFilter(req, res, chain);
 		} finally {
-			threadLocal.remove();
+			contextThreadLocal.remove();
 		}
 	}
 	
 	static HttpServletRequest request() {
-		return threadLocal.get().req;
+		return contextThreadLocal.get().req;
 	}
 	
 	static HttpServletResponse response() {
-		return threadLocal.get().res;
+		return contextThreadLocal.get().res;
 	}
 	
 	static void set(HttpServletRequest req, HttpServletResponse res) {
-		threadLocal.set(new RequestContext(req, res));
+		contextThreadLocal.set(new RequestContext(req, res));
 	}
 	
 	static boolean isAjax(HttpServletRequest req) {

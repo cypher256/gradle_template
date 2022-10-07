@@ -81,7 +81,7 @@
 </footer>
 </body>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios@1/dist/axios.min.js"></script>
 <script src="${ctx}/static/axios-common-interceptor.js"></script>
 <script>
 <%-- 検索結果件数取得 API get (_csrf 無し、検索条件入力中の結果件数 JSON 取得) --%>

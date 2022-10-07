@@ -64,8 +64,8 @@ public class AutoTransactionFilter extends HttpFilter {
 	// Servlet フィルター処理
 	//-------------------------------------------------------------------------
 	
-	protected static final ThreadLocal<SqlAgent> daoThreadLocal = new ThreadLocal<>();
-	protected SqlConfig daoConfig;
+	private static final ThreadLocal<SqlAgent> daoThreadLocal = new ThreadLocal<>();
+	private SqlConfig daoConfig;
 
 	/** データベース接続設定と初期データロード */
 	@Override @SneakyThrows
@@ -107,7 +107,7 @@ public class AutoTransactionFilter extends HttpFilter {
 				
 			} catch (Throwable e) {
 				dao.rollback();
-				// ここから再スローはしない (下位フィルターで例外ハンドリングして再スローが前提)
+				// 再スローしない (次のフィルターで例外ハンドリングが必須)
 				
 			} finally {
 				daoThreadLocal.remove();
