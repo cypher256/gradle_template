@@ -2,7 +2,8 @@ package jp.example.filter;
 
 import static jp.example.filter.AutoTransactionFilter.*;
 import static jp.example.filter.RequestContextFilter.*;
-import static org.apache.commons.lang3.StringUtils.*;
+
+import java.util.Objects;
 
 import javax.servlet.FilterChain;
 import javax.servlet.http.HttpFilter;
@@ -18,7 +19,7 @@ import lombok.SneakyThrows;
 /**
  * ログイン認証フィルターです。
  * <pre>
- * このフィルターはセキュリティに関するもので、必須ではありません。web.xml からコメントアウトすることで無効にできます。
+ * このフィルターはセキュリティに関するもので必須ではありません。web.xml からコメントアウトすることで無効にできます。
  * AJAX の場合は HTTP ステータス 401、それ以外の場合はログイン画面にリダイレクトします。
  * ログインに成功した場合、web.xml に指定した userEntityClass のインスタンスがセッションに "USER" として格納されます。
  * この実装では DB のユーザーテーブルに username と password カラムが必要です。
@@ -75,7 +76,7 @@ public class AuthFilter extends HttpFilter {
 		Object user = dao()
 				.query(Class.forName(getInitParameter("userEntityClass")))
 				.equal("username", username)
-				.equal("password", hash(req, username, password))
+				.equal("password", hash(req.isSecure(), username, password))
 				.first().orElse(null);
 		
 		// ログイン成功
@@ -84,9 +85,10 @@ public class AuthFilter extends HttpFilter {
 			HttpSession session = req.getSession();
 			session.setAttribute(USER, user);
 			// アクセス URL 復元
-			res.sendRedirect(defaultIfEmpty((String) session.getAttribute(LOGIN_SUCCESS_URL), req.getContextPath()));
+			res.sendRedirect(Objects.toString(session.getAttribute(LOGIN_SUCCESS_URL), req.getContextPath()));
 			return;
 		}
+		
 		// ログイン失敗
 		req.setAttribute("MESSAGE", "正しいログイン情報を入力してください。");
 		req.getRequestDispatcher("/WEB-INF/jsp/login.jsp").forward(req, res);
@@ -95,17 +97,18 @@ public class AuthFilter extends HttpFilter {
 	/**
 	 * パスワードをハッシュ化します。
 	 * <pre>
-	 * 開発環境など https でない場合は、開発しやすいように、引数のパスワードを平文のまま返します (DB にも平文で格納しておく)。
+	 * 開発環境など https でない場合は、開発しやすいように引数のパスワードを平文のまま返します (照合する DB も平文)。
 	 * レインボー攻撃対策としてソルト、ペッパーを付加して、SHA3_384 で 1 万回ハッシュ化します。
 	 * ソルトには username を使用するため、username を変更した場合は、パスワードを再設定する必要があります。
+	 * ユーザーテーブルにハッシュ化したパスワードをセットする場合は、同じロジックを使用する必要があります。
 	 * </pre>
-	 * @param req HTTP リクエスト
+	 * @param isSecure https の場合は true (プロキシ経由は x-forwarded-proto が必要)
 	 * @param salt ソルト (username)
 	 * @param password パスワード
-	 * @return ハッシュ化したパスワード
+	 * @return ハッシュ化したパスワード (isSecure が false の場合は引数のまま)
 	 */
-	private String hash(HttpServletRequest req, String salt, String password) {
-		if (!req.isSecure()) {
+	private String hash(boolean isSecure, String salt, String password) {
+		if (!isSecure) {
 			return password;
 		}
 		final String papper = getClass().getSimpleName();

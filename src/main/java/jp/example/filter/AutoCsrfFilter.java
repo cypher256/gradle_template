@@ -24,7 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * 自動 CSRF フィルターです。
  * <pre>
- * このフィルターはセキュリティに関するもので、必須ではありません。web.xml からコメントアウトしても動作します。
+ * このフィルターはセキュリティに関するもので必須ではありません。web.xml からコメントアウトしても動作します。
  * web.xml の dispatcher 要素に REQUEST, FORWARD を指定する必要があります。
  * 一般的な CSRF 攻撃への対策実装と比較して以下が自動化されているため、通常はフロントエンドで何もする必要はありません。
  * 
@@ -142,7 +142,7 @@ public class AutoCsrfFilter extends HttpFilter {
 		}
 		
 		// AJAX 参照用 Cookie 書き込み
-		// * Secure: isSecure で判定。localhost では無視される。Apache などと連携するには RemoteIpFilter 設定が必要。
+		// * Secure: isSecure で判定。localhost では無視される。プロキシ経由は x-forwarded-proto が必要。
 		// * SameSite: Strict (送信は同一サイトのみ)。ブラウザのデフォルトは Lax (別サイトから GET 可能、POST 不可)。
 		// * HttpOnly: 指定なし。JavaScript から参照可能にするために指定しない。
 		res.addHeader("Set-Cookie", format("XSRF-TOKEN=%s;%sSameSite=Strict;", 

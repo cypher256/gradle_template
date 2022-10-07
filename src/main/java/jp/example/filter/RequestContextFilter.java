@@ -50,7 +50,7 @@ public class RequestContextFilter extends HttpFilter {
 	// Servlet フィルター処理
 	//-------------------------------------------------------------------------
 
-	private static final ThreadLocal<RequestContext> requestContextThreadLocal = new ThreadLocal<>();
+	private static final ThreadLocal<RequestContext> threadLocal = new ThreadLocal<>();
 	
 	private record RequestContext (
 		HttpServletRequest req,
@@ -59,33 +59,28 @@ public class RequestContextFilter extends HttpFilter {
 
 	@Override @SneakyThrows
 	protected void doFilter(HttpServletRequest req, HttpServletResponse res, FilterChain chain) {
-		
-		// css js など拡張子があるリクエストはこのフィルター処理対象外
-		String uri = req.getRequestURI();
-		if (uri.contains(".")) {
+		if (req.getRequestURI().contains(".")) { // css js など拡張子がある場合はフィルター対象外
 			super.doFilter(req, res, chain); 
 			return;
 		}
-		
-		// Servlet 処理
 		try {
-			requestContextThreadLocal.set(new RequestContext(req, res));
+			threadLocal.set(new RequestContext(req, res));
 			super.doFilter(req, res, chain);
 		} finally {
-			requestContextThreadLocal.remove();
+			threadLocal.remove();
 		}
 	}
 	
 	static HttpServletRequest request() {
-		return requestContextThreadLocal.get().req;
+		return threadLocal.get().req;
 	}
 	
 	static HttpServletResponse response() {
-		return requestContextThreadLocal.get().res;
+		return threadLocal.get().res;
 	}
 	
 	static void set(HttpServletRequest req, HttpServletResponse res) {
-		requestContextThreadLocal.set(new RequestContext(req, res));
+		threadLocal.set(new RequestContext(req, res));
 	}
 	
 	static boolean isAjax(HttpServletRequest req) {
