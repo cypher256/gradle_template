@@ -48,12 +48,18 @@
 <script src="https://cdn.jsdelivr.net/npm/react-router-dom@5/umd/react-router-dom.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/axios@1/dist/axios.min.js"></script>
 <script src="../static/axios-common-interceptor.js"></script>
+
 <!-- npm を使用せず CDN で JSX を使えるように babel を組み込み、.jsx を text/babel でロード -->
 <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7/babel.min.js"></script>
 <script type="text/babel" src="ReactEdit.jsx"></script>
 <script type="text/babel" src="ReactList.jsx"></script>
 <script>
-// ES2015 import 使用時と同じように書けるようにしておく
+
+
+
+
+
+// ES2015 import と同じように書けるように分割代入
 const { useState, useEffect, createContext } = React;
 const { HashRouter, Route, Link, useParams, useHistory } = ReactRouterDOM; // v5 (v6 は script タグ未対応)
 

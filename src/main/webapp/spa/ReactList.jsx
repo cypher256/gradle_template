@@ -9,7 +9,7 @@ const ReactList = () => {
 	// 初期表示 → 検索 API 呼び出し   
 	const handleInit = async() => {
 		document.title = 'React の場合 (一覧コンポーネント)';
-		id_head_link_server.href   = '../item/list';
+		id_head_link_server.href = '../item/list';
 		id_head_link_react.href = '../spa/react.html';
 		id_head_link_vue.href   = '../spa/vue.html';
 		handleSearch();
@@ -43,7 +43,7 @@ const ReactList = () => {
   	
 	return (
 <HashRouter>
-	<form id="id_form" method="get" className="d-sm-flex flex-wrap align-items-end" onSubmit={handleSubmit}>
+	<form onSubmit={handleSubmit} id="id_form" method="get" className="d-sm-flex flex-wrap align-items-end">
 		<label className="form-label me-sm-3">製品名</label>
 		<div className="me-sm-4">
 			<input className="form-control" type="search" name="name" autoFocus 

@@ -12,7 +12,7 @@
 	// 初期表示 → 取得 API 呼び出し   
 	const handleInit = async() => {
 		document.title = 'Vue の場合 (編集コンポーネント)';
-		id_head_link_server.href   = '../item/update?id=' + id;
+		id_head_link_server.href = '../item/update?id=' + id;
 		id_head_link_react.href = '../spa/react.html#/edit/' + id;
 		id_head_link_vue.href   = '../spa/vue.html#/edit/' + id;
 		id_message.textContent = null;
@@ -58,7 +58,7 @@
 
 </script>
 <template>
-	<form id="id_form" method="post" @submit.prevent="handleSubmit">
+	<form @submit.prevent="handleSubmit" id="id_form" method="post">
 		<input type="hidden" name="id" :value="form.id"/>
 		<div class="mb-3">
 			<label class="form-label">製品名</label> <span class="badge bg-danger">必須</span>

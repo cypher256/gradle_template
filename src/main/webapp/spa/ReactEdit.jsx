@@ -12,7 +12,7 @@ const ReactEdit = () => {
 	// 初期表示 → 取得 API 呼び出し   
 	const handleInit = async() => {
 		document.title = 'React の場合 (編集コンポーネント)';
-		id_head_link_server.href   = '../item/update?id=' + id;
+		id_head_link_server.href = '../item/update?id=' + id;
 		id_head_link_react.href = '../spa/react.html#/edit/' + id;
 		id_head_link_vue.href   = '../spa/vue.html#/edit/' + id;
 		id_message.textContent = null;
@@ -58,7 +58,7 @@ const ReactEdit = () => {
 
 	return (
 <HashRouter>
-	<form id="id_form" method="post" onSubmit={handleSubmit}>
+	<form onSubmit={handleSubmit} id="id_form" method="post">
 		<input type="hidden" name="id" defaultValue={form.id}/>
 		<div className="mb-3">
 			<label className="form-label">製品名</label> <span className="badge bg-danger">必須</span>

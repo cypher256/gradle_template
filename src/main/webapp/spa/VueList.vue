@@ -9,7 +9,7 @@
 	// 初期表示 → 検索 API 呼び出し
 	const handleInit = async() => {
 		document.title = 'Vue の場合 (一覧コンポーネント)';
-		id_head_link_server.href   = '../item/list';
+		id_head_link_server.href = '../item/list';
 		id_head_link_react.href = '../spa/react.html';
 		id_head_link_vue.href   = '../spa/vue.html';
 		handleSearch();
@@ -43,7 +43,7 @@
   	
 </script>
 <template>
-	<form id="id_form" method="get" class="d-sm-flex flex-wrap align-items-end" @submit.prevent="handleSubmit">
+	<form @submit.prevent="handleSubmit" id="id_form" method="get" class="d-sm-flex flex-wrap align-items-end">
 		<label class="form-label me-sm-3">製品名</label>
 		<div class="me-sm-4">
 			<input class="form-control" type="search" name="name" :value="form.name" autofocus
