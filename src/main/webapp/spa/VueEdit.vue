@@ -12,7 +12,7 @@
 	// 初期表示 → 取得 API 呼び出し   
 	const handleInit = async() => {
 		document.title = 'Vue の場合 (編集コンポーネント)';
-		id_head_link_jsp.href   = '../item/update?id=' + id;
+		id_head_link_server.href   = '../item/update?id=' + id;
 		id_head_link_react.href = '../spa/react.html#/edit/' + id;
 		id_head_link_vue.href   = '../spa/vue.html#/edit/' + id;
 		id_message.textContent = null;
@@ -32,6 +32,7 @@
   	
   	// フォーム Enter → 登録・更新 API 呼び出し
 	const handleSubmit = async(e) => {
+		
 		id_submit_button.disabled = true;
 		const res = (await axios.post(isInsert ? 'insert' : 'update', getFormParams())); // axios が CSRF ヘッダ自動追加
 		const errorMessage = res.data;
@@ -54,6 +55,7 @@
 		const errorMessage = (await axios.post('validate', getFormParams())).data;
 		id_message.textContent = errorMessage; // エラーが無い場合は空
   	};
+
 </script>
 <template>
 	<form id="id_form" method="post" @submit.prevent="handleSubmit">
@@ -76,7 +78,10 @@
 		</div>
 		<div class="mb-5">
 			<label class="form-label">メーカー</label>
+			
 			<select name="companyId" class="form-select w-auto">
+			
+			
 				<option v-for="com in companySelect" :value="com.id" :selected="form.companyId == com.id"
 					>{{com.companyName}}</option>
 			</select>

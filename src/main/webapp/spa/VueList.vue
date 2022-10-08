@@ -9,7 +9,7 @@
 	// 初期表示 → 検索 API 呼び出し
 	const handleInit = async() => {
 		document.title = 'Vue の場合 (一覧コンポーネント)';
-		id_head_link_jsp.href   = '../item/list';
+		id_head_link_server.href   = '../item/list';
 		id_head_link_react.href = '../spa/react.html';
 		id_head_link_vue.href   = '../spa/vue.html';
 		handleSearch();
@@ -23,6 +23,7 @@
   	
   	// 検索ボタンクリック、フォーム Enter → 検索 API 呼び出し
 	const handleSubmit = async(e) => {
+		
 		id_message.textContent = null;
 		handleSearch();
   	};
@@ -39,6 +40,7 @@
 		id_message.textContent = (await axios.post('delete', 'id=' + id)).data || 'ℹ️ 削除しました。';
 		handleSearch();
   	};
+  	
 </script>
 <template>
 	<form id="id_form" method="get" class="d-sm-flex flex-wrap align-items-end" @submit.prevent="handleSubmit">

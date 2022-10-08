@@ -12,7 +12,7 @@ const ReactEdit = () => {
 	// 初期表示 → 取得 API 呼び出し   
 	const handleInit = async() => {
 		document.title = 'React の場合 (編集コンポーネント)';
-		id_head_link_jsp.href   = '../item/update?id=' + id;
+		id_head_link_server.href   = '../item/update?id=' + id;
 		id_head_link_react.href = '../spa/react.html#/edit/' + id;
 		id_head_link_vue.href   = '../spa/vue.html#/edit/' + id;
 		id_message.textContent = null;

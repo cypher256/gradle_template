@@ -15,7 +15,7 @@
 		</button>
 		<div class="collapse navbar-collapse" id="navbarSupportedContent">
 			<ul class="navbar-nav me-auto mb-2 mb-lg-0">
-				<li class="nav-item"><a class="nav-link" href="#" id="id_head_link_jsp">JSP</a></li>
+				<li class="nav-item"><a class="nav-link" href="#" id="id_head_link_server">JSP</a></li>
 				<li class="nav-item"><a class="nav-link" href="#" id="id_head_link_react">React</a></li>
 				<li class="nav-item"><a class="nav-link active" href="#" id="id_head_link_vue">Vue</a></li>
 			</ul>
@@ -48,16 +48,6 @@
 <script src="https://cdn.jsdelivr.net/npm/axios@1/dist/axios.min.js"></script>
 <script src="../static/axios-common-interceptor.js"></script>
 <script>
-// ES2015 import 使用時と同じように書けるようにしておく
-const { createApp, ref, reactive, onMounted } = Vue;
-const { createRouter, createWebHashHistory, useRoute, useRouter } = VueRouter;
-
-// ログインユーザー名取得
-(async() => {
-	id_uesr_name.textContent = (await axios.get('user-name')).data;
-	if (id_uesr_name.textContent) id_logout.classList.remove('d-none');
-})();
-
 // npm を使用せず CDN で Vue SFC (単一ファイルコンポーネント .vue ファイル) を使えるようにする
 const loadVueFile = path => {return window["vue3-sfc-loader"].loadModule(path, {
 	moduleCache: {vue: Vue,},
@@ -68,6 +58,16 @@ const loadVueFile = path => {return window["vue3-sfc-loader"].loadModule(path, {
 		document.head.insertBefore(style, ref);
 	},
 })};
+
+// ES2015 import 使用時と同じように書けるようにしておく
+const { createApp, ref, reactive, onMounted } = Vue;
+const { createRouter, createWebHashHistory, useRoute, useRouter } = VueRouter;
+
+// ログインユーザー名取得
+(async() => {
+	id_uesr_name.textContent = (await axios.get('user-name')).data;
+	if (id_uesr_name.textContent) id_logout.classList.remove('d-none');
+})();
 
 // Vue Router 定義 (createWebHashHistory 使用)
 // ・createWebHistory     : URL が切り替わるため、サーバ側で URL マッピングが必要 (同じページを返すようにする)
