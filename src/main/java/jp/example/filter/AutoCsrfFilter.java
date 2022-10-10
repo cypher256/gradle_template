@@ -108,7 +108,7 @@ public class AutoCsrfFilter extends HttpFilter {
 					
 				// form post 内に hidden 追加
 				.replaceAll("(?is)([ \t]*)(<form[^>]+method=\"post[^>]+>)", format("""
-					$1$2\n$1\t<input type="hidden" name="_csrf" value="%s">\n$1\t""", csrfToken));
+					$1$2\n$1\t<input type="hidden" name="_csrf" value="%s">""", csrfToken));
 					
 			res.setContentLength(html.getBytes(resWrapper.getCharacterEncoding()).length);
 			res.getWriter().print(html);
@@ -118,7 +118,7 @@ public class AutoCsrfFilter extends HttpFilter {
 	}
 
 	/**
-	 * POST PUT DELETE PATCH 時のトークンをチェックします (ある程度並行リクエストに対応するため synchronized)。
+	 * POST 時のトークンをチェックします。
 	 * @return トークンが一致しない場合は true
 	 */
 	synchronized protected boolean notMatchToken(HttpServletRequest req, HttpServletResponse res) throws IOException {

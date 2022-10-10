@@ -131,15 +131,15 @@
 	このフィルター以降で発生した例外は、上位フィルターにスルーされる
 	-->
 	<filter>
-		<filter-name>AuthFilter</filter-name>
-		<filter-class>jp.example.filter.AuthFilter</filter-class>
+		<filter-name>LoginAuthFilter</filter-name>
+		<filter-class>jp.example.filter.LoginAuthFilter</filter-class>
 		<init-param>
 			<param-name>userEntityClass</param-name>
 			<param-value>jp.example.entity.LoginUser</param-value>
 		</init-param>
 	</filter>
 	<filter-mapping>
-		<filter-name>AuthFilter</filter-name>
+		<filter-name>LoginAuthFilter</filter-name>
 		<url-pattern>/*</url-pattern>
 	</filter-mapping>
 	
