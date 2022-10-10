@@ -71,8 +71,8 @@ const { createRouter, createWebHashHistory, useRoute, useRouter } = VueRouter;
 })();
 
 // Vue Router 定義 (createWebHashHistory 使用)
-// ・createWebHistory     : URL が切り替わるため、サーバ側で URL マッピングが必要 (同じページを返すようにする)
-// ・createWebHashHistory : URL ハッシュで切り替えるため、サーバ側で URL マッピング不要
+// ・createWebHistory     : URL が切り替わるため、サーバー側で URL マッピングが必要 (同じページを返すようにする)
+// ・createWebHashHistory : URL ハッシュで切り替えるため、サーバー側で URL マッピング不要
 const router = createRouter({
 	history: createWebHashHistory(),
 	routes: [

@@ -13,14 +13,14 @@ Eclipse gradle プロジェクト作成ウィザードの雛形
 
 	このプロジェクトは Spring などのフレームワークを使用せずに構成された Servlet サンプルプロジェクトです。
 	同じ機能 (DB 検索、登録・修正・削除) を React、Vue、JSP の 3 種類で同一プロジェクト内に実装しています。
-	サーバ側は Java 17, Tomcat 9 (javax.servlet) で動作し、ログイン機能も含まれています。
-	サンプルの React と Vue は純粋な HTML と API 呼び出しのみなので、サーバ側の技術や言語に依存しません。
+	サーバー側は Java 17, Tomcat 9 (javax.servlet) で動作し、ログイン機能も含まれています。
+	サンプルの React と Vue は純粋な HTML と API 呼び出しのみなので、サーバー側の技術や言語に依存しません。
 
 	フロントエンド
 
 		React	src/main/webapp/spa/React* (.html と .jsx)
 		Vue		src/main/webapp/spa/Vue* (.html と .vue)
-		JSP		src/main/webapp/WEB-INF/jsp/item/* (.jsp - サーバ側だけど)
+		JSP		src/main/webapp/WEB-INF/jsp/item/* (.jsp - サーバー側だけど)
 		
 	サーバーサイド
 	
