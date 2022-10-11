@@ -65,7 +65,7 @@ import lombok.extern.slf4j.Slf4j;
 public class AutoCsrfFilter extends HttpFilter {
 
 	/** CSRF トークンのセッション、Cookie、リクエストパラメーターの name */
-	protected static final String _csrf = "_csrf";
+	private static final String _csrf = "_csrf";
 
 	@Override @SneakyThrows
 	protected void doFilter(HttpServletRequest req, HttpServletResponse res, FilterChain chain) {
@@ -101,12 +101,12 @@ public class AutoCsrfFilter extends HttpFilter {
 			super.doFilter(req, resWrapper, chain);
 			String csrfToken = (String) req.getSession().getAttribute(_csrf);
 			String html = new String(resWrapper.toByteArray(), resWrapper.getCharacterEncoding())
-
-				// meta タグ追加
+				
+				// meta タグ追加 (単一)
 				.replaceFirst("(?i)(<head>)", format("""
 					$1\n<meta name="_csrf" content="%s">""", csrfToken))
 					
-				// form post 内に hidden 追加
+				// form post 内に hidden 追加 (複数)
 				.replaceAll("(?is)([ \t]*)(<form[^>]+method=\"post[^>]+>)", format("""
 					$1$2\n$1\t<input type="hidden" name="_csrf" value="%s">""", csrfToken));
 					

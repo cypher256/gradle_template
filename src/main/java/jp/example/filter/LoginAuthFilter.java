@@ -48,19 +48,16 @@ public class LoginAuthFilter extends HttpFilter {
 		if (path.equals("/logout")) {
 			session.invalidate();
 			res.sendRedirect(req.getContextPath());
-			return;
 		}
-		if (path.equals("/login") && req.getMethod().equals("POST")) {
+		else if (path.equals("/login") && req.getMethod().equals("POST")) {
 			login(req, res);
-			return;
 		}
-		if (path.equals("/static") || session.getAttribute(USER) != null) {
+		else if (path.equals("/static") || session.getAttribute(USER) != null) {
 			super.doFilter(req, res, chain);
-			return;
 		}
 		
 		// 未認証 (AJAX: HTTP 401、画面: ログイン画面にフォワード)
-		if (isAjax(req)) {
+		else if (isAjax(req)) {
 			res.sendError(HttpServletResponse.SC_UNAUTHORIZED);
 		} else {
 			if (req.getMethod().equals("GET")) {
@@ -87,7 +84,7 @@ public class LoginAuthFilter extends HttpFilter {
 		} else {
 			req.changeSessionId(); // セッション固定化攻撃対策
 			req.getSession().setAttribute(USER, user);
-			res.sendRedirect($(LOGIN_SAVED_URL, req.getContextPath()));
+			res.sendRedirect($(LOGIN_SAVED_URL, req::getContextPath));
 		}
 	}
 	
@@ -95,8 +92,10 @@ public class LoginAuthFilter extends HttpFilter {
 	 * パスワードをハッシュ化します。
 	 * <pre>
 	 * 開発環境など https でない場合は、開発しやすいように引数のパスワードを平文のまま返します (照合する DB も平文)。
-	 * レインボー攻撃対策としてソルト、ペッパーを付加して、Argon2 (2015 年ハッシュコンペ優勝) でハッシュ化します。
+	 * レインボー攻撃対策としてソルト、ペッパーを付加してハッシュ化します。
 	 * ソルトには username を使用するため、username を変更した場合は、パスワードを再設定する必要があります。
+	 * サイドチャネル攻撃耐性を持つ Argon2 (2015 年ハッシュコンペ優勝) を使用します。
+	 * ハッシュ化は 10 回反復、メモリ 64MB 使用、CPU 論理コア数で並列実行します。
 	 * </pre>
 	 * @param isSecure https の場合は true を指定 (プロキシ経由は x-forwarded-proto が必要)
 	 * @param salt ソルト (username)

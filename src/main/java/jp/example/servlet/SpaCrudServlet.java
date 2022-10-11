@@ -27,7 +27,7 @@ public class SpaCrudServlet {
 	@WebServlet("/spa/user-name")
 	public static class UserNameServlet extends HttpServlet {
 		protected void doGet(HttpServletRequest req, HttpServletResponse res) {
-			returns($("USER", new LoginUser()).username); // ログインユーザー名 (web.xml で無効化した場合は null)
+			returns($("USER", LoginUser::new).username); // ログインユーザー名 (web.xml で無効化した場合は null)
 		}
 	}
 

@@ -200,7 +200,7 @@ public class AutoFlashFilter extends HttpFilter {
 			}
 			
 			// フラッシュをセッションから復元し、セッションから削除
-			Map<String, Object> sessionFlash = $(FLASH, Collections.emptyMap());
+			Map<String, Object> sessionFlash = $(FLASH, Collections::emptyMap);
 			sessionFlash.forEach(req::setAttribute);
 			req.getSession().removeAttribute(FLASH);
 			
@@ -269,7 +269,7 @@ public class AutoFlashFilter extends HttpFilter {
 		// アプリのシステムエラー (Error.class - アプリ側で直近にリダイレクトにしたい場合)
 		// 致命的なシステムエラー (SQLException など - Error との違いはスタックトレースログ有無のみ) 
 		// → 直近のリダイレクト先またはトップにリダイレクト
-		String redirectUrl = $(SYS_ERROR_REDIRECT_URL, req.getContextPath());
+		String redirectUrl = $(SYS_ERROR_REDIRECT_URL, req::getContextPath);
 		if (redirectUrl.equals(req.getRequestURI())) {
 			log.warn("リダイレクトループ検出: {} {}", req.getRequestURI(), message, cause);
 			res.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
