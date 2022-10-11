@@ -84,7 +84,7 @@ public class RequestContextFilter extends HttpFilter {
 	}
 	
 	static boolean isAjax(HttpServletRequest req) {
-		return "XMLHttpRequest".equals(req.getHeader("X-Requested-With")) ||
-				StringUtils.contains(req.getHeader("Accept"), "/json");
+		return "XMLHttpRequest".equals(req.getHeader("X-Requested-With")) || // jQuery、prototype
+				StringUtils.contains(req.getHeader("Accept"), "/json"); // axios
 	}
 }
