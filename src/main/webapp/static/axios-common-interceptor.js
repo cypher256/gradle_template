@@ -21,6 +21,4 @@ axios.interceptors.response.use(
  * @param {object} HTML form 要素
  * @returns {URLSearchParams} 引数の htmlForm のパラメータ
  */
-const params = htmlForm => {
-	return new URLSearchParams(new FormData(htmlForm));
-};
+const params = htmlForm => new URLSearchParams(new FormData(htmlForm));
