@@ -86,7 +86,7 @@
 <script>
 <%-- 検索結果件数取得 API get (_csrf 無し、検索条件入力中の結果件数 JSON 取得) --%>
 const handleChange = async() => {
-	const res = (await axios.get('api?' + new URLSearchParams(new FormData(id_form)))).data;
+	const res = (await axios.get('api?' + params(id_form))).data;
 	id_message.textContent = res.countMessage || res; <%-- 正常時は json、例外時は文字列 --%>
 };
 </script>

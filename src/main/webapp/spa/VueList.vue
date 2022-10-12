@@ -3,7 +3,6 @@
 
 	const form = window._VueSearchForm ??= {name:'', releaseDate:''}; //一覧に戻ってきたときの条件保存 (null 合体代入)
 	const formList = ref([]); // ref で template で使用する値を定義 (コードでは .value でアクセス)
-	const getFormParams = () => new URLSearchParams(new FormData(id_form)); // get でも post でも使えるフォームデータ
 	onMounted(() => handleInit()); // コンポーネントのマウント時の処理 
 
 	// 初期表示 → 検索 API 呼び出し
@@ -17,7 +16,7 @@
 
 	// 検索 API 呼び出し   
 	const handleSearch = async() => {
-		const data = (await axios.get('search?' + getFormParams())).data;
+		const data = (await axios.get('search?' + params(id_form))).data;
 		typeof data === 'string' ? id_message.textContent = data : formList.value = data;
   	};
   	
@@ -31,7 +30,7 @@
 	// 検索条件変更イベント → 件数取得 API 呼び出し   
 	const handleChange = async(e) => {
 		window._VueSearchForm[e.target.name] = e.target.value;
-		const countMessage = (await axios.get('count?' + getFormParams())).data;
+		const countMessage = (await axios.get('count?' + params(id_form))).data;
 		id_message.textContent = countMessage
   	};
 	

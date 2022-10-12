@@ -6,7 +6,6 @@ const ReactEdit = () => {
 	const isInsert = id == 0;
 	const [form, setForm] = useState({});
 	const [companySelect, setCompanySelect] = useState([]);
-	const getFormParams = () => new URLSearchParams(new FormData(id_form));
 	useEffect(() => {handleInit()}, []);
 
 	// 初期表示 → 取得 API 呼び出し   
@@ -34,7 +33,7 @@ const ReactEdit = () => {
 	const handleSubmit = async(e) => {
 		e.preventDefault(); // デフォルトサブミット抑止 (Vue は @submit.prevent)
 		id_submit_button.disabled = true;
-		const res = (await axios.post(isInsert ? 'insert' : 'update', getFormParams())); // axios が CSRF ヘッダ自動追加
+		const res = (await axios.post(isInsert ? 'insert' : 'update', params(id_form))); // axios が CSRF ヘッダ自動追加
 		const errorMessage = res.data;
 		if (errorMessage) {
 			if (res.status == 200) {
@@ -52,7 +51,7 @@ const ReactEdit = () => {
 
 	// 変更イベント → 入力チェック API 呼び出し   
 	const handleChange = async() => {
-		const errorMessage = (await axios.post('validate', getFormParams())).data;
+		const errorMessage = (await axios.post('validate', params(id_form))).data;
 		id_message.textContent = errorMessage; // エラーが無い場合は空
   	};
 

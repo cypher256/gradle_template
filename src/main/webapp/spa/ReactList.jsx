@@ -3,7 +3,6 @@ const ReactList = () => {
    
 	const form = window._ReactSearchForm ??= {name:'', releaseDate:''}; // 一覧に戻ってきたときの条件保存 (null 合体代入)
 	const [formList, setFormList] = useState([]); // ステートフックで jsx で使用する値を定義 (set は setter を使う)
-	const getFormParams = () => new URLSearchParams(new FormData(id_form)); // get でも post でも使えるフォームデータ
 	useEffect(() => {handleInit()}, []); // レンダー後の処理 (第2引数は検知対象で空配列の場合はこのコンポーネント本体のみ)
 
 	// 初期表示 → 検索 API 呼び出し   
@@ -17,7 +16,7 @@ const ReactList = () => {
 
 	// 検索 API 呼び出し   
 	const handleSearch = async() => {
-		const data = (await axios.get('search?' + getFormParams())).data;
+		const data = (await axios.get('search?' + params(id_form))).data;
 		typeof data === 'string' ? id_message.textContent = data : setFormList(data);
   	};
   	
@@ -31,7 +30,7 @@ const ReactList = () => {
 	// 検索条件変更イベント → 件数取得 API 呼び出し   
 	const handleChange = async(e) => {
 		window._ReactSearchForm[e.target.name] = e.target.value;
-		const countMessage = (await axios.get('count?' + getFormParams())).data;
+		const countMessage = (await axios.get('count?' + params(id_form))).data;
 		id_message.textContent = countMessage;
   	};
 	

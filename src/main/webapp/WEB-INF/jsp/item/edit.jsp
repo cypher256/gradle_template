@@ -76,7 +76,7 @@
 <script>
 <%-- 入力チェック API post (_csrf 有り、入力中のチェック結果を文字列で取得) --%>
 const handleChange = async() => {
-	id_message.textContent = (await axios.post('api', new URLSearchParams(new FormData(id_form)))).data;
+	id_message.textContent = (await axios.post('api', params(id_form))).data;
 };
 </script>
 </html>
