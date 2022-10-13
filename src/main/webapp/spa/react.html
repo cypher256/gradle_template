@@ -60,14 +60,14 @@
 
 
 
-// ES2015 import と同じように書けるように分割代入
+// React を操作するための関数
 const { useState, useEffect, createContext } = React;
 const { HashRouter, Route, Link, useParams, useHistory } = ReactRouterDOM; // v5 (v6 は script タグ未対応)
 
 // ログインユーザー名取得
 (async() => {
 	id_uesr_name.textContent = (await axios.get('user-name')).data;
-	if (id_uesr_name.textContent) id_logout.classList.remove('d-none');
+	id_uesr_name.textContent && id_logout.classList.remove('d-none');
 })();
 </script>
 <!-- 
@@ -79,7 +79,7 @@ React Router 定義 (HashRouter 使用)
 const App = () => {
 	return (
 		<HashRouter>
-			<Route path="/" exact component={ReactList} />
+			<Route path="/" exact   component={ReactList} />
 			<Route path="/edit/:id" component={ReactEdit} />
 		</HashRouter>
 	);

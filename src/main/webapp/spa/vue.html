@@ -54,20 +54,20 @@ const loadVueFile = path => {return window["vue3-sfc-loader"].loadModule(path, {
 	moduleCache: {vue: Vue,},
 	async getFile(url) {return (await fetch(url)).text()},
 	addStyle(textContent) {
-		const style = Object.assign(document.createElement("style"), {textContent,});
-		const ref = document.head.getElementsByTagName("style")[0] || null;
+		const style = Object.assign(document.createElement('style'), {textContent,});
+		const ref = document.head.getElementsByTagName('style')[0] || null;
 		document.head.insertBefore(style, ref);
 	},
 })};
 
-// ES2015 import と同じように書けるように分割代入
+// Vue を操作するための関数
 const { createApp, ref, reactive, onMounted } = Vue;
 const { createRouter, createWebHashHistory, useRoute, useRouter } = VueRouter;
 
 // ログインユーザー名取得
 (async() => {
 	id_uesr_name.textContent = (await axios.get('user-name')).data;
-	if (id_uesr_name.textContent) id_logout.classList.remove('d-none');
+	id_uesr_name.textContent && id_logout.classList.remove('d-none');
 })();
 
 // Vue Router 定義 (createWebHashHistory 使用)
@@ -76,7 +76,7 @@ const { createRouter, createWebHashHistory, useRoute, useRouter } = VueRouter;
 const router = createRouter({
 	history: createWebHashHistory(),
 	routes: [
-		{ path: "/", component: () => loadVueFile('./VueList.vue') },
+		{ path: "/",         component: () => loadVueFile('./VueList.vue') },
 		{ path: "/edit/:id", component: () => loadVueFile('./VueEdit.vue') },
 	],
 });
