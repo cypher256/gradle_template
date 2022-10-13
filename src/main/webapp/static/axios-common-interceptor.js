@@ -16,9 +16,10 @@ axios.interceptors.response.use(
 );
 
 /**
- * HTML form を指定して axios で使用する URLSearchParams を作成します。
- * HTTP get の場合は URL に + で連結、post の場合はそのまま第 2 引数に渡します。
- * @param {object} HTML form 要素
- * @returns {URLSearchParams} 引数の htmlForm のパラメータ
+ * HTML form からサーバーに送信する URLSearchParams を作成します。
+ * @param {object} htmlForm HTML form 要素
+ * @return {URLSearchParams}
+ *	サーバーに送信するパラメーターオブジェクト。
+ *	axios get の場合は第 1 引数の URL に + で連結、post の場合はそのまま第 2 引数に渡します。
  */
 const params = htmlForm => new URLSearchParams(new FormData(htmlForm));
