@@ -14,6 +14,7 @@
 <div class="container text-center d-flex align-items-center justify-content-center h-50">
 	<div class="">
 		<div class="alert mb-0 text-light" style="min-height:4rem">${MESSAGE}</div>
+		<%-- post form には _csrf hidden が自動追加される --%>
 		<form method="post" action="${ctx}/login" class="d-inline-block">
 			<div class="form-floating">
 				<input type="text" class="form-control" name="username" required

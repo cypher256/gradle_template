@@ -2,7 +2,7 @@
 const ReactList = () => {
    
 	const savedForm = window._ReactSearchForm ??= {name:'', releaseDate:''}; // 一覧戻り時表示用の条件保存 (null 合体代入)
-	const [formList, setFormList] = useState([]); // ステートフックで jsx で使用する値を定義 (set は setter を使う)
+	const [itemList, setItemList] = useState([]); // ステートフックで jsx で使用する値を定義 (set は setter を使う)
 	useEffect(() => {handleInit()}, []); // レンダー後の処理 (第2引数は検知対象で空配列の場合はこのコンポーネント本体のみ)
 
 	// 初期表示 → 検索 API 呼び出し   
@@ -17,7 +17,7 @@ const ReactList = () => {
 	// 検索 API 呼び出し   
 	const handleSearch = async() => {
 		const { data } = await axios.get('search?' + params(id_form));
-		typeof data === 'string' ? id_message.textContent = data : setFormList(data);
+		typeof data === 'string' ? id_message.textContent = data : setItemList(data);
   	};
   	
   	// 検索ボタンクリック、フォーム Enter → 検索 API 呼び出し
@@ -55,10 +55,10 @@ const ReactList = () => {
 		<button type="submit" className="btn btn-secondary px-5">検索</button>
 		<Link to="/edit/0" className="btn btn-secondary px-5 ms-auto">新規登録</Link>
 	</form>
-	<p className="text-end mt-4 me-1 mb-2">検索結果 {formList.length} 件</p>
+	<p className="text-end mt-4 me-1 mb-2">検索結果 {itemList.length} 件</p>
 	<table className="table table-striped table-dark">
 		<thead>
-			<tr className={formList.length == 0 ? 'd-none' : ''}>
+			<tr className={itemList.length == 0 ? 'd-none' : ''}>
 				<th>製品名</th>
 				<th>発売日</th>
 				<th className="text-center">顔認証</th>
@@ -67,15 +67,15 @@ const ReactList = () => {
 			</tr>
 		</thead>
 		<tbody>
-	{formList.map(form => (
-			<tr key={form.id}>
-				<td>{form.name}</td>
-				<td>{form.releaseDate}</td>
-				<td className="text-center">{form.faceAuth ? '○' : ''}</td>
-				<td>{form.companyName}</td>
+	{itemList.map(item => (
+			<tr key={item.id}>
+				<td>{item.name}</td>
+				<td>{item.releaseDate}</td>
+				<td className="text-center">{item.faceAuth ? '○' : ''}</td>
+				<td>{item.companyName}</td>
 				<td className="text-center">
-					<Link to={'/edit/' + form.id} className="btn btn-secondary me-1">変更</Link>
-					<button type="button" onClick={() => handleDelete(form.id)} className="btn btn-warning">削除</button>
+					<Link to={'/edit/' + item.id} className="btn btn-secondary me-1">変更</Link>
+					<button type="button" onClick={() => handleDelete(item.id)} className="btn btn-warning">削除</button>
 				</td>
 			</tr>
 	))}

@@ -49,7 +49,7 @@ public class JspCrudServlet {
 		/** 検索一覧画面の表示 */
 		protected void doGet(HttpServletRequest req, HttpServletResponse res) {
 			log.debug("検索して list.jsp にフォワード");
-			req.setAttribute("formList", new ItemForm(req).findFormList());
+			req.setAttribute("itemList", new ItemForm(req).findFormList());
 			req.getSession().setAttribute("lastQueryUrl", DispatcherUtil.getFullUrl(req)); // PRG リダイレクト先保存
 			forward("list.jsp");
 		}

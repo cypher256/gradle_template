@@ -145,9 +145,9 @@ public class ItemForm {
 					/*END*/
 				LIMIT 100
 			""";
-		List<ItemForm> formList = dao().queryWith(sql).paramBean(this).collect(ItemForm.class);
-		log.debug("WHERE name={} releaseDate={} \n{}", name, releaseDate, joinWith("\n", formList.toArray()));
-		return formList;
+		List<ItemForm> itemList = dao().queryWith(sql).paramBean(this).collect(ItemForm.class);
+		log.debug("WHERE name={} releaseDate={} \n{}", name, releaseDate, joinWith("\n", itemList.toArray()));
+		return itemList;
 	}
 	
 	/**

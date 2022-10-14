@@ -2,7 +2,7 @@
 <script setup>
 
 	const savedForm = window._VueSearchForm ??= {name:'', releaseDate:''}; // 一覧戻り時表示用の条件保存 (null 合体代入)
-	const formList = ref([]); // ref で template で使用する値を定義 (コードでは .value でアクセス)
+	const itemList = ref([]); // ref で template で使用する値を定義 (コードでは .value でアクセス)
 	onMounted(() => handleInit()); // コンポーネントのマウント時の処理 
 
 	// 初期表示 → 検索 API 呼び出し
@@ -17,7 +17,7 @@
 	// 検索 API 呼び出し   
 	const handleSearch = async() => {
 		const { data } = await axios.get('search?' + params(id_form));
-		typeof data === 'string' ? id_message.textContent = data : formList.value = data;
+		typeof data === 'string' ? id_message.textContent = data : itemList.value = data;
   	};
   	
   	// 検索ボタンクリック、フォーム Enter → 検索 API 呼び出し
@@ -55,10 +55,10 @@
 		<button type="submit" class="btn btn-secondary px-5">検索</button>
 		<router-link to="/edit/0" class="btn btn-secondary px-5 ms-auto">新規登録</router-link>
 	</form>
-	<p class="text-end mt-4 me-1 mb-2">検索結果 {{formList.length}} 件</p>
+	<p class="text-end mt-4 me-1 mb-2">検索結果 {{itemList.length}} 件</p>
 	<table class="table table-striped table-dark">
 		<thead>
-			<tr class="{{formList.length == 0 ? 'd-none' : ''}}">
+			<tr class="{{itemList.length == 0 ? 'd-none' : ''}}">
 				<th>製品名</th>
 				<th>発売日</th>
 				<th class="text-center">顔認証</th>
@@ -67,14 +67,14 @@
 			</tr>
 		</thead>
 		<tbody>
-			<tr v-for="form in formList">
-				<td>{{form.name}}</td>
-				<td>{{form.releaseDate}}</td>
-				<td class="text-center">{{form.faceAuth ? '○' : ''}}</td>
-				<td>{{form.companyName}}</td>
+			<tr v-for="item in itemList">
+				<td>{{item.name}}</td>
+				<td>{{item.releaseDate}}</td>
+				<td class="text-center">{{item.faceAuth ? '○' : ''}}</td>
+				<td>{{item.companyName}}</td>
 				<td class="text-center">
-					<router-link :to='"/edit/" + form.id' class="btn btn-secondary me-1">変更</router-link>
-					<button type="button" @click="() => handleDelete(form.id)" class="btn btn-warning">削除</button>
+					<router-link :to='"/edit/" + item.id' class="btn btn-secondary me-1">変更</router-link>
+					<button type="button" @click="() => handleDelete(item.id)" class="btn btn-warning">削除</button>
 				</td>
 			</tr>
 		</tbody>

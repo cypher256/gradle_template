@@ -28,7 +28,7 @@
 </nav>
 <%-- ========== メイン ========== --%>
 <div class="container">
- 	<div class="alert mb-0" id="id_message" style="min-height:4rem">${fn:escapeXml(MESSAGE)}</div>
+	<div class="alert mb-0" id="id_message" style="min-height:4rem">${fn:escapeXml(MESSAGE)}</div>
 	<form id="id_form" method="get" class="d-sm-flex flex-wrap align-items-end">
 		<label class="form-label me-sm-3">製品名</label>
 		<div class="me-sm-4">
@@ -43,10 +43,10 @@
 		<button formaction="list" class="btn btn-secondary px-5">検索</button>
 		<button formaction="create" class="btn btn-secondary px-5 ms-auto">新規登録</button>
 	</form>
-	<p class="text-end mt-4 me-1 mb-2">検索結果 ${formList.size()} 件</p>
+	<p class="text-end mt-4 me-1 mb-2">検索結果 ${itemList.size()} 件</p>
 	<table class="table table-striped table-dark">
 		<thead>
-			<tr class="${empty formList ? 'd-none' : ''}">
+			<tr class="${empty itemList ? 'd-none' : ''}">
 				<th>製品名</th>
 				<th>発売日</th>
 				<th class="text-center">顔認証</th>
@@ -55,16 +55,16 @@
 			</tr>
 		</thead>
 		<tbody>
-	<c:forEach var="form" items="${formList}">
+	<c:forEach var="item" items="${itemList}">
 			<tr>
-				<td>${fn:escapeXml(form.name)}</td>
-				<td>${fn:escapeXml(form.releaseDate)}</td>
-				<td class="text-center">${form.faceAuth ? '○' : ''}</td>
-				<td>${fn:escapeXml(form.companyName)}</td>
+				<td>${fn:escapeXml(item.name)}</td>
+				<td>${fn:escapeXml(item.releaseDate)}</td>
+				<td class="text-center">${item.faceAuth ? '○' : ''}</td>
+				<td>${fn:escapeXml(item.companyName)}</td>
 				<td class="text-center">
-					<a href="update?id=${form.id}" class="btn btn-secondary">変更</a>
-					<%-- 削除は状態変更操作のため post (_csrf 有り) --%>
-					<form method="post" action="delete?id=${form.id}" class="d-inline">
+					<a href="update?id=${item.id}" class="btn btn-secondary">変更</a>
+					<%-- 削除は状態変更操作のため post (_csrf hidden が自動追加される) --%>
+					<form method="post" action="delete?id=${item.id}" class="d-inline">
 						<button class="btn btn-warning">削除</button>
 					</form>
 				</td>
