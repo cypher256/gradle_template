@@ -16,7 +16,7 @@
 		id_head_link_vue.href   = '../spa/vue.html#/edit/' + id;
 		id_message.textContent = null;
 		if (!isInsert) {
-			const data = (await axios.get('select?id=' + id)).data;
+			const { data } = await axios.get('select?id=' + id);
 			if (typeof data === 'string') {
 				id_message.textContent = data; // エラーメッセージ String
 				router.push('/');
@@ -33,7 +33,7 @@
 	const handleSubmit = async(e) => {
 		
 		id_submit_button.disabled = true;
-		const res = (await axios.post(isInsert ? 'insert' : 'update', params(id_form))); // axios が CSRF ヘッダ自動追加
+		const res = await axios.post(isInsert ? 'insert' : 'update', params(id_form)); // axios が CSRF ヘッダ自動追加
 		const errorMessage = res.data;
 		if (errorMessage) {
 			if (res.status == 200) {
@@ -50,9 +50,8 @@
   	};
 
 	// 変更イベント → 入力チェック API 呼び出し   
-	const handleChange = async(e) => {
-		const errorMessage = (await axios.post('validate', params(id_form))).data;
-		id_message.textContent = errorMessage; // エラーが無い場合は空
+	const handleChange = async() => {
+		id_message.textContent = (await axios.post('validate', params(id_form))).data; // エラーが無い場合は空
   	};
 
 </script>

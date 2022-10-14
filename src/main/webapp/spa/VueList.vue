@@ -1,7 +1,7 @@
 <!-- Vue 一覧コンポーネント (script setup は Vue 3.2 以降) -->
 <script setup>
 
-	const form = window._VueSearchForm ??= {name:'', releaseDate:''}; //一覧に戻ってきたときの条件保存 (null 合体代入)
+	const savedForm = window._VueSearchForm ??= {name:'', releaseDate:''}; // 一覧戻り時表示用の条件保存 (null 合体代入)
 	const formList = ref([]); // ref で template で使用する値を定義 (コードでは .value でアクセス)
 	onMounted(() => handleInit()); // コンポーネントのマウント時の処理 
 
@@ -16,7 +16,7 @@
 
 	// 検索 API 呼び出し   
 	const handleSearch = async() => {
-		const data = (await axios.get('search?' + params(id_form))).data;
+		const { data } = await axios.get('search?' + params(id_form));
 		typeof data === 'string' ? id_message.textContent = data : formList.value = data;
   	};
   	
@@ -28,10 +28,9 @@
   	};
 
 	// 検索条件変更イベント → 件数取得 API 呼び出し   
-	const handleChange = async(e) => {
-		window._VueSearchForm[e.target.name] = e.target.value;
-		const countMessage = (await axios.get('count?' + params(id_form))).data;
-		id_message.textContent = countMessage
+	const handleChange = async( {target} ) => {
+		id_message.textContent = (await axios.get('count?' + params(id_form))).data;
+		savedForm[target.name] = target.value;
   	};
 	
 	// 削除ボタンクリック → 削除 API 呼び出し (削除は状態変更操作のため post、axios により CSRF ヘッダ自動追加)
@@ -45,13 +44,13 @@
 	<form @submit.prevent="handleSubmit" id="id_form" method="get" class="d-sm-flex flex-wrap align-items-end">
 		<label class="form-label me-sm-3">製品名</label>
 		<div class="me-sm-4">
-			<input class="form-control" type="search" name="name" :value="form.name" autofocus
-				@input="handleChange">
+			<input class="form-control" type="search" name="name" autofocus
+				@input="handleChange" :value="savedForm.name">
 		</div>
 		<label class="form-label me-sm-3">発売日</label>
 		<div class="me-sm-4">
-			<input class="form-control w-auto mb-3 mb-sm-0" type="date" name="releaseDate" :value="form.releaseDate"
-				@change="handleChange">
+			<input class="form-control w-auto mb-3 mb-sm-0" type="date" name="releaseDate"
+				@change="handleChange" :value="savedForm.releaseDate">
 		</div>
 		<button type="submit" class="btn btn-secondary px-5">検索</button>
 		<router-link to="/edit/0" class="btn btn-secondary px-5 ms-auto">新規登録</router-link>

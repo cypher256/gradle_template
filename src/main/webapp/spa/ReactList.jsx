@@ -1,7 +1,7 @@
 /* React 一覧コンポーネント */
 const ReactList = () => {
    
-	const form = window._ReactSearchForm ??= {name:'', releaseDate:''}; // 一覧に戻ってきたときの条件保存 (null 合体代入)
+	const savedForm = window._ReactSearchForm ??= {name:'', releaseDate:''}; // 一覧戻り時表示用の条件保存 (null 合体代入)
 	const [formList, setFormList] = useState([]); // ステートフックで jsx で使用する値を定義 (set は setter を使う)
 	useEffect(() => {handleInit()}, []); // レンダー後の処理 (第2引数は検知対象で空配列の場合はこのコンポーネント本体のみ)
 
@@ -16,7 +16,7 @@ const ReactList = () => {
 
 	// 検索 API 呼び出し   
 	const handleSearch = async() => {
-		const data = (await axios.get('search?' + params(id_form))).data;
+		const { data } = await axios.get('search?' + params(id_form));
 		typeof data === 'string' ? id_message.textContent = data : setFormList(data);
   	};
   	
@@ -28,10 +28,9 @@ const ReactList = () => {
   	};
 
 	// 検索条件変更イベント → 件数取得 API 呼び出し   
-	const handleChange = async(e) => {
-		window._ReactSearchForm[e.target.name] = e.target.value;
-		const countMessage = (await axios.get('count?' + params(id_form))).data;
-		id_message.textContent = countMessage;
+	const handleChange = async( {target} ) => {
+		id_message.textContent = (await axios.get('count?' + params(id_form))).data;
+		savedForm[target.name] = target.value;
   	};
 	
 	// 削除ボタンクリック → 削除 API 呼び出し (削除は状態変更操作のため post、axios により CSRF ヘッダ自動追加)
@@ -46,12 +45,12 @@ const ReactList = () => {
 		<label className="form-label me-sm-3">製品名</label>
 		<div className="me-sm-4">
 			<input className="form-control" type="search" name="name" autoFocus 
-				onChange={handleChange} defaultValue={form.name}/>
+				onChange={handleChange} defaultValue={savedForm.name}/>
 		</div>
 		<label className="form-label me-sm-3">発売日</label>
 		<div className="me-sm-4">
 			<input className="form-control w-auto mb-3 mb-sm-0" type="date" name="releaseDate" 
-				onChange={handleChange} defaultValue={form.releaseDate}/>
+				onChange={handleChange} defaultValue={savedForm.releaseDate}/>
 		</div>
 		<button type="submit" className="btn btn-secondary px-5">検索</button>
 		<Link to="/edit/0" className="btn btn-secondary px-5 ms-auto">新規登録</Link>
