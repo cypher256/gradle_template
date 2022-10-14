@@ -70,7 +70,7 @@ const { createRouter, createWebHashHistory, useRoute, useRouter } = VueRouter;
 	id_uesr_name.textContent && id_logout.classList.remove('d-none');
 })();
 
-// Vue Router 定義 (createWebHashHistory 使用)
+// Vue Router 定義 (ハッシュルーター使用)
 // ・createWebHistory     : URL が切り替わるため、サーバー側で URL マッピングが必要 (同じページを返すようにする)
 // ・createWebHashHistory : URL ハッシュで切り替えるため、サーバー側で URL マッピング不要
 const router = createRouter({
@@ -84,6 +84,6 @@ router.beforeEach((to, from, next) => {
 	id_loading.classList.add('d-none'); // Vue ナビゲーションガードでロード画像消去 (直接 edit が呼ばれたときにも対応)
 	next();
 });
-createApp({}).use(router).mount("#id_app");
+createApp({}).use(router).mount(id_app);
 </script>
 </html>
