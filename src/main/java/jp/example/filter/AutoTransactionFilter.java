@@ -30,7 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 public class AutoTransactionFilter extends HttpFilter {
 	
 	//-------------------------------------------------------------------------
-	// アプリから使用する public static メソッド
+	// グローバルに使用する public static メソッド
 	//-------------------------------------------------------------------------
 
 	/**

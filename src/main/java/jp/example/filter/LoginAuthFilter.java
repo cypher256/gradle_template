@@ -36,6 +36,36 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class LoginAuthFilter extends HttpFilter {
 	
+	//-------------------------------------------------------------------------
+	// グローバルに使用する public static メソッド
+	//-------------------------------------------------------------------------
+	
+	/**
+	 * パスワードをハッシュ化します。
+	 * <pre>
+	 * 開発環境など https でない場合は、開発しやすいように引数のパスワードを平文のまま返します (DB も平文にしておく)。
+	 * レインボー攻撃対策としてソルト、ペッパーを付加してハッシュ化します。
+	 * username をソルトとして使用するため、username を変更した場合は、パスワードを再設定する必要があります。
+	 * サイドチャネル攻撃耐性を持つ Argon2 (2015 年ハッシュコンペ優勝) を使用します。
+	 * ハッシュ化は 10 回反復、メモリ 64MB 使用、CPU 論理コア数で並列実行します。
+	 * </pre>
+	 * @param isSecure https の場合は true を指定 (プロキシ経由は x-forwarded-proto が必要)
+	 * @param salt ソルト (username)
+	 * @param password パスワード
+	 * @return ハッシュ化したパスワード (isSecure が false の場合は引数のまま)
+	 */
+	public static String hashPassword(boolean isSecure, String salt, String password) {
+		final String papper = LoginAuthFilter.class.getSimpleName();
+		byte[] data = (salt + password + papper).getBytes(StandardCharsets.UTF_8);
+		String hash = argon2.hash(10, 65536, getRuntime().availableProcessors(), data);
+		log.debug("パスワードハッシュ (length={}) {}", hash.length(), hash);
+		return isSecure ? hash : password;
+	}
+	
+	//-------------------------------------------------------------------------
+	// Servlet フィルター処理
+	//-------------------------------------------------------------------------
+
 	private static final String USER = "USER";
 	private static final String LOGIN_SAVED_URL = "LOGIN_SAVED_URL";
 	private static final Argon2 argon2 = Argon2Factory.create();
@@ -86,27 +116,5 @@ public class LoginAuthFilter extends HttpFilter {
 			req.getSession().setAttribute(USER, user);
 			res.sendRedirect($(LOGIN_SAVED_URL, req::getContextPath));
 		}
-	}
-	
-	/**
-	 * パスワードをハッシュ化します。
-	 * <pre>
-	 * 開発環境など https でない場合は、開発しやすいように引数のパスワードを平文のまま返します (DB も平文にしておく)。
-	 * レインボー攻撃対策としてソルト、ペッパーを付加してハッシュ化します。
-	 * username をソルトとして使用するため、username を変更した場合は、パスワードを再設定する必要があります。
-	 * サイドチャネル攻撃耐性を持つ Argon2 (2015 年ハッシュコンペ優勝) を使用します。
-	 * ハッシュ化は 10 回反復、メモリ 64MB 使用、CPU 論理コア数で並列実行します。
-	 * </pre>
-	 * @param isSecure https の場合は true を指定 (プロキシ経由は x-forwarded-proto が必要)
-	 * @param salt ソルト (username)
-	 * @param password パスワード
-	 * @return ハッシュ化したパスワード (isSecure が false の場合は引数のまま)
-	 */
-	private String hashPassword(boolean isSecure, String salt, String password) {
-		final String papper = getClass().getSimpleName();
-		byte[] data = (salt + password + papper).getBytes(StandardCharsets.UTF_8);
-		String hash = argon2.hash(10, 65536, getRuntime().availableProcessors(), data);
-		log.debug("パスワードハッシュ (length={}) {}", hash.length(), hash);
-		return isSecure ? hash : password;
 	}
 }
