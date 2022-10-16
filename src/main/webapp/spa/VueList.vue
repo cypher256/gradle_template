@@ -67,6 +67,7 @@
 			</tr>
 		</thead>
 		<tbody>
+		
 			<tr v-for="item in itemList">
 				<td>{{item.name}}</td>
 				<td>{{item.releaseDate}}</td>
@@ -77,6 +78,7 @@
 					<button type="button" @click="() => handleDelete(item.id)" class="btn btn-warning">削除</button>
 				</td>
 			</tr>
+			
 		</tbody>
 	</table>
 </template>
