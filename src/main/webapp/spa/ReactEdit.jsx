@@ -4,7 +4,7 @@ const ReactEdit = () => {
 	const router = useHistory(); // React Router v5 (v6 では useNavigate)
 	const id = useParams().id;
 	const isInsert = id == 0;
-	const [form, setForm] = useState({});
+	const [item, setItem] = useState({});
 	const [companySelect, setCompanySelect] = useState([]);
 	useEffect(() => {handleInit()}, []);
 
@@ -22,7 +22,7 @@ const ReactEdit = () => {
 				router.push('/');
 				return;
 			} else {
-				setForm(data); // ItemForm json
+				setItem(data); // ItemForm json
 			}
 		}
 		setCompanySelect((await axios.get('select-company')).data);
@@ -57,28 +57,28 @@ const ReactEdit = () => {
 	return (
 <HashRouter>
 	<form onSubmit={handleSubmit} id="id_form" method="post">
-		<input type="hidden" name="id" defaultValue={form.id}/>
+		<input type="hidden" name="id" defaultValue={item.id}/>
 		<div className="mb-3">
 			<label className="form-label">製品名</label> <span className="badge bg-danger">必須</span>
-			<input className="form-control" type="text" name="name" defaultValue={form.name} id="id_name"
+			<input className="form-control" type="text" name="name" defaultValue={item.name} id="id_name"
 				onFocus={e => e.target.setSelectionRange(99,99)}
 				onChange={handleChange} required/>
 		</div>
 		<div className="mb-3">
 			<label className="form-label">発売日</label> <span className="badge bg-danger">必須</span>
-			<input className="form-control w-auto" type="date" name="releaseDate" defaultValue={form.releaseDate}
+			<input className="form-control w-auto" type="date" name="releaseDate" defaultValue={item.releaseDate}
 				onChange={handleChange} required/>
 		</div>
 		<div className="mb-3 form-check">
 			<input type="checkbox" name="faceAuth" id="faceAuth" className="form-check-input"
-				onChange={handleChange} defaultChecked={form.faceAuth}/>
+				onChange={handleChange} defaultChecked={item.faceAuth}/>
 			<label className="form-check-label" htmlFor="faceAuth">顔認証</label>
 		</div>
 		<div className="mb-5">
 			<label className="form-label">メーカー</label>
 			{/* select は制御コンポーネントでないと警告が出るため value と onChange 使用 (... はスプレッド構文) */}
-			<select name="companyId" className="form-select w-auto" value={form.companyId}
-				onChange={e => setForm({...form, companyId: e.target.value})}>
+			<select name="companyId" className="form-select w-auto" value={item.companyId}
+				onChange={e => setItem({...item, companyId: e.target.value})}>
 	{companySelect.map(com => (
 				<option key={com.id} value={com.id}>{com.companyName}</option>
 	))}

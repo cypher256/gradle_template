@@ -4,7 +4,7 @@
 	const router = useRouter(); // Vue Router
 	const id = useRoute().params.id;
 	const isInsert = id == 0;
-	const form = ref({});
+	const item = ref({});
 	const companySelect = ref([]);
 	onMounted(() => {handleInit()});
 
@@ -22,7 +22,7 @@
 				router.push('/');
 				return;
 			} else {
-				form.value = data; // ItemForm json
+				item.value = data; // ItemForm json
 			}
 		}
 		companySelect.value = (await axios.get('select-company')).data;
@@ -57,21 +57,21 @@
 </script>
 <template>
 	<form @submit.prevent="handleSubmit" id="id_form" method="post">
-		<input type="hidden" name="id" :value="form.id"/>
+		<input type="hidden" name="id" :value="item.id"/>
 		<div class="mb-3">
 			<label class="form-label">製品名</label> <span class="badge bg-danger">必須</span>
-			<input class="form-control" type="text" name="name" required id="id_name" :value="form.name"
+			<input class="form-control" type="text" name="name" required id="id_name" :value="item.name"
 				onfocus="this.setSelectionRange(99,99)"
 				@input="handleChange">
 		</div>
 		<div class="mb-3">
 			<label class="form-label">発売日</label> <span class="badge bg-danger">必須</span>
-			<input class="form-control w-auto" type="date" name="releaseDate" :value="form.releaseDate"
+			<input class="form-control w-auto" type="date" name="releaseDate" :value="item.releaseDate"
 				@change="handleChange" required>
 		</div>
 		<div class="mb-3 form-check">
 			<input type="checkbox" name="faceAuth" id="faceAuth" class="form-check-input"
-				@change="handleChange" :checked="form.faceAuth">
+				@change="handleChange" :checked="item.faceAuth">
 			<label class="form-check-label" for="faceAuth">顔認証</label>
 		</div>
 		<div class="mb-5">
@@ -80,7 +80,7 @@
 			<select name="companyId" class="form-select w-auto">
 			
 			
-				<option v-for="com in companySelect" :value="com.id" :selected="form.companyId == com.id"
+				<option v-for="com in companySelect" :value="com.id" :selected="item.companyId == com.id"
 					>{{com.companyName}}</option>
 			</select>
 		</div>
