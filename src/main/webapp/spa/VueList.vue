@@ -8,7 +8,7 @@
 	// 初期表示 → 検索 API 呼び出し
 	const handleInit = async() => {
 		document.title = 'Vue の場合 (一覧コンポーネント)';
-		id_head_link_server.href = '../item/list';
+		id_head_link_jsp.href = '../item/list';
 		id_head_link_react.href = '../spa/react.html';
 		id_head_link_vue.href   = '../spa/vue.html';
 		handleSearch();
