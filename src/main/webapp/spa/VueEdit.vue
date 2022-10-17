@@ -88,3 +88,5 @@
 		<input id="id_submit_button" type="submit" class="btn btn-warning px-5" :value="isInsert ? '登録' : '更新'"/>
 	</form>
 </template>
+
+
