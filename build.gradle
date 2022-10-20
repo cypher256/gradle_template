@@ -15,17 +15,20 @@ Eclipse gradle プロジェクト作成ウィザードの雛形
 	同じ機能 (DB 検索、登録・修正・削除) を React、Vue、JSP の 3 種類で同一プロジェクト内に実装しています。
 	サーバー側は Java 17, Tomcat 9 (javax.servlet) で動作し、ログイン機能も含まれています。
 	サンプルの React と Vue は純粋な HTML と API 呼び出しのみなので、サーバー側の技術や言語に依存しません。
-
-	フロントエンド
-
-		React	src/main/webapp/spa/React* (.html と .jsx)
-		Vue		src/main/webapp/spa/Vue* (.html と .vue)
-		JSP		src/main/webapp/WEB-INF/jsp/item/* (.jsp - サーバー側だけど)
 		
 	サーバーサイド
 	
 		SPA	用	src/main/java/jp/example/servlet/SpaCrudServlet.java (React、Vue 共通 - フロント技術非依存)
 		JSP	用	src/main/java/jp/example/servlet/JspCrudServlet.java
+
+	フロントエンド
+		
+		React	src/main/webapp/spa/React* (.html と .jsx)
+		Vue		src/main/webapp/spa/Vue* (.html と .vue)
+		JSP		src/main/webapp/WEB-INF/jsp/item/* (.jsp - サーバー側だけど)
+
+		ReactとVueの比較 | 具体的なコードの書き方の違い - Qiita
+		https://qiita.com/cypher256/items/8d6c25e3466e4815b3c7
 
 実行方法
 	
