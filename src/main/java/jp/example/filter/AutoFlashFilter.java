@@ -7,11 +7,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-import javax.servlet.FilterChain;
-import javax.servlet.http.HttpFilter;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletRequestWrapper;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.http.HttpFilter;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequestWrapper;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -19,7 +19,6 @@ import org.apache.commons.lang3.time.StopWatch;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import jodd.servlet.DispatcherUtil;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
@@ -228,8 +227,7 @@ public class AutoFlashFilter extends HttpFilter {
 			throw e; // 再スローする (上位フィルターでロールバックなどを制御できるようにするため)
 			
 		} finally {
-			String fullUrl = DispatcherUtil.getFullUrl(req);
-			log.debug("処理時間 {}ms [{}] {} {}", stopWatch.getTime(), req.getMethod(), fullUrl, $(MESSAGE, ""));
+			log.debug("処理時間 {}ms [{}] {} {}", stopWatch.getTime(), req.getMethod(), getQueryUri(), $(MESSAGE, ""));
 		}
 	}
 	

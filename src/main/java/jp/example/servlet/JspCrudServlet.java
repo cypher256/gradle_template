@@ -3,12 +3,11 @@ package jp.example.servlet;
 import static jp.example.filter.AutoFlashFilter.*;
 import static jp.example.filter.RequestContextFilter.*;
 
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
-import jodd.servlet.DispatcherUtil;
 import jp.example.form.ItemForm;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -50,7 +49,7 @@ public class JspCrudServlet {
 		protected void doGet(HttpServletRequest req, HttpServletResponse res) {
 			log.debug("検索して list.jsp にフォワード");
 			req.setAttribute("itemList", new ItemForm(req).findFormList());
-			req.getSession().setAttribute("lastQueryUrl", DispatcherUtil.getFullUrl(req)); // PRG リダイレクト先保存
+			req.getSession().setAttribute("lastQueryUrl", getQueryUri()); // PRG リダイレクト先保存
 			forward("list.jsp");
 		}
 	}

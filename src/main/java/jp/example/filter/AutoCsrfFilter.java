@@ -3,21 +3,24 @@ package jp.example.filter;
 import static java.lang.String.*;
 import static jp.example.filter.RequestContextFilter.*;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.util.Map;
 import java.util.UUID;
 
-import javax.servlet.DispatcherType;
-import javax.servlet.FilterChain;
-import javax.servlet.http.HttpFilter;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-
 import org.apache.commons.lang3.StringUtils;
 
-import jodd.servlet.ServletUtil;
-import jodd.servlet.filter.ByteArrayResponseWrapper;
+import jakarta.servlet.DispatcherType;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.WriteListener;
+import jakarta.servlet.http.HttpFilter;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponseWrapper;
+import jakarta.servlet.http.HttpSession;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
@@ -97,10 +100,10 @@ public class AutoCsrfFilter extends HttpFilter {
 		// [REQUEST, FORWARD] トークン埋め込み (html 直接アクセス、Servlet からの jsp フォワード)
 		// ここで想定する文字列パターンに一致しない場合は、JSP に ${_csrf} を指定する必要がある
 		if (isHtml) {
-			ByteArrayResponseWrapper resWrapper = new ByteArrayResponseWrapper(res);
+			HtmlContentResponseWrapper resWrapper = new HtmlContentResponseWrapper(res);
 			super.doFilter(req, resWrapper, chain);
 			String csrfToken = (String) req.getSession().getAttribute(_csrf);
-			String html = new String(resWrapper.toByteArray(), resWrapper.getCharacterEncoding())
+			String html = resWrapper.getHtml()
 				
 				// meta タグ追加 (単一)
 				.replaceFirst("(?i)(<head>)", format("""
@@ -150,14 +153,52 @@ public class AutoCsrfFilter extends HttpFilter {
 		res.addHeader("Set-Cookie", format("XSRF-TOKEN=%s;%sSameSite=Strict;", 
 				session.getAttribute(_csrf), req.isSecure() ? " Secure;" : ""));
 		
-		// Cache-Control で bfcache 無効化 (ブラウザの種類やバージョンに依存する場合あり)
+		// Cache-Control no-store で bfcache 無効化 (ブラウザの種類やバージョンに依存)
 		// * ブラウザ戻るボタンでできるだけエラーにならないようにする
 		// * ブラウザ戻るボタンでの get ページ表示は、bfcache ではなくサーバから再取得される (トークンを一致させる)
 		// * 登録 → ブラウザ戻るボタン → 登録: 不正ではなく連続登録できる
 		// * 更新 → ブラウザ戻るボタン → 更新: 不正ではなく再修正できる
 		// * 二重送信やリロードによる POST 多重送信はトークンエラーとなる
 		// * 戻るボタン後のサブミットをエラーにしたい場合は、下記の bfcache を無効化しないようにする
-		ServletUtil.preventCaching(res);
+		res.setHeader("Cache-Control", "max-age=0, must-revalidate, no-cache, no-store, private, post-check=0, pre-check=0");
+		res.setDateHeader ("Expires", 0); // プロキシサーバのキャシュ抑止
 		return false; // 正常
+	}
+	
+	/**
+	 * 処理後に HTML コンテンツを文字列として操作するための HTTP レスポンスラッパークラスです。
+	 */
+	private static class HtmlContentResponseWrapper extends HttpServletResponseWrapper {
+		
+		private final ByteArrayOutputStream resOutputStream = new ByteArrayOutputStream();
+		private final PrintWriter resWriter = new PrintWriter(resOutputStream);
+		
+		public HtmlContentResponseWrapper(HttpServletResponse res) {
+			super(res);
+		}
+		
+		public String getHtml() throws UnsupportedEncodingException {
+			resWriter.flush();
+			return new String(resOutputStream.toByteArray(), getCharacterEncoding());
+		}
+		
+		@Override public PrintWriter getWriter() {
+			return resWriter;
+		}
+		
+		@Override public ServletOutputStream getOutputStream() {
+			return new ServletOutputStream() {
+				
+				@Override public void write(int b) throws IOException {
+					resOutputStream.write(b);
+				}
+				@Override public void setWriteListener(WriteListener writeListener) {
+					throw new UnsupportedOperationException("このメソッドは拡張子が jsp、html の場合は使用できません。");
+				}
+				@Override public boolean isReady() {
+					return false;
+				}
+			};
+		}
 	}
 }

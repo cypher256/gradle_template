@@ -6,15 +6,14 @@ import static jp.example.filter.RequestContextFilter.*;
 
 import java.nio.charset.StandardCharsets;
 
-import javax.servlet.FilterChain;
-import javax.servlet.http.HttpFilter;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.http.HttpFilter;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 import de.mkammerer.argon2.Argon2;
 import de.mkammerer.argon2.Argon2Factory;
-import jodd.servlet.DispatcherUtil;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
@@ -91,7 +90,7 @@ public class LoginAuthFilter extends HttpFilter {
 			res.sendError(HttpServletResponse.SC_UNAUTHORIZED);
 		} else {
 			if (req.getMethod().equals("GET")) {
-				session.setAttribute(LOGIN_SAVED_URL, DispatcherUtil.getFullUrl(req));
+				session.setAttribute(LOGIN_SAVED_URL, getQueryUri());
 			}
 			req.getRequestDispatcher("/WEB-INF/jsp/login.jsp").forward(req, res);
 		}

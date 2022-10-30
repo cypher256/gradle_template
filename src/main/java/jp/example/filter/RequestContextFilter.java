@@ -3,14 +3,14 @@ package jp.example.filter;
 import java.util.Objects;
 import java.util.function.Supplier;
 
-import javax.servlet.FilterChain;
-import javax.servlet.http.HttpFilter;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.http.HttpFilter;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import jodd.servlet.ServletUtil;
 import lombok.SneakyThrows;
 
 /**
@@ -34,7 +34,10 @@ public class RequestContextFilter extends HttpFilter {
 	 */
 	@SuppressWarnings("unchecked")
 	public static <T> T $(String name) {
-		return (T) ServletUtil.attribute(request(), name);
+		return (T) ObjectUtils.getFirstNonNull(
+			() -> request().getAttribute(name),
+			() -> request().getSession().getAttribute(name),
+			() -> request().getServletContext().getAttribute(name));
 	}
 	
 	/**
@@ -57,6 +60,15 @@ public class RequestContextFilter extends HttpFilter {
 	 */
 	public static <T> T $(String name, Supplier<T> defaultValueSupplier) {
 		return Objects.requireNonNullElseGet($(name), defaultValueSupplier);
+	}
+	
+	/**
+	 * get パラメータを含むリクエスト URI を取得します。
+	 * @return getRequestURI + "?" + getQueryString (パラメータが無い場合はリクエスト URI のみ)
+	 */
+	public static String getQueryUri() {
+		String params = StringUtils.defaultIfBlank(request().getQueryString(), null);
+		return request().getRequestURI() + (params == null ? "" : "?" + params);
 	}
 	
 	//-------------------------------------------------------------------------
