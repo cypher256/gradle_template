@@ -181,11 +181,11 @@ public class AutoCsrfFilter extends HttpFilter {
 			return resOutputStream.toString(getCharacterEncoding());
 		}
 		
-		@Override public PrintWriter getWriter() {
+		@Override public PrintWriter getWriter() { // jsp
 			return resWriter;
 		}
 		
-		@Override public ServletOutputStream getOutputStream() {
+		@Override public ServletOutputStream getOutputStream() { // html
 			return new ServletOutputStream() {
 				
 				@Override public void write(int b) {
