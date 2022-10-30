@@ -80,14 +80,14 @@ dependencies {
 	//runtimeOnly 'jakarta.servlet.jsp.jstl:jakarta.servlet.jsp.jstl-api:3.0.+'
 	//runtimeOnly 'org.glassfish.web:jakarta.servlet.jsp.jstl:3.0.+'
 
-	implementation 'com.fasterxml.jackson.core:jackson-databind:2.13.+'
-	implementation 'commons-beanutils:commons-beanutils:1.9.+'
-	implementation 'de.mkammerer:argon2-jvm:2.+'
-	implementation 'org.apache.commons:commons-lang3:3.12.+'
-	implementation 'jp.co.future:uroborosql:0.25.+'
-	compileOnly 'org.projectlombok:lombok:1.18.+'
+	implementation 'com.fasterxml.jackson.core:jackson-databind:2.13.+' // JSON 変換
+	implementation 'commons-beanutils:commons-beanutils:1.9.+' // Bean 変換
+	implementation 'de.mkammerer:argon2-jvm:2.+' // パスワードハッシュ化
+	implementation 'org.apache.commons:commons-lang3:3.12.+' // 共通ユーティリティ
+	implementation 'jp.co.future:uroborosql:0.25.+' // SQL 実行ライブラリ
+	compileOnly 'org.projectlombok:lombok:1.18.+' // アクセッサ自動生成
 	annotationProcessor 'org.projectlombok:lombok:1.18.+'
-	runtimeOnly 'com.h2database:h2:2.1.+'
-	runtimeOnly 'org.slf4j:slf4j-simple:1.7.+'
-	runtimeOnly 'ognl:ognl:3.3.+'
+	runtimeOnly 'com.h2database:h2:2.1.+' // インメモリデータベース
+	runtimeOnly 'org.slf4j:slf4j-simple:1.7.+' // ロガー
+	runtimeOnly 'ognl:ognl:3.3.+' // 2 Way-SQL の条件式評価
 }

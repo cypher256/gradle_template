@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+===============================================================================================
+Apache Tomcat 10.0 (Jakarta Servlet 5.0, Jakarta EE 9)
+===============================================================================================
+-->
 <web-app
 	xmlns="https://jakarta.ee/xml/ns/jakartaee" 
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
@@ -159,7 +164,6 @@
 	<!-- 初回アクセス時に URL へ jsessionid が追加されるのを無効化 -->
 	<session-config>
 		<tracking-mode>COOKIE</tracking-mode>
-		<session-timeout>30</session-timeout><!-- 単位:分 (デフォルト 30) -->
 	</session-config>
 
 	<!-- JSP 共通設定 (文字エンコーディング、共通ヘッダ) -->
