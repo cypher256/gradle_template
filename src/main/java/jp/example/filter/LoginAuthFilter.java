@@ -54,8 +54,8 @@ public class LoginAuthFilter extends HttpFilter {
 	 * @return ハッシュ化したパスワード (isSecure が false の場合は引数のまま)
 	 */
 	public static String hashPassword(boolean isSecure, String salt, String password) {
-		final String papper = LoginAuthFilter.class.getSimpleName();
-		byte[] data = (salt + password + papper).getBytes(StandardCharsets.UTF_8);
+		final String pepper = LoginAuthFilter.class.getSimpleName();
+		byte[] data = (salt + password + pepper).getBytes(StandardCharsets.UTF_8);
 		String hash = argon2.hash(10, 65536, getRuntime().availableProcessors(), data);
 		log.debug("パスワードハッシュ (length={}) {}", hash.length(), hash);
 		return isSecure ? hash : password;

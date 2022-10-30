@@ -133,7 +133,7 @@ public class ItemForm {
 	 */
 	public List<ItemForm> findFormList() {
 		String sql = """
-				SELECT item.*, company.company_name 
+				SELECT item.*, company.company_name
 				FROM item
 				LEFT JOIN company ON item.company_id = company.id
 				WHERE 1 = 1
@@ -156,7 +156,7 @@ public class ItemForm {
 	 */
 	public long count() {
 		String sql = """
-				SELECT COUNT(*) 
+				SELECT COUNT(*)
 				FROM item
 				WHERE 1 = 1
 					/*IF SF.isNotBlank(name)*/

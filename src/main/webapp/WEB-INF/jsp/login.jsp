@@ -20,11 +20,11 @@
 				<input type="text" class="form-control" name="username" required
 					value="${empty param.username ? 'demouser' : param.username}"
 					autofocus onfocus="this.setSelectionRange(99,99)">
-				<label for="floatingInput">ユーザー名</label>
+				<label>ユーザー名</label>
 			</div>
 			<div class="form-floating">
 				<input type="password" class="form-control" name="password" required value="demo1234@">
-				<label for="floatingPassword">パスワード</label>
+				<label>パスワード</label>
 			</div>
 			<button class="w-100 btn btn-lg btn-secondary" type="submit">ログイン</button>
 		</form>

@@ -4,7 +4,6 @@ import static java.lang.String.*;
 import static jp.example.filter.RequestContextFilter.*;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.Map;
@@ -124,7 +123,7 @@ public class AutoCsrfFilter extends HttpFilter {
 	 * POST 時のトークンをチェックします。
 	 * @return トークンが一致しない場合は true
 	 */
-	synchronized protected boolean notMatchToken(HttpServletRequest req, HttpServletResponse res) throws IOException {
+	synchronized protected boolean notMatchToken(HttpServletRequest req, HttpServletResponse res) {
 		
 		// トークンチェック (リクエスト、ヘッダー、Cookie は標準的な名前を使用)
 		HttpSession session = req.getSession();
@@ -179,7 +178,7 @@ public class AutoCsrfFilter extends HttpFilter {
 		
 		public String getHtml() throws UnsupportedEncodingException {
 			resWriter.flush();
-			return new String(resOutputStream.toByteArray(), getCharacterEncoding());
+			return resOutputStream.toString(getCharacterEncoding());
 		}
 		
 		@Override public PrintWriter getWriter() {
@@ -189,7 +188,7 @@ public class AutoCsrfFilter extends HttpFilter {
 		@Override public ServletOutputStream getOutputStream() {
 			return new ServletOutputStream() {
 				
-				@Override public void write(int b) throws IOException {
+				@Override public void write(int b) {
 					resOutputStream.write(b);
 				}
 				@Override public void setWriteListener(WriteListener writeListener) {

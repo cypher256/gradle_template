@@ -101,7 +101,7 @@ public class RequestContextFilter extends HttpFilter {
 	private record RequestContext (
 		HttpServletRequest req,
 		HttpServletResponse res
-	) {};
+	) {}
 
 	@Override @SneakyThrows
 	protected void doFilter(HttpServletRequest req, HttpServletResponse res, FilterChain chain) {

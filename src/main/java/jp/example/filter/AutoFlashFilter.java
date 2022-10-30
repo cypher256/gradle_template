@@ -237,10 +237,10 @@ public class AutoFlashFilter extends HttpFilter {
 		
 		// IllegalStateException インスタンスと Error クラスはアプリエラー扱い (スタックトレースログを出さない)
 		Throwable cause = ExceptionUtils.getRootCause(e);
-		boolean isAppErrorFoward = cause instanceof IllegalStateException;
+		boolean isAppErrorForward = cause instanceof IllegalStateException;
 		boolean isAppErrorRedirect = cause.getClass() == Error.class;
 		String message = "❌ " + StringUtils.firstNonEmpty(cause.getMessage(), cause.toString());
-		if (!isAppErrorFoward && !isAppErrorRedirect) {
+		if (!isAppErrorForward && !isAppErrorRedirect) {
 			log.warn("致命的システムエラー", cause);
 			if (req.isSecure()) {
 				message = "❌ システムに問題が発生しました。";
@@ -251,7 +251,7 @@ public class AutoFlashFilter extends HttpFilter {
 		// AJAX リクエスト時のエラー (アプリエラー、システムエラー両方) → メッセージ文字列を返す
 		if (isAjax(req)) {
 			// アプリエラー以外はクライアント判別用に 202 Accepted をセット (200-203 以外の 2xx はレスポンス書き込み不可)
-			if (!isAppErrorFoward) res.setStatus(HttpServletResponse.SC_ACCEPTED);
+			if (!isAppErrorForward) res.setStatus(HttpServletResponse.SC_ACCEPTED);
 			res.getWriter().print(message);
 			return;
 		}
@@ -259,7 +259,7 @@ public class AutoFlashFilter extends HttpFilter {
 		// アプリエラー (IllegalStateException 画面入力チェックエラーなど、アプリ側で入力画面に戻したい場合)
 		// → 入力画面にフォワード
 		String forwardPath = $(APP_ERROR_FORWARD_PATH);
-		if (isAppErrorFoward && forwardPath != null) {
+		if (isAppErrorForward && forwardPath != null) {
 			req.getRequestDispatcher(forwardPath).forward(req, res);
 			return;
 		}
