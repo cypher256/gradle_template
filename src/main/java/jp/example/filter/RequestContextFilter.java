@@ -3,14 +3,13 @@ package jp.example.filter;
 import java.util.Objects;
 import java.util.function.Supplier;
 
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
+
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-
-import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
-
 import lombok.SneakyThrows;
 
 /**
@@ -42,7 +41,7 @@ public class RequestContextFilter extends HttpFilter {
 	
 	/**
 	 * JSP EL の ${name} のようにリクエスト、セッション、アプリケーションスコープから、最初に見つかった属性値を取得します。
-	 * @param <T> 戻り値の型 (代入先があればキャスト不要)
+	 * @param <T> 戻り値の型 (キャスト不要)
 	 * @param name 属性名
 	 * @param defaultValue 値が見つからなかった場合のデフォルト値
 	 * @return 属性値。見つからない場合は defaultValue。
@@ -53,7 +52,7 @@ public class RequestContextFilter extends HttpFilter {
 	
 	/**
 	 * JSP EL の ${name} のようにリクエスト、セッション、アプリケーションスコープから、最初に見つかった属性値を取得します。
-	 * @param <T> 戻り値の型 (代入先があればキャスト不要)
+	 * @param <T> 戻り値の型 (キャスト不要)
 	 * @param name 属性名
 	 * @param defaultValueSupplier 値が見つからなかった場合のデフォルト値を生成する Supplier
 	 * @return 属性値。見つからない場合は defaultValueSupplier から取得。
