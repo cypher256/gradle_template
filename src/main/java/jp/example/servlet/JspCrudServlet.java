@@ -49,7 +49,7 @@ public class JspCrudServlet {
 		protected void doGet(HttpServletRequest req, HttpServletResponse res) {
 			log.debug("検索して list.jsp にフォワード");
 			req.setAttribute("itemList", new ItemForm(req).findFormList());
-			req.getSession().setAttribute("lastQueryUrl", getQueryUri()); // PRG リダイレクト先保存
+			req.getSession().setAttribute("lastQueryUri", getQueryUri()); // PRG リダイレクト先保存
 			forward("list.jsp");
 		}
 	}
@@ -67,7 +67,7 @@ public class JspCrudServlet {
 		/** 登録画面の登録ボタン → 一覧画面へリダイレクト (PRG パターン: リロードによる多重送信抑止) */
 		protected void doPost(HttpServletRequest req, HttpServletResponse res) {
 			new ItemForm(req).validate(req).insert();
-			redirect($("lastQueryUrl"), "ℹ️ 登録しました。");
+			redirect($("lastQueryUri"), "ℹ️ 登録しました。");
 		}
 	}
 	
@@ -84,7 +84,7 @@ public class JspCrudServlet {
 		/** 変更画面の更新ボタン → 一覧画面へリダイレクト (PRG パターン: リロードによる多重送信抑止) */
 		protected void doPost(HttpServletRequest req, HttpServletResponse res) {
 			new ItemForm(req).validate(req).update();
-			redirect($("lastQueryUrl"), "ℹ️ 更新しました。");
+			redirect($("lastQueryUri"), "ℹ️ 更新しました。");
 		}
 	}
 	
@@ -95,7 +95,7 @@ public class JspCrudServlet {
 		/** 一覧画面の削除ボタン → 一覧画面へリダイレクト (PRG パターン: リロードによる多重送信抑止) */
 		protected void doPost(HttpServletRequest req, HttpServletResponse res) {
 			new ItemForm(req).delete();
-			redirect($("lastQueryUrl"), "️ℹ️ 削除しました。");
+			redirect($("lastQueryUri"), "️ℹ️ 削除しました。");
 		}
 	}
 

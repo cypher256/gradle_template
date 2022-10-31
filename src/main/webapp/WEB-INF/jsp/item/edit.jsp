@@ -55,7 +55,7 @@
 	</c:forEach>
 			</select>
 		</div>
-		<a href="${lastQueryUrl == null ? 'list' : lastQueryUrl}" class="btn btn-secondary px-5">戻る</a>
+		<a href="${lastQueryUri == null ? 'list' : lastQueryUri}" class="btn btn-secondary px-5">戻る</a>
 		<input id="id_submit_button" type="submit" class="btn btn-warning px-5" value=
 			${form.id == 0
 				? '"登録" formaction="create"' 
