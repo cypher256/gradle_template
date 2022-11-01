@@ -20,7 +20,7 @@
 				<li class="nav-item"><a class="nav-link active" href="#" id="id_head_link_vue">Vue</a></li>
 			</ul>
 			<div class="navbar-text d-flex">
-				<span class="me-3" id="id_uesr_name"></span>
+				<span class="me-3" id="id_user_name"></span>
 				<a class="nav-link active d-none" id="id_logout" href="../logout">ログアウト</a>
 			</div>
 		</div>
@@ -66,8 +66,8 @@ const { createRouter, createWebHashHistory, useRoute, useRouter } = VueRouter;
 
 // ログインユーザー名取得
 (async() => {
-	id_uesr_name.textContent = (await axios.get('user-name')).data;
-	id_uesr_name.textContent && id_logout.classList.remove('d-none');
+	id_user_name.textContent = (await axios.get('user-name')).data;
+	id_user_name.textContent && id_logout.classList.remove('d-none');
 })();
 
 // Vue Router 定義 (ハッシュルーター使用)
