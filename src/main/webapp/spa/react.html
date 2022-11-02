@@ -60,11 +60,11 @@
 
 
 
-/* React を操作するための関数 */
+// React を操作するための関数
 const { useState, useEffect, createContext } = React;
-const { HashRouter, Route, Link, useParams, useHistory } = ReactRouterDOM; /* v5 (v6 は CDN 未対応) */
+const { HashRouter, Route, Link, useParams, useHistory } = ReactRouterDOM; // v5 (v6 は CDN 未対応)
 
-/* ログインユーザー名取得 */
+// ログインユーザー名取得
 (async() => {
 	id_user_name.textContent = (await axios.get('user-name')).data;
 	id_user_name.textContent && id_logout.classList.remove('d-none');

@@ -49,7 +49,7 @@
 <script src="https://cdn.jsdelivr.net/npm/axios@1/dist/axios.min.js"></script>
 <script src="../static/axios-common-interceptor.js"></script>
 <script>
-/* npm を使用せず CDN で Vue SFC (単一ファイルコンポーネント .vue ファイル) を使えるようにする */
+// npm を使用せず CDN で Vue SFC (単一ファイルコンポーネント .vue ファイル) を使えるようにする
 const loadVueFile = path => {return window["vue3-sfc-loader"].loadModule(path, {
 	moduleCache: {vue: Vue,},
 	async getFile(url) {return (await fetch(url)).text()},
@@ -60,11 +60,11 @@ const loadVueFile = path => {return window["vue3-sfc-loader"].loadModule(path, {
 	},
 })};
 
-/* Vue を操作するための関数 */
+// Vue を操作するための関数
 const { createApp, ref, reactive, onMounted } = Vue;
 const { createRouter, createWebHashHistory, useRoute, useRouter } = VueRouter;
 
-/* ログインユーザー名取得 */
+// ログインユーザー名取得
 (async() => {
 	id_user_name.textContent = (await axios.get('user-name')).data;
 	id_user_name.textContent && id_logout.classList.remove('d-none');
