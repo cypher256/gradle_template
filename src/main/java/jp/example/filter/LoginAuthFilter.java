@@ -86,7 +86,7 @@ public class LoginAuthFilter extends HttpFilter {
 		}
 		
 		// 未認証 (AJAX: HTTP 401、画面: ログイン画面にフォワード)
-		else if (isAjax(req)) {
+		else if (isAjax()) {
 			res.sendError(HttpServletResponse.SC_UNAUTHORIZED);
 		} else {
 			if (req.getMethod().equals("GET")) {

@@ -193,7 +193,7 @@ public class AutoFlashFilter extends HttpFilter {
 		StopWatch stopWatch = StopWatch.createStarted();
 		try {
 			// フラッシュは画面の機能のため AJAX の場合はフラッシュを復元・削除しない (例外ハンドリングは必要)
-			if (isAjax(req)) {
+			if (isAjax()) {
 				super.doFilter(req, res, chain); // AJAX Servlet 呼び出し
 				return;
 			}
@@ -249,7 +249,7 @@ public class AutoFlashFilter extends HttpFilter {
 		req.setAttribute(MESSAGE, message); // jsp や html から参照可能にする (finally でも使用)
 		
 		// AJAX リクエスト時のエラー (アプリエラー、システムエラー両方) → メッセージ文字列を返す
-		if (isAjax(req)) {
+		if (isAjax()) {
 			// アプリエラー以外はクライアント判別用に 202 Accepted をセット (200-203 以外の 2xx はレスポンス書き込み不可)
 			if (!isAppErrorForward) res.setStatus(HttpServletResponse.SC_ACCEPTED);
 			res.getWriter().print(message);

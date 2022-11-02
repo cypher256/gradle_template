@@ -22,7 +22,7 @@ const ReactList = () => {
   	
   	// 検索ボタンクリック、フォーム Enter → 検索 API 呼び出し
 	const handleSubmit = async(e) => {
-		e.preventDefault(); // デフォルトサブミット抑止 (Vue は @submit.prevent)
+		e.preventDefault(); // デフォルトサブミット抑止
 		id_message.textContent = null;
 		handleSearch();
   	};

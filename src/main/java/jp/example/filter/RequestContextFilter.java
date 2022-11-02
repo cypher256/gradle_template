@@ -86,9 +86,9 @@ public class RequestContextFilter extends HttpFilter {
 		contextThreadLocal.set(new RequestContext(req, res));
 	}
 	
-	static boolean isAjax(HttpServletRequest req) {
-		return "XMLHttpRequest".equals(req.getHeader("X-Requested-With")) || // jQuery、prototype
-				StringUtils.contains(req.getHeader("Accept"), "/json"); // axios
+	static boolean isAjax() {
+		return "XMLHttpRequest".equals(request().getHeader("X-Requested-With")) || // jQuery、prototype.js
+				StringUtils.contains(request().getHeader("Accept"), "/json"); // axios
 	}
 	
 	//-------------------------------------------------------------------------
@@ -104,7 +104,8 @@ public class RequestContextFilter extends HttpFilter {
 
 	@Override @SneakyThrows
 	protected void doFilter(HttpServletRequest req, HttpServletResponse res, FilterChain chain) {
-		if (req.getRequestURI().contains(".")) { // css js など
+		String uri = req.getRequestURI();
+		if (uri.contains(".") && !uri.endsWith(".html")) { // css js など
 			super.doFilter(req, res, chain); 
 			return;
 		}

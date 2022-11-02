@@ -31,7 +31,7 @@ const ReactEdit = () => {
   	
   	// フォーム Enter → 登録・更新 API 呼び出し
 	const handleSubmit = async(e) => {
-		e.preventDefault(); // デフォルトサブミット抑止 (Vue は @submit.prevent)
+		e.preventDefault(); // デフォルトサブミット抑止
 		id_submit_button.disabled = true;
 		const res = await axios.post(isInsert ? 'insert' : 'update', params(id_form)); // axios が CSRF ヘッダ自動追加
 		const errorMessage = res.data;
@@ -79,9 +79,9 @@ const ReactEdit = () => {
 			{/* select は制御コンポーネントでないと警告が出るため value と onChange 使用 (... はスプレッド構文) */}
 			<select name="companyId" className="form-select w-auto" value={item.companyId}
 				onChange={e => setItem({...item, companyId: e.target.value})}>
-	{companySelect.map(com => (
+		{companySelect.map(com => (
 				<option key={com.id} value={com.id}>{com.companyName}</option>
-	))}
+		))}
 			</select>
 		</div>
 		<Link to="/" className="btn btn-secondary px-5 me-1">戻る</Link>

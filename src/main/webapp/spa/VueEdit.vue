@@ -31,7 +31,7 @@
   	
   	// フォーム Enter → 登録・更新 API 呼び出し
 	const handleSubmit = async(e) => {
-		
+		// @submit.prevent しているため e.preventDefault() 不要
 		id_submit_button.disabled = true;
 		const res = await axios.post(isInsert ? 'insert' : 'update', params(id_form)); // axios が CSRF ヘッダ自動追加
 		const errorMessage = res.data;

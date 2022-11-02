@@ -22,7 +22,7 @@
   	
   	// 検索ボタンクリック、フォーム Enter → 検索 API 呼び出し
 	const handleSubmit = async(e) => {
-		
+		// @submit.prevent しているため e.preventDefault() 不要
 		id_message.textContent = null;
 		handleSearch();
   	};

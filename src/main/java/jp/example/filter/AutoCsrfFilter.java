@@ -82,7 +82,7 @@ public class AutoCsrfFilter extends HttpFilter {
 		
 		// [REQUEST] POST サブミット時のトークンチェック (Servlet を介さない html へのサブミット時も対象)
 		if (req.getDispatcherType() == DispatcherType.REQUEST && notMatchToken(req, res)) {
-			if (isAjax(req)) {
+			if (isAjax()) {
 				res.sendError(HttpServletResponse.SC_FORBIDDEN);
 			} else {
 				// トップへリダイレクト (AutoFlashFilter で使えるフラッシュ属性 MESSAGE をセットしておく)
@@ -99,10 +99,10 @@ public class AutoCsrfFilter extends HttpFilter {
 		// [REQUEST, FORWARD] トークン埋め込み (html 直接アクセス、Servlet からの jsp フォワード)
 		// ここで想定する文字列パターンに一致しない場合は、JSP に ${_csrf} を指定する必要がある
 		if (isHtml) {
-			HtmlContentResponseWrapper resWrapper = new HtmlContentResponseWrapper(res);
+			StringResponseWrapper resWrapper = new StringResponseWrapper(res);
 			super.doFilter(req, resWrapper, chain);
 			String csrfToken = (String) req.getSession().getAttribute(_csrf);
-			String html = resWrapper.getHtml()
+			String html = resWrapper.getString()
 				
 				// meta タグ追加 (単一)
 				.replaceFirst("(?i)(<head>)", format("""
@@ -141,7 +141,7 @@ public class AutoCsrfFilter extends HttpFilter {
 		}
 		
 		// 画面遷移の場合はトークンを生成し直し
-		if (!isAjax(req) || session.getAttribute(_csrf) == null) {
+		if (!isAjax() || session.getAttribute(_csrf) == null) {
 			session.setAttribute(_csrf, UUID.randomUUID().toString());
 		}
 		
@@ -165,31 +165,31 @@ public class AutoCsrfFilter extends HttpFilter {
 	}
 	
 	/**
-	 * 処理後に HTML コンテンツを文字列として操作するための HTTP レスポンスラッパークラスです。
+	 * レスポンス処理後にコンテンツを文字列として取得するための HTTP レスポンスラッパークラスです。
 	 */
-	private static class HtmlContentResponseWrapper extends HttpServletResponseWrapper {
+	private static class StringResponseWrapper extends HttpServletResponseWrapper {
 		
-		private final ByteArrayOutputStream resOutputStream = new ByteArrayOutputStream();
-		private final PrintWriter resWriter = new PrintWriter(resOutputStream);
+		private final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+		private final PrintWriter printWriter = new PrintWriter(byteArrayOutputStream);
 		
-		public HtmlContentResponseWrapper(HttpServletResponse res) {
+		public StringResponseWrapper(HttpServletResponse res) {
 			super(res);
 		}
 		
-		public String getHtml() throws UnsupportedEncodingException {
-			resWriter.flush();
-			return resOutputStream.toString(getCharacterEncoding());
+		public String getString() throws UnsupportedEncodingException {
+			printWriter.flush();
+			return byteArrayOutputStream.toString(getCharacterEncoding());
 		}
 		
 		@Override public PrintWriter getWriter() { // jsp
-			return resWriter;
+			return printWriter;
 		}
 		
 		@Override public ServletOutputStream getOutputStream() { // html
 			return new ServletOutputStream() {
 				
 				@Override public void write(int b) {
-					resOutputStream.write(b);
+					byteArrayOutputStream.write(b);
 				}
 				@Override public void setWriteListener(WriteListener writeListener) {
 					throw new UnsupportedOperationException("このメソッドは拡張子が jsp、html の場合は使用できません。");
