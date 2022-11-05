@@ -62,23 +62,23 @@ const ReactEdit = () => {
 			<label className="form-label">製品名</label> <span className="badge bg-danger">必須</span>
 			<input className="form-control" type="text" name="name" defaultValue={item.name} id="id_name"
 				onFocus={e => e.target.setSelectionRange(99,99)}
-				onChange={handleChange} required/>
+				onInput={handleChange} required/>
 		</div>
 		<div className="mb-3">
 			<label className="form-label">発売日</label> <span className="badge bg-danger">必須</span>
 			<input className="form-control w-auto" type="date" name="releaseDate" defaultValue={item.releaseDate}
-				onChange={handleChange} required/>
+				onInput={handleChange} required/>
 		</div>
 		<div className="mb-3 form-check">
 			<input type="checkbox" name="faceAuth" id="faceAuth" className="form-check-input"
-				onChange={handleChange} defaultChecked={item.faceAuth}/>
+				onInput={handleChange} defaultChecked={item.faceAuth}/>
 			<label className="form-check-label" htmlFor="faceAuth">顔認証</label>
 		</div>
 		<div className="mb-5">
 			<label className="form-label">メーカー</label>
-			{/* select は制御コンポーネントでないと警告が出るため value と onChange 使用 (... はスプレッド構文) */}
+			{/* select は制御コンポーネントでないと警告が出るため value と onInput 使用 (... はスプレッド構文) */}
 			<select name="companyId" className="form-select w-auto" value={item.companyId}
-				onChange={e => setItem({...item, companyId: e.target.value})}>
+				onInput={e => setItem({...item, companyId: e.target.value})}>
 		{companySelect.map(com => (
 				<option key={com.id} value={com.id}>{com.companyName}</option>
 		))}

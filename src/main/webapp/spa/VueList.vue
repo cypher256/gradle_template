@@ -50,7 +50,7 @@
 		<label class="form-label me-sm-3">発売日</label>
 		<div class="me-sm-4">
 			<input class="form-control w-auto mb-3 mb-sm-0" type="date" name="releaseDate"
-				@change="handleChange" :value="savedForm.releaseDate">
+				@input="handleChange" :value="savedForm.releaseDate">
 		</div>
 		<button type="submit" class="btn btn-secondary px-5">検索</button>
 		<router-link to="/edit/0" class="btn btn-secondary px-5 ms-auto">新規登録</router-link>
@@ -74,7 +74,7 @@
 				<td class="text-center">{{item.faceAuth ? '○' : ''}}</td>
 				<td>{{item.companyName}}</td>
 				<td class="text-center">
-					<router-link :to='"/edit/" + item.id' class="btn btn-secondary me-1">変更</router-link>
+					<router-link :to="'/edit/' + item.id" class="btn btn-secondary me-1">変更</router-link>
 					<button type="button" @click="() => handleDelete(item.id)" class="btn btn-warning">削除</button>
 				</td>
 			</tr>

@@ -67,11 +67,11 @@
 		<div class="mb-3">
 			<label class="form-label">発売日</label> <span class="badge bg-danger">必須</span>
 			<input class="form-control w-auto" type="date" name="releaseDate" :value="item.releaseDate"
-				@change="handleChange" required>
+				@input="handleChange" required>
 		</div>
 		<div class="mb-3 form-check">
 			<input type="checkbox" name="faceAuth" id="faceAuth" class="form-check-input"
-				@change="handleChange" :checked="item.faceAuth">
+				@input="handleChange" :checked="item.faceAuth">
 			<label class="form-check-label" for="faceAuth">顔認証</label>
 		</div>
 		<div class="mb-5">

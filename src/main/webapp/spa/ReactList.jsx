@@ -45,12 +45,12 @@ const ReactList = () => {
 		<label className="form-label me-sm-3">製品名</label>
 		<div className="me-sm-4">
 			<input className="form-control" type="search" name="name" autoFocus 
-				onChange={handleChange} defaultValue={savedForm.name}/>
+				onInput={handleChange} defaultValue={savedForm.name}/>
 		</div>
 		<label className="form-label me-sm-3">発売日</label>
 		<div className="me-sm-4">
 			<input className="form-control w-auto mb-3 mb-sm-0" type="date" name="releaseDate" 
-				onChange={handleChange} defaultValue={savedForm.releaseDate}/>
+				onInput={handleChange} defaultValue={savedForm.releaseDate}/>
 		</div>
 		<button type="submit" className="btn btn-secondary px-5">検索</button>
 		<Link to="/edit/0" className="btn btn-secondary px-5 ms-auto">新規登録</Link>
