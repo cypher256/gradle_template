@@ -7,7 +7,6 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-
 import jp.example.entity.LoginUser;
 import jp.example.form.ItemForm;
 
@@ -20,6 +19,11 @@ import jp.example.form.ItemForm;
  * レスポンスに書き込み無し (returns していない) かつ例外無しの場合は、レスポンス body は空で HTTP 200 になります。
  * Servlet でスローされた例外は AutoFlashFilter で例外メッセージがレスポンスに書き込まれ HTTP 200 または 202 になります。
  * </pre>
+ * <p>
+ * 本来 REST API は HTTP 動詞として get、post、put、delete などを使用し、エンドポイントは名詞を使用しますが、Servlet
+ * のデフォルトでは put や delete が想定どおりに動作しないため、単純に get は冪等 (副作用を起こさない)、post
+ * は冪等でないかリクエスト量が多い可能性がある処理としています。
+ * </p>
  * @author New Gradle Project Wizard (c) Pleiades MIT
  */
 public class SpaCrudServlet {
