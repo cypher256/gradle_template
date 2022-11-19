@@ -69,16 +69,16 @@ dependencies {
 	//runtimeOnly 'org.apache.taglibs:taglibs-standard-impl:1.2.+'
 	
 	// Tomcat 10.0 (jakarta)
-	compileOnly 'jakarta.servlet:jakarta.servlet-api:5.0.+'
-	compileOnly 'jakarta.servlet.jsp:jakarta.servlet.jsp-api:3.0.+'
-	runtimeOnly 'jakarta.servlet.jsp.jstl:jakarta.servlet.jsp.jstl-api:2.0.+'
-	runtimeOnly 'org.glassfish.web:jakarta.servlet.jsp.jstl:2.0.+'
+	//compileOnly 'jakarta.servlet:jakarta.servlet-api:5.0.+'
+	//compileOnly 'jakarta.servlet.jsp:jakarta.servlet.jsp-api:3.0.+'
+	//runtimeOnly 'jakarta.servlet.jsp.jstl:jakarta.servlet.jsp.jstl-api:2.0.+'
+	//runtimeOnly 'org.glassfish.web:jakarta.servlet.jsp.jstl:2.0.+'
 	
 	// Tomcat 10.1 (jakarta)
-	//compileOnly 'jakarta.servlet:jakarta.servlet-api:6.0.+'
-	//compileOnly 'jakarta.servlet.jsp:jakarta.servlet.jsp-api:3.1.+'
-	//runtimeOnly 'jakarta.servlet.jsp.jstl:jakarta.servlet.jsp.jstl-api:3.0.+'
-	//runtimeOnly 'org.glassfish.web:jakarta.servlet.jsp.jstl:3.0.+'
+	compileOnly 'jakarta.servlet:jakarta.servlet-api:6.0.+'
+	compileOnly 'jakarta.servlet.jsp:jakarta.servlet.jsp-api:3.1.+'
+	runtimeOnly 'jakarta.servlet.jsp.jstl:jakarta.servlet.jsp.jstl-api:3.0.+'
+	runtimeOnly 'org.glassfish.web:jakarta.servlet.jsp.jstl:3.0.+'
 
 	implementation 'com.fasterxml.jackson.core:jackson-databind:2.13.+' // JSON 変換
 	implementation 'commons-beanutils:commons-beanutils:1.9.+' // Bean 変換
